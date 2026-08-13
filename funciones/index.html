@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Funciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12); --surface-soft:rgba(255,255,255,.05);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh; overflow-x:hidden;
+}
+button{ font-family:inherit; }
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+
+.wrap{ max-width:640px; margin:0 auto; padding:16px 16px 50px; }
+.screen{ display:none; animation:fadeIn .35s ease; }
+.screen.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.card{
+  background:var(--surface); border:1px solid var(--border-soft); backdrop-filter:blur(6px);
+  border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; width:100%;
+}
+
+/* ---------- Portada ---------- */
+.hero{ text-align:center; padding:22px 6px 8px; }
+.hero h1{ font-size:clamp(2rem,6vw,2.8rem); margin-bottom:10px; }
+.hero .subtitle{ color:var(--text-dim); font-weight:600; }
+
+.level-selector{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(10px,2.5vw,16px);
+  width:100%; max-width:520px; margin:20px auto;
+}
+@media (max-width:480px){ .level-selector{ grid-template-columns:1fr; } }
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(16px,4vw,22px) 10px; min-height:96px; border:none; border-radius:var(--radius-sm);
+  cursor:pointer; transition:var(--transition); text-align:center; width:100%;
+  color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); }
+.level-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.level-btn .level-star{ font-size:clamp(1.5rem,4.5vw,1.9rem); }
+.level-btn .level-name{ font-weight:800; font-size:clamp(1rem,2.6vw,1.15rem); font-family:var(--font-display); }
+
+footer.credits{ text-align:center; color:var(--text-faint); font-weight:700; font-size:.78rem; padding:24px 10px 4px; }
+
+/* ---------- Barra superior (pantallas internas) ---------- */
+.app-topbar{
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px;
+  width:100%; margin-bottom:16px;
+}
+.icon-btn{
+  grid-column:1; justify-self:start; display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text);
+  padding:9px 14px; border-radius:999px; font-weight:700; font-size:.9rem; cursor:pointer;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.topbar-title{ grid-column:2; justify-self:center; font-family:var(--font-display); font-weight:800; color:var(--accent); font-size:1.05rem; }
+
+/* ---------- Función (siempre visible, grande) ---------- */
+.function-display{
+  text-align:center; font-family:var(--font-display); font-weight:800;
+  font-size:clamp(2rem,8vw,2.8rem); color:var(--accent); margin-bottom:22px;
+  letter-spacing:.5px;
+}
+
+.function-display-small{ font-size:clamp(1.3rem,5vw,1.6rem); margin-bottom:10px; }
+
+.mini-table{ width:100%; max-width:340px; margin:0 auto 16px; border-collapse:separate; border-spacing:4px; }
+.mini-table td{
+  text-align:center; font-family:var(--font-display); font-weight:800; font-size:.85rem;
+  padding:5px 2px; border-radius:8px; background:var(--surface-soft); border:1.5px solid var(--border-soft);
+  color:var(--text-dim); min-width:30px;
+}
+.mini-table .mini-label{ background:none; border:none; color:var(--text-faint); font-size:.75rem; width:22px; }
+.mini-table .mini-y{ color:var(--primary); }
+
+/* ---------- Tabla de doble entrada ---------- */
+.value-table{ width:100%; border-collapse:separate; border-spacing:6px; margin-bottom:18px; }
+.value-table td{ text-align:center; padding:0; }
+.row-label{
+  font-family:var(--font-display); font-weight:800; color:var(--text-dim); font-size:1.1rem;
+  width:34px;
+}
+.x-cell{
+  font-family:var(--font-display); font-weight:800; font-size:1.15rem; color:var(--text);
+  background:var(--surface-soft); border:2px solid var(--border-soft); border-radius:var(--radius-sm);
+  padding:10px 4px;
+}
+.y-input{
+  width:100%; font-family:var(--font-display); font-weight:800; font-size:1.15rem; text-align:center;
+  color:var(--text); background:var(--surface-soft); border:2.5px solid var(--border-soft);
+  border-radius:var(--radius-sm); padding:10px 2px; outline:none; transition:var(--transition);
+}
+.y-input:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(56,189,248,.25); }
+.y-input.correct{ border-color:var(--primary); background:rgba(52,211,153,.16); color:var(--primary); }
+
+.status-area{
+  background:rgba(251,191,36,.14); border:2px solid var(--accent); border-radius:var(--radius-sm);
+  padding:10px 14px; text-align:center; font-size:.95rem; font-weight:700; color:var(--accent);
+  margin-bottom:4px;
+}
+.status-area.ok{ background:rgba(52,211,153,.16); border-color:var(--primary); color:var(--primary); }
+
+/* ---------- Crea tu función ---------- */
+.manual-row{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin:18px 0; }
+.manual-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.manual-field input{
+  width:90px; text-align:center; font-family:var(--font-display); font-weight:800; font-size:1.4rem;
+  border:2.5px solid var(--border-soft); border-radius:var(--radius-sm); padding:10px 4px;
+  color:var(--text); background:var(--surface-soft); outline:none;
+}
+.manual-field input:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(56,189,248,.25); }
+.manual-field label{ font-size:.8rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; }
+.error-msg{
+  background:rgba(251,113,133,.16); color:#fb7185; border-radius:var(--radius-sm);
+  padding:10px 14px; text-align:center; font-weight:700; font-size:.9rem; display:none; margin-bottom:14px;
+}
+.btn{
+  display:block; width:100%; margin:0 auto; padding:14px; border:none; border-radius:14px;
+  font-family:var(--font-display); font-weight:800; font-size:1.05rem; cursor:pointer;
+  transition:var(--transition); color:#062339; background:var(--blue);
+  box-shadow:0 4px 14px rgba(56,189,248,.35);
+}
+.btn:hover{ transform:translateY(-2px); }
+
+/* ---------- Plano cartesiano ---------- */
+.tools-row{ display:flex; justify-content:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.tool-btn{
+  display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:999px;
+  border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--text);
+  font-weight:800; font-family:var(--font-display); cursor:pointer; font-size:.95rem;
+}
+.tool-btn.active{ border-color:var(--accent); background:rgba(251,191,36,.18); color:var(--accent); }
+
+.plane-wrap{
+  background:var(--surface-soft); border:1px solid var(--border-soft); border-radius:var(--radius-sm);
+  overflow:hidden; margin-bottom:16px; touch-action:none;
+}
+#planeSvg{ width:100%; height:auto; display:block; cursor:crosshair; }
+
+.graph-final{
+  text-align:center; padding:20px 10px; display:none;
+}
+.graph-final.show{ display:block; }
+.graph-final .star-burst{ display:inline-block; animation:pop .5s ease; font-size:1.6rem; }
+@keyframes pop{ 0%{transform:scale(0);} 60%{transform:scale(1.3);} 100%{transform:scale(1);} }
+.graph-final h2{ color:var(--primary); font-size:1.6rem; margin-bottom:8px; }
+
+/* ---------- Confeti ---------- */
+.celebration{ position:fixed; inset:0; pointer-events:none; z-index:9999; overflow:hidden; }
+.confetti-piece{ position:absolute; top:-20px; border-radius:2px; animation:fall linear forwards; }
+@keyframes fall{ to{ transform:translateY(110vh) rotate(600deg); opacity:.3; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- PANTALLA: PORTADA (Home Clásico) -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <h1>Funciones</h1>
+      <p class="subtitle">f(x) = mx + b — elige un nivel para practicar</p>
+    </div>
+    <div class="level-selector">
+      <button class="level-btn easy" onclick="startLevel('facil')">
+        <span class="level-star">⭐</span>
+        <span class="level-name">Fácil</span>
+      </button>
+      <button class="level-btn mid" onclick="startLevel('intermedio')">
+        <span class="level-star">⭐⭐</span>
+        <span class="level-name">Intermedio</span>
+      </button>
+      <button class="level-btn hard" onclick="startLevel('dificil')">
+        <span class="level-star">⭐⭐⭐</span>
+        <span class="level-name">Difícil</span>
+      </button>
+      <button class="level-btn custom" onclick="goToManual()">
+        <span class="level-star">✏️</span>
+        <span class="level-name">Crea tu función</span>
+      </button>
+    </div>
+    <footer class="credits">Funciones · Material interactivo para Educación Básica y Media</footer>
+  </div>
+
+  <!-- PANTALLA: CREA TU FUNCIÓN -->
+  <div class="screen" id="screen-manual">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+    </div>
+    <div class="card">
+      <h1 style="font-size:1.5rem; text-align:center; margin-bottom:6px;">Crea tu función</h1>
+      <p style="text-align:center; color:var(--text-dim); margin-bottom:6px;">Elige los valores de m y b</p>
+      <div id="manualError" class="error-msg"></div>
+      <div class="manual-row">
+        <div class="manual-field">
+          <input type="text" id="manualM" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="m">
+          <label>m</label>
+        </div>
+        <div class="manual-field" style="font-family:var(--font-display); font-weight:800; font-size:1.6rem; color:var(--text-dim); padding-top:10px;">x +</div>
+        <div class="manual-field">
+          <input type="text" id="manualB" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="b">
+          <label>b</label>
+        </div>
+      </div>
+      <button class="btn" onclick="startManual()">Comenzar</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: TABLA DE DOBLE ENTRADA -->
+  <div class="screen" id="screen-table">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+    </div>
+    <div class="card">
+      <div class="function-display" id="functionDisplayTable"></div>
+
+      <table class="value-table">
+        <tr>
+          <td class="row-label">x</td>
+          <td class="x-cell">-2</td>
+          <td class="x-cell">-1</td>
+          <td class="x-cell">0</td>
+          <td class="x-cell">1</td>
+          <td class="x-cell">2</td>
+        </tr>
+        <tr>
+          <td class="row-label">y</td>
+          <td><input type="text" class="y-input" data-x="-2" inputmode="numeric" autocomplete="off"></td>
+          <td><input type="text" class="y-input" data-x="-1" inputmode="numeric" autocomplete="off"></td>
+          <td><input type="text" class="y-input" data-x="0" inputmode="numeric" autocomplete="off"></td>
+          <td><input type="text" class="y-input" data-x="1" inputmode="numeric" autocomplete="off"></td>
+          <td><input type="text" class="y-input" data-x="2" inputmode="numeric" autocomplete="off"></td>
+        </tr>
+      </table>
+
+      <div id="tableStatus" class="status-area">Completa la tabla reemplazando x en la función</div>
+    </div>
+  </div>
+
+  <!-- PANTALLA: PLANO CARTESIANO -->
+  <div class="screen" id="screen-graph">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+    </div>
+    <div class="card">
+      <div class="function-display function-display-small" id="functionDisplayGraph"></div>
+
+      <table class="mini-table" id="miniTable"></table>
+
+      <div class="tools-row">
+        <button class="tool-btn active" id="toolPointBtn" onclick="setTool('point')">📍 Punto</button>
+        <button class="tool-btn" id="toolLineBtn" onclick="setTool('line')">📏 Recta</button>
+        <button class="tool-btn" onclick="zoomIn()">➕</button>
+        <button class="tool-btn" onclick="zoomOut()">➖</button>
+        <button class="tool-btn" onclick="zoomReset()">🎯</button>
+      </div>
+
+      <div class="plane-wrap">
+        <svg id="planeSvg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div id="graphStatus" class="status-area">Marca los 5 puntos de tu tabla, luego traza la recta que los une</div>
+
+      <div class="graph-final" id="graphFinal">
+        <span class="star-burst">⭐</span>
+        <h2>¡Función graficada correctamente!</h2>
+        <button class="btn" onclick="goHome()" style="max-width:280px; margin:14px auto 0;">🔄 Practicar otra función</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="celebration" class="celebration"></div>
+
+<script>
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+const App = {
+  m: 0,
+  b: 0,
+  points: {},        // {x: y} correctamente ingresados en la tabla
+  placedPoints: [],   // [{x,y}] puestos en el plano
+  userLine: null,      // {m,b} de la recta trazada por el usuario
+  tool: 'point',
+  lineSelection: []     // puntos elegidos para trazar la recta (máx 2)
+};
+
+function randomInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+/* ============================================================
+   GENERACIÓN POR NIVEL
+   ============================================================ */
+const LEVEL_GENERATORS = {
+  facil: () => ({ m: randomInt(2,5), b: randomInt(-5,5) }),
+  intermedio: () => {
+    const variant = randomInt(1,3);
+    if(variant === 1){
+      let b = randomInt(-5,5);
+      while(b === 0) b = randomInt(-5,5);
+      return { m: Math.random() < 0.5 ? 1 : -1, b };
+    } else if(variant === 2){
+      const b = Math.random() < 0.5 ? randomInt(-10,-6) : randomInt(6,10);
+      return { m: randomInt(2,5), b };
+    } else {
+      const m = Math.random() < 0.5 ? randomInt(-5,-2) : randomInt(2,7);
+      return { m, b: randomInt(-5,5) };
+    }
+  },
+  dificil: () => ({
+    m: Math.random() < 0.5 ? randomInt(-10,-4) : randomInt(4,10),
+    b: randomInt(4,15)
+  })
+};
+
+function startLevel(level){
+  const gen = LEVEL_GENERATORS[level]();
+  App.m = gen.m;
+  App.b = gen.b;
+  buildTableScreen();
+}
+
+/* ============================================================
+   CREA TU FUNCIÓN
+   ============================================================ */
+function goToManual(){
+  hideError('manualError');
+  document.getElementById('manualM').value = '';
+  document.getElementById('manualB').value = '';
+  switchScreen('screen-manual');
+  setTimeout(() => document.getElementById('manualM').focus(), 250);
+}
+
+function startManual(){
+  const mVal = document.getElementById('manualM').value.trim();
+  const bVal = document.getElementById('manualB').value.trim();
+  const m = parseInt(mVal, 10);
+  const b = bVal === '' ? 0 : parseInt(bVal, 10);
+
+  if(mVal === '' || isNaN(m)){
+    showError('manualError', 'Escribe un valor para m.');
+    return;
+  }
+  if(m === 0){
+    showError('manualError', 'm no puede ser 0 (la función dejaría de tener pendiente).');
+    return;
+  }
+  if(isNaN(b)){
+    showError('manualError', 'El valor de b no es válido.');
+    return;
+  }
+  if(Math.abs(m) > 20 || Math.abs(b) > 30){
+    showError('manualError', 'Elige valores más chicos, para que la tabla y el gráfico se vean bien.');
+    return;
+  }
+
+  hideError('manualError');
+  App.m = m;
+  App.b = b;
+  buildTableScreen();
+}
+
+/* ============================================================
+   FORMATO DE LA FUNCIÓN
+   ============================================================ */
+function formatFunction(m, b){
+  let mPart;
+  if(m === 1) mPart = 'x';
+  else if(m === -1) mPart = '-x';
+  else mPart = m + 'x';
+
+  let bPart = '';
+  if(b > 0) bPart = ' + ' + b;
+  else if(b < 0) bPart = ' − ' + Math.abs(b);
+
+  return 'f(x) = ' + mPart + bPart;
+}
+
+/* ============================================================
+   PANTALLA: TABLA
+   ============================================================ */
+function buildTableScreen(){
+  App.points = {};
+  const text = formatFunction(App.m, App.b);
+  document.getElementById('functionDisplayTable').textContent = text;
+
+  const status = document.getElementById('tableStatus');
+  status.textContent = 'Completa la tabla reemplazando x en la función';
+  status.classList.remove('ok');
+
+  document.querySelectorAll('.y-input').forEach(input => {
+    input.value = '';
+    input.classList.remove('correct');
+    input.disabled = false;
+    input.oninput = onYInput;
+    input.onkeydown = onYKeydown;
+  });
+
+  switchScreen('screen-table');
+  setTimeout(() => {
+    const first = document.querySelector('.y-input[data-x="-2"]');
+    if(first) first.focus();
+  }, 250);
+}
+
+function onYInput(e){
+  const input = e.target;
+  input.value = input.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+  const x = parseInt(input.dataset.x, 10);
+  const expected = App.m * x + App.b;
+  const val = parseInt(input.value, 10);
+  const wasCorrect = input.classList.contains('correct');
+  const isCorrect = !isNaN(val) && val === expected;
+
+  input.classList.toggle('correct', isCorrect);
+
+  if(isCorrect && !wasCorrect){
+    App.points[x] = val;
+    focusNextInput(input);
+    checkTableComplete();
+  } else if(!isCorrect && wasCorrect){
+    delete App.points[x];
+  }
+}
+
+function onYKeydown(e){
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    focusNextInput(e.target);
+  }
+}
+
+function focusNextInput(current){
+  const inputs = Array.from(document.querySelectorAll('.y-input'));
+  const idx = inputs.indexOf(current);
+  const next = inputs[idx+1];
+  if(next && !next.classList.contains('correct')) next.focus();
+  else if(next) next.focus();
+}
+
+function checkTableComplete(){
+  const allCorrect = document.querySelectorAll('.y-input.correct').length === 5;
+  if(!allCorrect) return;
+
+  const status = document.getElementById('tableStatus');
+  status.textContent = '¡Tabla completa! Vamos a graficar esta función';
+  status.classList.add('ok');
+  triggerCelebration();
+
+  document.querySelectorAll('.y-input').forEach(i => i.disabled = true);
+
+  setTimeout(() => buildGraphScreen(), 1000);
+}
+
+/* ============================================================
+   PANTALLA: PLANO CARTESIANO
+   ============================================================ */
+let planeRange = null;
+
+function buildMiniTable(){
+  const xs = [-2,-1,0,1,2];
+  const rowX = xs.map(x => '<td class="mini-x">' + x + '</td>').join('');
+  const rowY = xs.map(x => '<td class="mini-y">' + (App.m*x + App.b) + '</td>').join('');
+  document.getElementById('miniTable').innerHTML =
+    '<tr><td class="mini-label">x</td>' + rowX + '</tr>' +
+    '<tr><td class="mini-label">y</td>' + rowY + '</tr>';
+}
+
+function buildGraphScreen(){
+  document.getElementById('functionDisplayGraph').textContent = formatFunction(App.m, App.b);
+  buildMiniTable();
+  App.placedPoints = [];
+  App.userLine = null;
+  App.lineSelection = [];
+  App.tool = 'point';
+  setTool('point');
+  view = { scale:1, panX:0, panY:0 };
+
+  const status = document.getElementById('graphStatus');
+  status.textContent = 'Marca los 5 puntos de tu tabla, luego traza la recta que los une';
+  status.classList.remove('ok');
+  document.getElementById('graphFinal').classList.remove('show');
+
+  planeRange = computeAxisRange(App.m, App.b);
+  drawPlane();
+  setupPlaneGestures();
+  switchScreen('screen-graph');
+}
+
+function computeAxisRange(m, b){
+  const ys = [-2,-1,0,1,2].map(x => m*x + b);
+  let yMin = Math.min(...ys, 0, -10);
+  let yMax = Math.max(...ys, 0, 10);
+  yMin -= 2; yMax += 2;
+
+  return { xMin:-6, xMax:6, xStep:1, yMin, yMax, yStep: 1 };
+}
+
+const SVG_WIDTH = 400;
+let SVG_HEIGHT = 400;
+const SVG_PAD = 26;
+
+// Estado de zoom/desplazamiento. scale=1 es la vista inicial (la que
+// calcula computeAxisRange); panX/panY desplazan esa vista.
+let view = { scale: 1, panX: 0, panY: 0 };
+
+function dataToPx(x, y){
+  const w = SVG_WIDTH - SVG_PAD*2;
+  const h = SVG_HEIGHT - SVG_PAD*2;
+  const px = SVG_PAD + ((x - planeRange.xMin) / (planeRange.xMax - planeRange.xMin)) * w;
+  const py = SVG_PAD + h - ((y - planeRange.yMin) / (planeRange.yMax - planeRange.yMin)) * h;
+  return { px, py };
+}
+
+function pxToData(px, py){
+  const w = SVG_WIDTH - SVG_PAD*2;
+  const h = SVG_HEIGHT - SVG_PAD*2;
+  const x = planeRange.xMin + ((px - SVG_PAD) / w) * (planeRange.xMax - planeRange.xMin);
+  const y = planeRange.yMin + ((SVG_PAD + h - py) / h) * (planeRange.yMax - planeRange.yMin);
+  return { x, y };
+}
+
+/** Convierte una coordenada de pantalla (clientX/clientY) a coordenadas
+ *  del SVG, respetando el zoom/desplazamiento actual — usa la matriz de
+ *  transformación real del navegador, así que siempre da el punto exacto
+ *  bajo el dedo/cursor, sin importar cuánto zoom haya. */
+function screenToSvgPoint(clientX, clientY){
+  const svg = document.getElementById('planeSvg');
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return { px: svgP.x, py: svgP.y };
+}
+
+function currentViewBox(){
+  const w = SVG_WIDTH / view.scale;
+  const h = SVG_HEIGHT / view.scale;
+  const x = (SVG_WIDTH - w)/2 + view.panX;
+  const y = (SVG_HEIGHT - h)/2 + view.panY;
+  return { x, y, w, h };
+}
+
+function applyViewBox(){
+  const vb = currentViewBox();
+  document.getElementById('planeSvg').setAttribute('viewBox', vb.x+' '+vb.y+' '+vb.w+' '+vb.h);
+}
+
+function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+
+function zoomIn(){ view.scale = clamp(view.scale*1.4, 0.5, 6); applyViewBox(); }
+function zoomOut(){ view.scale = clamp(view.scale/1.4, 0.5, 6); applyViewBox(); }
+function zoomReset(){ view = { scale:1, panX:0, panY:0 }; applyViewBox(); }
+
+function drawPlane(){
+  const svg = document.getElementById('planeSvg');
+
+  // Cada unidad de Y necesita al menos ~15px para que su número no se
+  // amontone con el de al lado (recuerda: siempre enumeramos de 1 en 1).
+  const yUnits = planeRange.yMax - planeRange.yMin;
+  SVG_HEIGHT = Math.max(400, Math.round(yUnits * 15) + SVG_PAD*2);
+
+  applyViewBox();
+  svg.innerHTML = '';
+
+  const ns = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    Object.keys(attrs).forEach(k => e.setAttribute(k, attrs[k]));
+    return e;
+  }
+
+  // La grilla se dibuja bastante más ancha que la vista inicial, para que
+  // al desplazarse (pan) o alejar el zoom siempre haya líneas que ver,
+  // no un vacío.
+  const gridXMin = planeRange.xMin - 20, gridXMax = planeRange.xMax + 20;
+  const gridYMin = planeRange.yMin - 30, gridYMax = planeRange.yMax + 30;
+
+  for(let x = Math.ceil(gridXMin); x <= gridXMax; x += 1){
+    const p1 = dataToPx(x, gridYMin);
+    const p2 = dataToPx(x, gridYMax);
+    svg.appendChild(el('line', {
+      x1:p1.px, y1:p1.py, x2:p2.px, y2:p2.py,
+      stroke: x === 0 ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.1)',
+      'stroke-width': x === 0 ? 1.6 : 1
+    }));
+  }
+  for(let y = Math.ceil(gridYMin); y <= gridYMax; y += 1){
+    const p1 = dataToPx(gridXMin, y);
+    const p2 = dataToPx(gridXMax, y);
+    svg.appendChild(el('line', {
+      x1:p1.px, y1:p1.py, x2:p2.px, y2:p2.py,
+      stroke: y === 0 ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.1)',
+      'stroke-width': y === 0 ? 1.6 : 1
+    }));
+  }
+
+  // Etiquetas de los ejes — de 1 en 1 en ambos ejes
+  for(let x = Math.ceil(gridXMin); x <= gridXMax; x += 1){
+    if(x === 0) continue;
+    const p = dataToPx(x, 0);
+    const t = el('text', { x:p.px, y:p.py+14, fill:'rgba(255,255,255,.75)', 'font-size':'9', 'text-anchor':'middle' });
+    t.textContent = x;
+    svg.appendChild(t);
+  }
+  for(let y = Math.ceil(gridYMin); y <= gridYMax; y += 1){
+    if(y === 0) continue;
+    const p = dataToPx(0, y);
+    const t = el('text', { x:p.px-8, y:p.py+3, fill:'rgba(255,255,255,.75)', 'font-size':'9', 'text-anchor':'end' });
+    t.textContent = y;
+    svg.appendChild(t);
+  }
+
+  // Zona de gestos: toques, arrastre para desplazar, rueda/pellizco para zoom
+  const overlay = el('rect', { x:gridXMin*4, y:gridYMin*4, width:(gridXMax-gridXMin)*8, height:(gridYMax-gridYMin)*8, fill:'transparent' });
+  svg.appendChild(overlay);
+
+  // Recta trazada por el usuario (si existe) — se extiende por toda la grilla ancha
+  if(App.userLine){
+    const y1 = App.userLine.m * gridXMin + App.userLine.b;
+    const y2 = App.userLine.m * gridXMax + App.userLine.b;
+    const p1 = dataToPx(gridXMin, y1);
+    const p2 = dataToPx(gridXMax, y2);
+    svg.appendChild(el('line', {
+      x1:p1.px, y1:p1.py, x2:p2.px, y2:p2.py,
+      stroke:'#38bdf8', 'stroke-width':3, 'stroke-linecap':'round'
+    }));
+  }
+
+  // Puntos puestos por el usuario
+  App.placedPoints.forEach(pt => {
+    const p = dataToPx(pt.x, pt.y);
+    const isSelected = App.lineSelection.some(s => s.x === pt.x && s.y === pt.y);
+    svg.appendChild(el('circle', {
+      cx:p.px, cy:p.py, r: isSelected ? 7 : 6,
+      fill:'#fbbf24', stroke:'#1e1147', 'stroke-width':2
+    }));
+  });
+}
+
+/* ---------- Gestos: toque = punto/recta, arrastre = desplazar, pellizco = zoom ---------- */
+const activePointers = new Map();
+let pinchStartDist = null, pinchStartScale = null;
+let dragStart = null, isDragging = false;
+const DRAG_THRESHOLD = 6;
+
+function setupPlaneGestures(){
+  const svg = document.getElementById('planeSvg');
+  svg.onpointerdown = (e) => {
+    svg.setPointerCapture(e.pointerId);
+    activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+    if(activePointers.size === 2){
+      const pts = [...activePointers.values()];
+      pinchStartDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      pinchStartScale = view.scale;
+      isDragging = false;
+    } else if(activePointers.size === 1){
+      dragStart = { x:e.clientX, y:e.clientY, panX:view.panX, panY:view.panY };
+      isDragging = false;
+    }
+  };
+
+  svg.onpointermove = (e) => {
+    if(!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+    if(activePointers.size === 2 && pinchStartDist){
+      const pts = [...activePointers.values()];
+      const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      view.scale = clamp(pinchStartScale * (dist/pinchStartDist), 0.5, 6);
+      applyViewBox();
+      return;
+    }
+
+    if(activePointers.size === 1 && dragStart){
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      if(!isDragging && Math.hypot(dx,dy) > DRAG_THRESHOLD) isDragging = true;
+      if(isDragging){
+        const rect = svg.getBoundingClientRect();
+        const unitsPerScreenPx = (SVG_WIDTH/view.scale) / rect.width;
+        view.panX = dragStart.panX - dx*unitsPerScreenPx;
+        view.panY = dragStart.panY - dy*unitsPerScreenPx;
+        applyViewBox();
+      }
+    }
+  };
+
+  svg.onpointerup = (e) => {
+    const wasTap = activePointers.size === 1 && !isDragging;
+    const pos = activePointers.get(e.pointerId);
+    activePointers.delete(e.pointerId);
+
+    if(activePointers.size === 0){
+      if(wasTap && pos) handleTap(pos.x, pos.y);
+      isDragging = false; dragStart = null; pinchStartDist = null;
+    } else if(activePointers.size === 1){
+      const remaining = [...activePointers.values()][0];
+      dragStart = { x:remaining.x, y:remaining.y, panX:view.panX, panY:view.panY };
+      isDragging = false; pinchStartDist = null;
+    }
+  };
+  svg.onpointercancel = svg.onpointerup;
+
+  svg.onwheel = (e) => {
+    e.preventDefault();
+    view.scale = clamp(view.scale * (e.deltaY < 0 ? 1.15 : 1/1.15), 0.5, 6);
+    applyViewBox();
+  };
+}
+
+function handleTap(clientX, clientY){
+  const svgPt = screenToSvgPoint(clientX, clientY);
+  if(App.tool === 'point') handlePointTap(svgPt.px, svgPt.py);
+  else selectForLine(svgPt.px, svgPt.py);
+}
+
+/** Si el toque cae cerca de un punto ya puesto, lo quita (sin importar si
+ *  no calzó exacto). Si no, agrega uno nuevo en la coordenada más cercana. */
+function handlePointTap(svgPx, svgPy){
+  let closestIdx = -1, closestDist = Infinity;
+  App.placedPoints.forEach((pt, idx) => {
+    const p = dataToPx(pt.x, pt.y);
+    const dist = Math.hypot(p.px - svgPx, p.py - svgPy);
+    if(dist < closestDist){ closestDist = dist; closestIdx = idx; }
+  });
+
+  if(closestIdx >= 0 && closestDist <= 20){
+    App.placedPoints.splice(closestIdx, 1);
+  } else {
+    const data = pxToData(svgPx, svgPy);
+    App.placedPoints.push({ x: Math.round(data.x), y: Math.round(data.y) });
+  }
+  drawPlane();
+  updateGraphStatus();
+}
+
+function selectForLine(px, py){
+  // Busca el punto ya puesto más cercano al toque
+  let closest = null, closestDist = Infinity;
+  App.placedPoints.forEach(pt => {
+    const p = dataToPx(pt.x, pt.y);
+    const dist = Math.hypot(p.px - px, p.py - py);
+    if(dist < closestDist){ closestDist = dist; closest = pt; }
+  });
+  if(!closest || closestDist > 24) return; // muy lejos de cualquier punto puesto
+
+  const already = App.lineSelection.findIndex(s => s.x === closest.x && s.y === closest.y);
+  if(already >= 0){
+    App.lineSelection.splice(already, 1);
+  } else {
+    App.lineSelection.push(closest);
+    if(App.lineSelection.length > 2) App.lineSelection.shift();
+  }
+
+  if(App.lineSelection.length === 2){
+    const [a, b2] = App.lineSelection;
+    if(a.x !== b2.x){
+      const m = (b2.y - a.y) / (b2.x - a.x);
+      const b = a.y - m * a.x;
+      App.userLine = { m, b };
+    }
+  } else {
+    App.userLine = null;
+  }
+
+  drawPlane();
+  updateGraphStatus();
+}
+
+function setTool(tool){
+  App.tool = tool;
+  document.getElementById('toolPointBtn').classList.toggle('active', tool === 'point');
+  document.getElementById('toolLineBtn').classList.toggle('active', tool === 'line');
+}
+
+
+function updateGraphStatus(){
+  const status = document.getElementById('graphStatus');
+
+  const correctCount = [-2,-1,0,1,2].filter(x => {
+    const y = App.m * x + App.b;
+    return App.placedPoints.some(p => p.x === x && p.y === y);
+  }).length;
+
+  if(correctCount < 5){
+    status.textContent = 'Llevas ' + correctCount + ' de 5 puntos correctos marcados.';
+    status.classList.remove('ok');
+    return;
+  }
+
+  if(!App.userLine){
+    status.textContent = '¡Los 5 puntos están bien! Ahora usa la herramienta Recta y toca dos de tus puntos.';
+    status.classList.remove('ok');
+    return;
+  }
+
+  const EPS = 0.001;
+  const lineOk = Math.abs(App.userLine.m - App.m) < EPS && Math.abs(App.userLine.b - App.b) < EPS;
+
+  if(lineOk){
+    status.textContent = '¡Función graficada correctamente!';
+    status.classList.add('ok');
+    document.getElementById('graphFinal').classList.add('show');
+    triggerCelebration();
+  } else {
+    status.textContent = 'Esa recta no calza con la función. Revisa los dos puntos que elegiste.';
+    status.classList.remove('ok');
+  }
+}
+
+/* ============================================================
+   NAVEGACIÓN Y UTILIDADES
+   ============================================================ */
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function goHome(){ switchScreen('screen-home'); }
+
+function showError(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError(id){
+  const el = document.getElementById(id);
+  el.style.display = 'none';
+}
+
+/* ============================================================
+   CELEBRACIÓN
+   ============================================================ */
+function triggerCelebration(){
+  const container = document.getElementById('celebration');
+  const colors = ['#34d399','#38bdf8','#fbbf24','#f472b6','#a78bfa'];
+  for(let i=0;i<28;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random()*6;
+    piece.style.width = size+'px';
+    piece.style.height = (size*0.4)+'px';
+    piece.style.left = Math.random()*100+'%';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (1.6 + Math.random()*1.2)+'s';
+    piece.style.animationDelay = (Math.random()*0.3)+'s';
+    container.appendChild(piece);
+    setTimeout(() => piece.remove(), 3200);
+  }
+}
+</script>
+</body>
+</html>
