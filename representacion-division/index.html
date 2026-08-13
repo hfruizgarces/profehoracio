@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <title>División</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           VARIABLES Y RESET
+           ============================================ */
+        :root {
+            color-scheme: dark;
+            --bg-1: #1e1147;
+            --bg-2: #3b1785;
+            --bg-3: #5b21b6;
+            --color-primary: #38bdf8;
+            --color-primary-dark: #7dd3fc;
+            --color-secondary: #fbbf24;
+            --color-success: #34d399;
+            --color-bg: #1e1147;
+            --color-card: rgba(255,255,255,.07);
+            --color-text: #f6f3ff;
+            --color-text-light: #c9bdf0;
+            --border-soft: rgba(255,255,255,.16);
+            --surface-soft: rgba(255,255,255,.05);
+            --shadow: 0 14px 34px rgba(0,0,0,0.4);
+            --shadow-hover: 0 20px 44px rgba(0,0,0,0.5);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-display: 'Baloo 2', 'Trebuchet MS', sans-serif;
+            --font-body: 'Nunito', 'Segoe UI', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            font-family: var(--font-body);
+            background:
+                radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+                radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+                linear-gradient(160deg, var(--bg-1), var(--bg-2));
+            background-attachment: fixed;
+            color: var(--color-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .btn, .level-name, .strategy-title { font-family: var(--font-display); }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+        /* ============================================
+           UTILIDADES
+           ============================================ */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 16px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--color-card);
+            border: 1px solid var(--border-soft);
+            backdrop-filter: blur(6px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            width: 100%;
+            max-width: 960px;
+            transition: var(--transition);
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            color: var(--color-text);
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .hero { text-align: center; padding: 26px 10px 10px; }
+        .hero h1 { font-size: clamp(2.1rem, 5.5vw, 3.4rem); line-height: 1.05; margin-bottom: 12px; }
+        .hero .subtitle { margin-bottom: 30px; }
+
+        footer.credits { text-align: center; color: var(--color-text-light); font-weight: 700; font-size: .78rem; padding: 20px 10px 4px; }
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+
+        .error-msg {
+            background: rgba(251,113,133,.16);
+            color: #fb7185;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            animation: shake 0.4s ease;
+            font-size: 0.95rem;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .success-msg {
+            background: rgba(52,211,153,.16);
+            color: #34d399;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* ============================================
+           PANTALLA 1 - BIENVENIDA
+           ============================================ */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .division-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .division-box {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .division-box input {
+            width: 100px;
+            height: 85px;
+            font-size: 2.2rem;
+            text-align: center;
+            border: 3px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            background: var(--surface-soft);
+            color: var(--color-text);
+            font-family: var(--font-display);
+            font-weight: 700;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .division-box input:focus {
+            border-color: var(--color-primary);
+            background: var(--surface-soft);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+        }
+
+        .division-box label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .division-symbol {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-top: -16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 36px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            color: #062339;
+            background: var(--color-primary);
+            box-shadow: 0 3px 12px rgba(56, 189, 248, 0.35);
+        }
+
+        .btn:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .app-topbar {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 14px;
+        }
+        .app-topbar .icon-btn { grid-column: 1; justify-self: start; }
+        .app-topbar .topbar-division { grid-column: 2; justify-self: center; }
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--color-card);
+            border: 1px solid var(--border-soft);
+            color: var(--color-text);
+            padding: 9px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            min-height: 44px;
+            transition: background .15s, transform .1s;
+        }
+        .icon-btn:hover { background: var(--surface-soft); }
+        .icon-btn:active { transform: scale(.96); }
+        .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .icon-btn:disabled:hover { background: var(--color-card); }
+        .topbar-division {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #fbbf24;
+        }
+
+        .btn-secondary {
+            color: #3b2405;
+            background: var(--color-secondary);
+            box-shadow: 0 3px 12px rgba(251, 191, 36, 0.35);
+        }
+
+        .btn-secondary:hover {
+            background: #f59e0b;
+        }
+
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(10px, 2.5vw, 16px);
+            width: 100%;
+            max-width: 520px;
+            margin: 16px auto;
+        }
+        @media (max-width: 480px) { .level-selector { grid-template-columns: 1fr; } }
+        .level-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: clamp(16px,4vw,22px) 10px;
+            min-height: 96px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            width: 100%;
+            font-family: inherit;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,.3);
+        }
+        .level-btn.easy { background: linear-gradient(140deg,#0f9d70,#34d399); }
+        .level-btn.mid { background: linear-gradient(140deg,#1d4ed8,#38bdf8); }
+        .level-btn.hard { background: linear-gradient(140deg,#b91c66,#f472b6); }
+        .level-btn.custom { background: linear-gradient(140deg,#92400e,#fbbf24); }
+        .level-btn:hover, .level-btn.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.4);
+            outline: 3px solid #fff;
+            outline-offset: -3px;
+        }
+        .level-btn .level-star { font-size: clamp(1.5rem, 4.5vw, 1.9rem); }
+        .level-btn .level-name {
+            font-weight: 800;
+            color: #fff;
+            font-size: clamp(1rem, 2.6vw, 1.15rem);
+            font-family: var(--font-display);
+        }
+        /* ============================================
+           PANTALLA 2 - SELECCIÓN DE ESTRATEGIA
+           ============================================ */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .strategy-card {
+            background: var(--color-card);
+            border: 2px solid var(--border-soft);
+            backdrop-filter: blur(6px);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .strategy-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .strategy-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            margin-bottom: 8px;
+        }
+        .strategy-desc {
+            font-size: 0.95rem;
+            color: var(--color-text-light);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           PANTALLA REPARTO (original)
+           ============================================ */
+        .zones-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .bags-area { width: 100%; }
+        .zone-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .objects-pool {
+            background:
+                radial-gradient(ellipse at 50% -10%, rgba(56,189,248,.28), transparent 60%),
+                linear-gradient(180deg, rgba(91,33,182,.28), rgba(56,189,248,.1));
+            border-radius: 26px;
+            padding: 18px 14px;
+            min-height: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+            justify-content: center;
+            border: 2px solid rgba(56,189,248,.5);
+            box-shadow: inset 0 2px 10px rgba(255,255,255,.12), inset 0 -10px 18px rgba(0,0,0,.25), 0 6px 16px rgba(0,0,0,.25);
+            transition: var(--transition);
+        }
+        .objects-pool.highlight {
+            background: rgba(56,189,248,.16);
+            border-color: var(--color-primary);
+        }
+        .marble {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffd1a9, #ff8f5b, #c2410c);
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2), 1px 3px 6px rgba(0,0,0,0.12);
+            cursor: grab;
+            position: relative;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            flex-shrink: 0;
+            z-index: 10;
+            touch-action: none;
+        }
+        .marble::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 8px;
+            height: 5px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+        .marble:hover {
+            transform: scale(1.12);
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2), 3px 6px 12px rgba(0,0,0,0.2);
+        }
+        .marble.dragging {
+            cursor: grabbing;
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            transform: scale(1.25);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+        .marble.dropped {
+            animation: dropIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes dropIn {
+            0% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        .marble.c1 { background: radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46); }
+        .marble.c2 { background: radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af); }
+        .marble.c3 { background: radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d); }
+        .marble.c4 { background: radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e); }
+        .marble.c5 { background: radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6); }
+        .marble.c6 { background: radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b); }
+
+        .bags-container {
+            display: grid;
+            grid-template-columns: repeat(5, auto);
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .bags-container { grid-template-columns: repeat(5, auto); gap: 6px; }
+        }
+        .bag-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .bag {
+            width: 64px;
+            height: 64px;
+            position: relative;
+            transition: var(--transition);
+        }
+        .bag.highlight { transform: scale(1.06); }
+        .box-square {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            box-shadow: inset 0 -8px 12px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.2), 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .bag-content {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 1px;
+            padding: 2px 1px;
+            overflow: hidden;
+        }
+        .bag-content .marble {
+            width: 14px;
+            height: 14px;
+            cursor: default;
+            pointer-events: none;
+        }
+        .bag-content .marble:hover { transform: none; }
+        .bag-count {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(91, 140, 255, 0.25);
+            cursor: pointer;
+            transition: transform .12s ease;
+        }
+        .bag-count:hover { transform: scale(1.1); }
+        .bag-count:active { transform: scale(0.92); }
+        .status-area {
+            background: rgba(251,191,36,.14);
+            border: 2px solid #fbbf24;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+        #repartoStatus {
+            white-space: normal;
+        }
+        .status-area.ok {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+
+        /* ============================================
+           PANEL MATEMÁTICO
+           ============================================ */
+        .math-panel {
+            display: none;
+            background: rgba(56,189,248,.1);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 20px;
+            animation: slideUp 0.5s ease;
+        }
+        .math-panel.show { display: block; }
+        .math-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            margin-bottom: 14px;
+        }
+        .math-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .math-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .math-box {
+            width: 64px;
+            height: 54px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 10px;
+            background: var(--surface-soft);
+            color: var(--color-text);
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .math-box.filled {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .math-box.input-box {
+            cursor: text;
+            outline: none;
+            padding: 0;
+            font-family: inherit;
+        }
+        .math-box.input-box:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .math-box.input-box.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .math-box.input-box.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+            animation: shake 0.4s ease;
+        }
+        .math-symbol {
+            color: var(--color-primary);
+            font-size: 1.6rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .math-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 2px;
+        }
+        .math-label-question {
+            text-transform: none;
+            font-weight: 600;
+            max-width: 130px;
+            line-height: 1.25;
+        }
+        .math-division-title {
+            text-align: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(1.8rem, 6vw, 2.4rem);
+            color: #fbbf24;
+            margin-bottom: 16px;
+        }
+        .math-sentence {
+            text-align: center;
+            font-size: clamp(0.85rem, 4.2vw, 1.15rem);
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+        .math-inline-input {
+            width: clamp(38px, 12vw, 64px);
+            text-align: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(0.9rem, 4.5vw, 1.3rem);
+            border: 2.5px solid var(--border-soft);
+            border-radius: 10px;
+            padding: 6px 4px;
+            color: var(--color-text);
+            background: var(--surface-soft);
+            margin: 0 4px;
+            outline: none;
+        }
+        .math-inline-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(56,189,248,0.25); }
+        .math-inline-input.correct { border-color: var(--color-success); background: rgba(52,211,153,.16); color: #34d399; }
+        .math-inline-input:disabled { cursor: not-allowed; opacity: 0.9; }
+        .final-message {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 14px 0;
+            display: none;
+        }
+        .final-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        .final-message.correct { color: #34d399; }
+        .final-message.incorrect { color: #fb7185; }
+        .star-burst {
+            display: inline-block;
+            animation: starPop 0.6s ease infinite alternate;
+        }
+        @keyframes starPop {
+            from { transform: scale(1); }
+            to { transform: scale(1.25); }
+        }
+
+        /* ============================================
+           MODO AGRUPACIÓN
+           ============================================ */
+        .grouping-area {
+            background: var(--surface-soft);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            min-height: 220px;
+            position: relative;
+            border: 2px dashed var(--border-soft);
+            margin-bottom: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 4px;
+        }
+        .agrupacion-token {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            border: 2px solid #94a3b8;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15), 1px 3px 6px rgba(0,0,0,0.25);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #475569;
+            user-select: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+            margin: 4px;
+            position: relative;
+        }
+        .agrupacion-token::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 8px;
+            height: 5px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+        .agrupacion-token:hover { transform: scale(1.12); }
+        .agrupacion-token.selected {
+            transform: scale(1.18);
+            box-shadow: 0 0 0 3px var(--color-primary), inset -2px -2px 6px rgba(0,0,0,0.15), 2px 4px 10px rgba(0,0,0,0.2);
+        }
+        .agrupacion-token.grouped {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+        }
+        .agrupacion-groups-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .agrupacion-leftover-wrap {
+            flex-basis: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            margin: 6px;
+        }
+        .agrupacion-group {
+            display: inline-grid;
+            grid-template-rows: repeat(var(--rows, 1), auto);
+            grid-auto-flow: column;
+            gap: 4px;
+            align-items: center;
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            margin: 6px;
+            animation: groupIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes groupIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .agrupacion-group .agrupacion-token {
+            margin: 0;
+            cursor: default;
+            transform: none !important;
+        }
+        .agrupacion-group .agrupacion-token:hover { transform: none !important; }
+        .agrupacion-group-count {
+            grid-row: 1 / -1;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            margin-left: 6px;
+            padding-left: 8px;
+            border-left: 2px solid var(--border-soft);
+        }
+
+        .grouping-btn-area {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        /* ============================================
+           MODO TABLAS
+           ============================================ */
+        .table-wrapper {
+            margin-bottom: 16px;
+        }
+        .mult-table {
+            width: 100%;
+        }
+        .mult-table .tablas-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 6px;
+            align-items: stretch;
+        }
+        .mult-table .tablas-label {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 10px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+        .mult-table .tablas-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            padding: 8px 4px;
+            min-width: 56px;
+            flex: 0 1 56px;
+            max-width: 80px;
+        }
+        .mult-table .tablas-cell .tablas-header {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .table-cell {
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            padding: 10px 4px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .table-cell .guide-text {
+            color: var(--color-text-light);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .table-cell input {
+            width: 64px;
+            height: 44px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            outline: none;
+            font-family: var(--font-display);
+            color: var(--color-text);
+        }
+        .table-cell input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .table-cell input.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .table-cell input.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+        }
+        .table-cell input.x-mark {
+            background: rgba(251,191,36,.16);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        .table-cell.locked {
+            background: rgba(255,255,255,.03);
+        }
+        .tablas-input {
+            width: 56px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            outline: none;
+            font-family: var(--font-display);
+            color: var(--color-text);
+        }
+        .tablas-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .tablas-input.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .tablas-input.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+        }
+        .tablas-input.x-mark {
+            background: rgba(251,191,36,.16);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        @media (max-width: 640px) {
+            .mult-table .tablas-cell {
+                padding: 6px 2px;
+                min-width: 40px;
+                flex: 0 1 40px;
+            }
+            .mult-table .tablas-cell .tablas-header {
+                padding: 3px 4px;
+                font-size: 0.75rem;
+            }
+            .mult-table .tablas-label {
+                padding: 6px 4px;
+                font-size: 0.8rem;
+                min-width: 40px;
+            }
+            .tablas-input {
+                width: 36px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+        }
+        /* ============================================
+           PANTALLA COMPARAR
+           ============================================ */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare-card {
+            background: var(--color-card);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+        }
+        .compare-card.completed {
+            border-color: var(--color-success);
+            background: rgba(52,211,153,.12);
+        }
+        .compare-card.available {
+            cursor: pointer;
+        }
+        .compare-card.available:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .compare-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .compare-check {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        .compare-pending {
+            font-size: 2.5rem;
+            color: var(--border-soft);
+            margin-bottom: 8px;
+        }
+
+        /* ============================================
+           PANTALLA COMPLETADO
+           ============================================ */
+        .complete-message {
+            text-align: center;
+            padding: 20px;
+        }
+        .complete-message h2 {
+            font-size: 1.8rem;
+            color: var(--color-primary-dark);
+            margin-bottom: 16px;
+        }
+        .complete-message p {
+            font-size: 1.1rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .complete-strategies {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .complete-strategy-item {
+            background: rgba(52,211,153,.14);
+            border: 1px solid var(--color-success);
+            color: #34d399;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+        }
+
+        /* ============================================
+           HISTORIAL
+           ============================================ */
+        /* ============================================
+           CELEBRACIÓN
+           ============================================ */
+        .table-choice-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,4,30,.6);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 1000;
+        }
+        .table-choice-overlay.hidden { display: none; }
+        .table-choice-card {
+            background: linear-gradient(160deg, #2c1468, #4c1d95);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,.5);
+            animation: groupIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .table-choice-question {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--color-text);
+            margin-bottom: 16px;
+        }
+        #tableChoiceInput { width: 90px; font-size: 1.6rem; }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+        .celebration.active { display: block; }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -20px;
+            animation: confettiFall 2.5s ease-out forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 1rem; }
+            .division-box input { width: 80px; height: 70px; font-size: 1.8rem; }
+            .division-symbol { font-size: 2rem; }
+            .btn { padding: 12px 24px; font-size: 1rem; width: 100%; }
+            .card { padding: 18px 16px; }
+            .bag { width: 46px; height: 46px; }
+            .bag-content { top: 6px; left: 6px; right: 6px; bottom: 6px; }
+            .bag-content .marble { width: 8px; height: 8px; box-shadow: none; }
+            .marble { width: 16px; height: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+            .marble::after { display: none; }
+            .math-box { width: 50px; height: 44px; font-size: 1.2rem; }
+            .math-symbol { font-size: 1.3rem; }
+            .strategy-grid { grid-template-columns: 1fr; }
+            .compare-grid { grid-template-columns: 1fr; }
+            .token { width: 32px; height: 32px; }
+            .grouping-area { min-height: 160px; }
+            .agrupacion-token { width: 18px; height: 18px; margin: 2px; box-shadow: none; }
+            .agrupacion-token::after { display: none; }
+            .agrupacion-group .agrupacion-token { width: 10px; height: 10px; }
+            .agrupacion-token.leftover-final { width: 10px; height: 10px; }
+            .agrupacion-group-count { font-size: 0.6rem; margin-left: 4px; padding-left: 5px; }
+        }
+        @media (min-width: 768px) {
+            .zones-wrapper { flex-direction: column; }
+            .objects-pool { min-height: 50px; }
+        }
+    </style>
+</head>
+<body>
+<a href="../index.html" title="Volver al catálogo de recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+
+
+    <!-- ============================================
+         CELEBRACIÓN
+         ============================================ -->
+    <div id="celebration" class="celebration"></div>
+
+    <div class="table-choice-overlay hidden" id="tableChoiceOverlay">
+        <div class="table-choice-card">
+            <div class="math-division-title" id="tableChoiceDivision"></div>
+            <p class="table-choice-question">¿Qué tabla debemos usar?</p>
+            <input type="text" id="tableChoiceInput" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?">
+            <p id="tableChoiceError" class="error-msg" style="margin-top:12px; display:none;"></p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 1: BIENVENIDA
+         ============================================ -->
+    <div id="screen-welcome" class="screen active">
+        <div class="hero">
+            <h1>División</h1>
+            <p class="subtitle">Elige un nivel para practicar, o crea tu propia división.</p>
+        </div>
+        <div class="level-selector">
+            <button class="level-btn easy" onclick="startLevel('easy')">
+                <span class="level-star">⭐</span>
+                <span class="level-name">Fácil</span>
+            </button>
+            <button class="level-btn mid" onclick="startLevel('medium')">
+                <span class="level-star">⭐⭐</span>
+                <span class="level-name">Intermedio</span>
+            </button>
+            <button class="level-btn hard" onclick="startLevel('hard')">
+                <span class="level-star">⭐⭐⭐</span>
+                <span class="level-name">Difícil</span>
+            </button>
+            <button class="level-btn custom" onclick="goToManual()">
+                <span class="level-star">✏️</span>
+                <span class="level-name">Crea tu división</span>
+            </button>
+        </div>
+        <footer class="credits">División · Material interactivo para Educación Básica</footer>
+    </div>
+
+    <!-- ============================================
+         PANTALLA: CREA TU DIVISIÓN
+         ============================================ -->
+    <div id="screen-manual" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" onclick="goToWelcome()">← Inicio</button>
+        </div>
+        <div class="card">
+            <h1 style="font-size:1.6rem;">Crea tu división</h1>
+            <p class="subtitle">Escribe el dividendo y el divisor</p>
+            <div id="error-welcome" class="error-msg"></div>
+
+            <div class="input-group">
+                <div class="division-row">
+                    <div class="division-box">
+                        <input type="number" id="inputDividend" min="2" max="100" placeholder="0" inputmode="numeric">
+                        <label>Dividendo</label>
+                    </div>
+                    <div class="division-symbol">÷</div>
+                    <div class="division-box">
+                        <input type="number" id="inputDivisor" min="1" max="15" placeholder="0" inputmode="numeric">
+                        <label>Divisor</label>
+                    </div>
+                </div>
+                <button class="btn" onclick="onManualStart()">Comenzar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 2: SELECCIÓN DE ESTRATEGIA
+         ============================================ -->
+    <div id="screen-strategy" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" onclick="goBack()">← Volver</button>
+        </div>
+        <div class="card">
+            <div class="topbar-division" id="strategyBanner" style="text-align:center; margin-bottom:16px;"></div>
+            <h1 style="font-size:1.6rem;">¿Cómo quieres resolver esta división?</h1>
+            <p class="subtitle">Cada estrategia te ayuda a comprender la división de una manera diferente.</p>
+
+            <div class="strategy-grid">
+                <div class="strategy-card" onclick="startStrategy('reparto')">
+                    <div class="strategy-title">Reparto Equitativo</div>
+                    <div class="strategy-desc">"Repartir una cantidad entre varios recipientes para que todos reciban lo mismo."</div>
+                </div>
+                <div class="strategy-card" onclick="startStrategy('agrupacion')">
+                    <div class="strategy-title">Agrupación</div>
+                    <div class="strategy-desc">"Formar grupos del mismo tamaño y descubrir cuántos grupos completos pueden hacerse."</div>
+                </div>
+                <div class="strategy-card" onclick="startStrategy('tablas')">
+                    <div class="strategy-title">Tablas</div>
+                    <div class="strategy-desc">"Avanzar en la tabla del divisor hasta acercarse lo más posible al dividendo."</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 3: REPARTO EQUITATIVO
+         ============================================ -->
+    <div id="screen-reparto" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="repartoBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="repartoTopDivision"></div>
+        </div>
+        <div class="card">
+            <div class="zones-wrapper" id="repartoZones">
+                <div class="bags-area">
+                    <div id="repartoBags" class="bags-container"></div>
+                </div>
+                <div>
+                    <div class="zone-label" id="repartoObjectsLabel">Objetos sin repartir</div>
+                    <div id="repartoPool" class="objects-pool"></div>
+                </div>
+            </div>
+            <div id="repartoStatus" class="status-area">
+                Toca una caja para repartir o arrastra las fichas hacia ellas
+            </div>
+
+            <div id="repartoMathPanel" class="math-panel">
+                <div class="math-division-title" id="rpDivisionTitle"></div>
+                <div class="math-sentence">Hay <input type="text" id="rpMathQuotient" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas en cada caja</div>
+                <div class="math-sentence">Sobraron <input type="text" id="rpMathRemainder" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas</div>
+                <div id="rpMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="rpMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="rpMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="rpContinueWrap">
+                    <button class="btn" onclick="goToCompare()">Continuar ➜</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 4: AGRUPACIÓN
+         ============================================ -->
+    <div id="screen-agrupacion" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="agrupacionBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="agTopDivision"></div>
+        </div>
+        <div class="card">
+            <div id="agrupacionGroupsRow" class="agrupacion-groups-row"></div>
+            <div id="agrupacionArea" class="grouping-area"></div>
+
+            <div class="grouping-btn-area" id="agruparBtnWrap">
+                <button class="btn" id="agruparBtn" onclick="doAgrupar()">Agrupar</button>
+            </div>
+
+            <div id="agrupacionStatus" class="status-area">
+                Selecciona las fichas para formar grupos del mismo tamaño.
+            </div>
+
+            <div id="agrMathPanel" class="math-panel">
+                <div class="math-sentence">Pude formar <input type="text" id="agMathQuotient" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> grupos</div>
+                <div class="math-sentence">Quedaron <input type="text" id="agMathRemainder" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas sin agrupar</div>
+                <div id="agMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="agMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="agMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="agContinueWrap">
+                    <button class="btn" onclick="goToCompare()">Continuar ➜</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 5: TABLAS DE MULTIPLICAR
+         ============================================ -->
+    <div id="screen-tablas" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="tablasBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="tablasTopDivision"></div>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <div class="mult-table" id="multTable">
+                    <div id="tablasBody"></div>
+                </div>
+            </div>
+
+            <div id="tablasStatus" class="status-area">
+                Escribe los productos de la tabla. Si superas el dividendo, toca el casillero y presiona el botón "✕ Marcar X".
+            </div>
+
+            <div style="text-align:center; margin-top:10px;" id="tablasXBtnWrap">
+                <button type="button" class="btn btn-secondary" id="tablasXBtn" onclick="markActiveTablasInputAsX()" style="width:auto; display:inline-flex;">Marcar X</button>
+            </div>
+
+            <div id="tabMathQuestions" class="math-panel">
+                <div class="math-sentence">Pude avanzar <input type="text" id="tabQ1" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> veces</div>
+                <div class="math-sentence">Me faltaron <input type="text" id="tabQ2" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> para llegar a <span id="tabDividendTarget"></span></div>
+                <div id="tabMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="tabMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="tabMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="tabContinueWrap">
+                    <button class="btn" onclick="goToCompare()">Continuar ➜</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 6: COMPARAR ESTRATEGIAS
+         ============================================ -->
+    <div id="screen-compare" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" onclick="goBack()">← Volver</button>
+        </div>
+        <div class="card">
+            <div class="topbar-division" id="compareBanner" style="text-align:center; font-size:1.5rem; margin-bottom:6px;"></div>
+            <p class="subtitle">La misma división puede entenderse de distintas maneras.</p>
+
+            <div class="compare-grid" id="compareGrid">
+                <div class="compare-card" id="card-reparto" onclick="tryStrategy('reparto')">
+                    <div class="compare-pending" id="icon-reparto">○</div>
+                    <div class="strategy-title">Reparto Equitativo</div>
+                </div>
+                <div class="compare-card" id="card-agrupacion" onclick="tryStrategy('agrupacion')">
+                    <div class="compare-pending" id="icon-agrupacion">○</div>
+                    <div class="strategy-title">Agrupación</div>
+                </div>
+                <div class="compare-card" id="card-tablas" onclick="tryStrategy('tablas')">
+                    <div class="compare-pending" id="icon-tablas">○</div>
+                    <div class="strategy-title">Tablas</div>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn btn-secondary" onclick="resetAll()">🔄 Resolver otra división</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANTALLA 7: TODAS LAS ESTRATEGIAS COMPLETADAS
+         ============================================ -->
+    <div id="screen-complete" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" onclick="goBack()">← Volver</button>
+        </div>
+        <div class="card">
+            <div class="complete-message">
+                <div style="font-size:3rem; margin-bottom:10px;">🎉</div>
+                <h2>¡Excelente!</h2>
+                <p>
+                    Has comprobado que la misma división puede entenderse de tres maneras diferentes.
+                </p>
+                <div class="complete-strategies">
+                    <div class="complete-strategy-item">✓ Reparto Equitativo</div>
+                    <div class="complete-strategy-item">✓ Agrupación</div>
+                    <div class="complete-strategy-item">✓ Tablas</div>
+                </div>
+                <p>Todas llegan exactamente al mismo cociente y al mismo resto.</p>
+                <button class="btn" onclick="resetAll()" style="margin-top:10px;">🔄 Resolver otra división</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        /* ============================================
+           ESTADO GLOBAL
+           ============================================ */
+        const App = {
+            dividend: 0, divisor: 0, quotient: 0, remainder: 0,
+            currentStrategy: null,
+            completedStrategies: { reparto: false, agrupacion: false, tablas: false },
+            context: null,
+            selectedLevel: null,
+            reparto: {
+                bagCounts: [],
+                draggedEl: null, dragOffsetX: 0, dragOffsetY: 0, dragClone: null,
+                mathPanelShown: false
+            },
+            agrupacion: {
+                selectedTokens: new Set(),
+                groups: [],
+                mathPanelShown: false
+            },
+            tablas: {
+                products: [],
+                completed: false,
+                mathPanelShown: false,
+                locked: false
+            },
+            reset() {
+                this.dividend = 0; this.divisor = 0; this.quotient = 0; this.remainder = 0;
+                this.currentStrategy = null;
+                this.completedStrategies = { reparto: false, agrupacion: false, tablas: false };
+                this.context = null;
+                this.selectedLevel = null;
+                this.reparto = { bagCounts: [], draggedEl: null, dragOffsetX: 0, dragOffsetY: 0, dragClone: null, mathPanelShown: false };
+                this.agrupacion = { selectedTokens: new Set(), groups: [], mathPanelShown: false };
+                this.tablas = { products: [], completed: false, mathPanelShown: false, locked: false, activeInput: null };
+            }
+        };
+
+        const contexts = [
+            { name: 'caramelos', item: 'caramelo', itemPl: 'caramelos', container: 'bolsas', containerPl: 'bolsas', action: 'repartir' },
+            { name: 'manzanas', item: 'manzana', itemPl: 'manzanas', container: 'canastas', containerPl: 'canastas', action: 'repartir' },
+            { name: 'libros', item: 'libro', itemPl: 'libros', container: 'estantes', containerPl: 'estantes', action: 'distribuir' },
+            { name: 'pelotas', item: 'pelota', itemPl: 'pelotas', container: 'cajas', containerPl: 'cajas', action: 'guardar' },
+            { name: 'galletas', item: 'galleta', itemPl: 'galletas', container: 'platos', containerPl: 'platos', action: 'colocar' },
+            { name: 'lápices', item: 'lápiz', itemPl: 'lápices', container: 'estuches', containerPl: 'estuches', action: 'organizar' },
+            { name: 'papeles', item: 'papel', itemPl: 'papeles', container: 'carpetas', containerPl: 'carpetas', action: 'repartir' },
+            { name: 'pegatinas', item: 'pegatina', itemPl: 'pegatinas', container: 'hojas', containerPl: 'hojas', action: 'pegar' }
+        ];
+
+        /* ============================================
+           UTILIDADES
+           ============================================ */
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+        function hideError(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('show');
+            el.textContent = '';
+        }
+        const screenHistory = [];
+        function switchScreen(id, isBack) {
+            const current = document.querySelector('.screen.active');
+            if (current && current.id !== id && !isBack) {
+                screenHistory.push(current.id);
+            }
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(id);
+            if (target) target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function goBack() {
+            const prev = screenHistory.pop();
+            switchScreen(prev || 'screen-welcome', true);
+        }
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        /* ============================================
+           HISTORIAL
+           ============================================ */
+        /* ============================================
+           GENERADOR DE EJERCICIOS
+           ============================================ */
+        const LEVEL_RULES = {
+            easy: [
+                { divisors: [1,2,3,4,5,10], qMin: 1, qMax: 8 },
+                { divisors: [6,7,8,9], qMin: 1, qMax: 3 },
+            ],
+            medium: [
+                { divisors: [1,2,3,4,5,10], qMin: 9, qMax: 12 },
+                { divisors: [6,7,8,9], qValues: [4,5,6,7,8,10] },
+            ],
+            hard: [
+                { divisors: [2,3,4,5,10], qMin: 13, qMax: 16 },
+                { divisors: [6,7,8,9], qValues: [9,11,12] },
+                { divisors: [11,12], qMin: 2, qMax: 7 },
+            ],
+        };
+
+        function startLevel(level) {
+            App.selectedLevel = level;
+            const rules = LEVEL_RULES[level];
+            const rule = rules[randomInt(0, rules.length - 1)];
+            const divisor = rule.divisors[randomInt(0, rule.divisors.length - 1)];
+            const quotient = rule.qValues
+                ? rule.qValues[randomInt(0, rule.qValues.length - 1)]
+                : randomInt(rule.qMin, rule.qMax);
+            const remainder = randomInt(0, divisor - 1);
+            const dividend = divisor * quotient + remainder;
+
+            App.dividend = dividend;
+            App.divisor = divisor;
+            App.quotient = quotient;
+            App.remainder = remainder;
+            App.context = contexts[randomInt(0, contexts.length - 1)];
+            goToStrategySelect();
+        }
+
+        function goToManual() {
+            hideError('error-welcome');
+            switchScreen('screen-manual');
+            setTimeout(() => { const i = document.getElementById('inputDividend'); if (i) i.focus(); }, 300);
+        }
+
+        /* ============================================
+           INICIO MANUAL
+           ============================================ */
+        function onManualStart() {
+            hideError('error-welcome');
+            const dividend = parseInt(document.getElementById('inputDividend').value);
+            const divisor = parseInt(document.getElementById('inputDivisor').value);
+
+            if (!dividend || dividend < 2) {
+                showError('error-welcome', 'El dividendo debe ser al menos 2.');
+                return;
+            }
+            if (dividend > 100) {
+                showError('error-welcome', 'El dividendo no puede ser mayor a 100.');
+                return;
+            }
+            if (!divisor || divisor < 1) {
+                showError('error-welcome', 'El divisor debe ser al menos 1.');
+                return;
+            }
+            if (divisor > 15) {
+                showError('error-welcome', 'El divisor no puede ser mayor a 15.');
+                return;
+            }
+            if (divisor > dividend) {
+                showError('error-welcome', 'El divisor no puede ser mayor que el dividendo.');
+                return;
+            }
+
+            App.dividend = dividend;
+            App.divisor = divisor;
+            App.quotient = Math.floor(dividend / divisor);
+            App.remainder = dividend % divisor;
+            App.context = contexts[randomInt(0, contexts.length - 1)];
+            goToStrategySelect();
+        }
+
+        /* ============================================
+           NAVEGACIÓN
+           ============================================ */
+        function goToWelcome() {
+            App.reset();
+            document.getElementById('inputDividend').value = '';
+            document.getElementById('inputDivisor').value = '';
+            hideError('error-welcome');
+            switchScreen('screen-welcome');
+        }
+
+        function goToStrategySelect() {
+            const b = document.getElementById('strategyBanner');
+            if (b) b.textContent = App.dividend + ' ÷ ' + App.divisor;
+            switchScreen('screen-strategy');
+        }
+
+        function goToCompare() {
+            const b = document.getElementById('compareBanner');
+            if (b) b.textContent = App.dividend + ' ÷ ' + App.divisor;
+
+            ['reparto','agrupacion','tablas'].forEach(s => {
+                const card = document.getElementById('card-' + s);
+                const icon = document.getElementById('icon-' + s);
+                if (!card || !icon) return;
+                card.classList.remove('completed','available','disabled');
+                if (App.completedStrategies[s]) {
+                    card.classList.add('completed');
+                    card.classList.add('disabled');
+                    card.onclick = null;
+                    icon.innerHTML = '✅';
+                    icon.className = 'compare-check';
+                } else {
+                    card.classList.add('available');
+                    icon.innerHTML = '○';
+                    icon.className = 'compare-pending';
+                    card.onclick = function() { tryStrategy(s); };
+                }
+            });
+
+            if (App.completedStrategies.reparto && App.completedStrategies.agrupacion && App.completedStrategies.tablas) {
+                goToComplete();
+                return;
+            }
+            switchScreen('screen-compare');
+        }
+
+        function goToComplete() {
+            triggerBigCelebration();
+            switchScreen('screen-complete');
+        }
+
+        function startStrategy(strategy) {
+            App.currentStrategy = strategy;
+            if (strategy === 'reparto') buildReparto();
+            else if (strategy === 'agrupacion') buildAgrupacion();
+            else if (strategy === 'tablas') openTableChoiceModal();
+        }
+
+        function openTableChoiceModal() {
+            document.getElementById('tableChoiceDivision').textContent = App.dividend + ' ÷ ' + App.divisor + ' =';
+            const input = document.getElementById('tableChoiceInput');
+            input.value = '';
+            input.disabled = false;
+            input.classList.remove('correct');
+            document.getElementById('tableChoiceError').style.display = 'none';
+            document.getElementById('tableChoiceOverlay').classList.remove('hidden');
+            setTimeout(() => input.focus(), 100);
+
+            input.oninput = function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
+                document.getElementById('tableChoiceError').style.display = 'none';
+                const v = parseInt(this.value, 10);
+                if (!isNaN(v) && v === App.divisor) {
+                    this.classList.add('correct');
+                    this.disabled = true;
+                    setTimeout(() => {
+                        document.getElementById('tableChoiceOverlay').classList.add('hidden');
+                        buildTablas();
+                    }, 450);
+                }
+            };
+            input.onkeydown = function(e) {
+                if (e.key !== 'Enter') return;
+                const v = parseInt(this.value, 10);
+                if (isNaN(v) || v !== App.divisor) {
+                    const err = document.getElementById('tableChoiceError');
+                    err.textContent = 'Esa no es la tabla correcta. Piensa en el divisor de la división.';
+                    err.style.display = 'block';
+                }
+            };
+        }
+
+        function tryStrategy(strategy) {
+            startStrategy(strategy);
+        }
+
+        function resetAll() {
+            App.reset();
+            goToWelcome();
+        }
+
+
+        /* ============================================
+           MÓDULO REPARTO EQUITATIVO
+           ============================================ */
+        function buildReparto() {
+            const st = App.reparto;
+            st.bagCounts = new Array(App.divisor).fill(0);
+            st.mathPanelShown = false;
+
+            document.getElementById('repartoTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('repartoBackBtn').disabled = false;
+            document.getElementById('repartoZones').style.display = '';
+            document.getElementById('repartoStatus').style.display = '';
+
+            const pool = document.getElementById('repartoPool');
+            pool.innerHTML = '';
+            pool.classList.remove('highlight');
+            const colors = ['c1','c2','c3','c4','c5','c6'];
+            for (let i = 0; i < App.dividend; i++) {
+                const m = document.createElement('div');
+                m.className = 'marble ' + colors[i % colors.length];
+                m.dataset.index = i;
+                makeDraggable(m);
+                pool.appendChild(m);
+            }
+
+            const bagsEl = document.getElementById('repartoBags');
+            bagsEl.innerHTML = '';
+            for (let i = 0; i < App.divisor; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bag-wrapper';
+                const bag = document.createElement('div');
+                bag.className = 'bag';
+                bag.dataset.bag = i;
+                const boxColor = i % 2 === 0 ? '#38bdf8' : '#fbbf24';
+                bag.innerHTML =
+                    '<div class="box-square" style="background:' + boxColor + ';"></div>' +
+                    '<div class="bag-content"></div>';
+                bag.addEventListener('click', function(e) {
+                    if (e.target.closest('.marble')) return;
+                    addOneToBag(i);
+                });
+                const count = document.createElement('div');
+                count.className = 'bag-count';
+                count.id = 'bagCount-' + i;
+                count.textContent = '0';
+                count.title = 'Toca para quitar una';
+                count.addEventListener('click', function() { removeOneFromBag(i); });
+                wrapper.appendChild(bag);
+                wrapper.appendChild(count);
+                bagsEl.appendChild(wrapper);
+            }
+
+
+            document.getElementById('repartoStatus').textContent = 'Toca una caja para repartir o arrastra las fichas hacia ellas';
+            document.getElementById('repartoStatus').classList.remove('ok');
+            document.getElementById('repartoMathPanel').classList.remove('show');
+            document.getElementById('rpMathQuotient').value = '';
+            document.getElementById('rpMathRemainder').value = '';
+            document.getElementById('rpMathFinal').classList.remove('show');
+            document.getElementById('rpMathFinal').textContent = '';
+            document.getElementById('rpDivisionTitle').textContent = App.dividend + ' ÷ ' + App.divisor;
+            hideError('rpMathError');
+            hideError('rpMathSuccess');
+            document.getElementById('rpContinueWrap').style.display = 'none';
+            setupAutoMathCheck('rpMathQuotient', 'rpMathRemainder', completeRepartoMath);
+
+            switchScreen('screen-reparto');
+        }
+
+        function makeDraggable(el) {
+            el.addEventListener('mousedown', onDragStart);
+            el.addEventListener('touchstart', onDragStart, { passive: false });
+        }
+
+        function onDragStart(e) {
+            if (e.button === 2) return;
+            const st = App.reparto;
+            st.draggedEl = e.currentTarget;
+            e.preventDefault();
+            const rect = st.draggedEl.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragOffsetX = clientX - rect.left;
+            st.dragOffsetY = clientY - rect.top;
+
+            st.dragClone = st.draggedEl.cloneNode(true);
+            st.dragClone.style.width = rect.width + 'px';
+            st.dragClone.style.height = rect.height + 'px';
+            st.dragClone.classList.add('dragging');
+            st.dragClone.style.left = (clientX - st.dragOffsetX) + 'px';
+            st.dragClone.style.top = (clientY - st.dragOffsetY) + 'px';
+            document.body.appendChild(st.dragClone);
+
+            st.draggedEl.style.opacity = '0.4';
+            document.getElementById('repartoPool').classList.add('highlight');
+            document.querySelectorAll('.bag').forEach(b => b.classList.add('highlight'));
+
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('touchend', onDragEnd);
+        }
+
+        function onDragMove(e) {
+            const st = App.reparto;
+            if (!st.dragClone) return;
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragClone.style.left = (clientX - st.dragOffsetX) + 'px';
+            st.dragClone.style.top = (clientY - st.dragOffsetY) + 'px';
+        }
+
+        function onDragEnd(e) {
+            const st = App.reparto;
+            if (!st.dragClone) return;
+            const cloneRect = st.dragClone.getBoundingClientRect();
+            const cloneCX = cloneRect.left + cloneRect.width / 2;
+            const cloneCY = cloneRect.top + cloneRect.height / 2;
+            document.body.removeChild(st.dragClone);
+            st.dragClone = null;
+
+            let dropped = false;
+            const bag = getBagAt(cloneCX, cloneCY);
+            if (bag) {
+                dropInBag(st.draggedEl, bag);
+                dropped = true;
+            } else {
+                const pool = getPoolAt(cloneCX, cloneCY);
+                if (pool) {
+                    returnToPool(st.draggedEl);
+                    dropped = true;
+                }
+            }
+
+            if (!dropped) {
+                const container = st.draggedEl.parentElement;
+                if (container.classList.contains('bag-content')) {
+                    const bagIdx = parseInt(container.parentElement.dataset.bag);
+                    st.bagCounts[bagIdx]--;
+                    returnToPool(st.draggedEl);
+                }
+            }
+
+            st.draggedEl.style.opacity = '1';
+            document.getElementById('repartoPool').classList.remove('highlight');
+            document.querySelectorAll('.bag').forEach(b => b.classList.remove('highlight'));
+
+            updateBagCounts();
+            updateRepartoStatus();
+
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('touchend', onDragEnd);
+            st.draggedEl = null;
+        }
+
+        function addOneToBag(bagIdx) {
+            const pool = document.getElementById('repartoPool');
+            if (pool.children.length === 0) return;
+            const marble = pool.children[0];
+            const bag = document.querySelector('.bag[data-bag="' + bagIdx + '"]');
+            if (!bag) return;
+            dropInBag(marble, bag);
+            updateBagCounts();
+            updateRepartoStatus();
+        }
+
+        function removeOneFromBag(bagIdx) {
+            const content = document.querySelector('.bag[data-bag="' + bagIdx + '"] .bag-content');
+            if (!content || content.children.length === 0) return;
+            const marble = content.lastElementChild;
+            App.reparto.bagCounts[bagIdx]--;
+            returnToPool(marble);
+            updateBagCounts();
+            updateRepartoStatus();
+        }
+
+        function dropInBag(el, bag) {
+            const st = App.reparto;
+            const oldParent = el.parentElement;
+            if (oldParent && oldParent.classList.contains('bag-content')) {
+                const oldBagIdx = parseInt(oldParent.parentElement.dataset.bag);
+                st.bagCounts[oldBagIdx]--;
+            }
+            const content = bag.querySelector('.bag-content');
+            content.appendChild(el);
+            el.classList.add('dropped');
+            setTimeout(() => el.classList.remove('dropped'), 350);
+            const bagIdx = parseInt(bag.dataset.bag);
+            st.bagCounts[bagIdx] = content.children.length;
+        }
+
+        function returnToPool(el) {
+            const st = App.reparto;
+            const oldParent = el.parentElement;
+            if (oldParent && oldParent.classList.contains('bag-content')) {
+                const oldBagIdx = parseInt(oldParent.parentElement.dataset.bag);
+                st.bagCounts[oldBagIdx]--;
+            }
+            document.getElementById('repartoPool').appendChild(el);
+        }
+
+        function getBagAt(x, y) {
+            let found = null;
+            document.querySelectorAll('.bag').forEach(bag => {
+                const r = bag.getBoundingClientRect();
+                if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                    found = bag;
+                }
+            });
+            return found;
+        }
+
+        function getPoolAt(x, y) {
+            const pool = document.getElementById('repartoPool');
+            const r = pool.getBoundingClientRect();
+            return (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) ? pool : null;
+        }
+
+        function updateBagCounts() {
+            for (let i = 0; i < App.divisor; i++) {
+                const content = document.querySelector('.bag[data-bag="' + i + '"] .bag-content');
+                if (content) {
+                    App.reparto.bagCounts[i] = content.children.length;
+                    const countEl = document.getElementById('bagCount-' + i);
+                    if (countEl) countEl.textContent = App.reparto.bagCounts[i];
+                }
+            }
+        }
+
+        function updateRepartoStatus() {
+            const poolCount = document.getElementById('repartoPool').children.length;
+            const st = App.reparto;
+            const statusEl = document.getElementById('repartoStatus');
+
+            const allBagsHaveQuotient = st.bagCounts.every(function(c) { return c === App.quotient; });
+            if (allBagsHaveQuotient && poolCount === App.remainder) {
+                statusEl.textContent = 'Reparto Equitativo completado';
+                statusEl.classList.add('ok');
+                if (!st.mathPanelShown) {
+                    document.getElementById('repartoMathPanel').classList.add('show');
+                    st.mathPanelShown = true;
+                    setTimeout(function() { document.getElementById('rpMathQuotient').focus(); }, 400);
+                }
+                return;
+            }
+
+            if (st.mathPanelShown) {
+                document.getElementById('repartoMathPanel').classList.remove('show');
+                st.mathPanelShown = false;
+            }
+
+            if (poolCount === 0) {
+                statusEl.textContent = 'El reparto no es equitativo todavía.';
+                statusEl.classList.remove('ok');
+                return;
+            }
+
+            const distributedCount = App.dividend - poolCount;
+            if (distributedCount > 0) {
+                const max = Math.max(...st.bagCounts);
+                const min = Math.min(...st.bagCounts);
+                if (max > App.quotient + 1 || (max - min) > 1) {
+                    statusEl.textContent = 'El reparto no es equitativo todavía.';
+                    statusEl.classList.remove('ok');
+                    return;
+                }
+            }
+
+            statusEl.textContent = 'Te quedan ' + poolCount + ' objetos por repartir.';
+            statusEl.classList.remove('ok');
+            if (st.mathPanelShown) {
+                document.getElementById('repartoMathPanel').classList.remove('show');
+                st.mathPanelShown = false;
+            }
+        }
+
+        /* Helper reutilizado por reparto/agrupación/tablas: avanza el foco al
+           segundo campo apenas el primero es correcto, y autoverifica ambos
+           sin necesitar un botón "Comprobar". */
+        function setupAutoMathCheck(qId, rId, onComplete) {
+            const qBox = document.getElementById(qId);
+            const rBox = document.getElementById(rId);
+            qBox.disabled = false;
+            rBox.disabled = false;
+            function sanitize(box) { box.value = box.value.replace(/[^0-9]/g, '').slice(0, 2); }
+            function tryComplete() {
+                const q = parseInt(qBox.value);
+                const r = parseInt(rBox.value);
+                const okQ = !isNaN(q) && q === App.quotient;
+                const okR = !isNaN(r) && r === App.remainder;
+                qBox.classList.toggle('correct', okQ);
+                rBox.classList.toggle('correct', okR);
+                if (okQ && okR) {
+                    qBox.disabled = true;
+                    rBox.disabled = true;
+                    onComplete();
+                }
+            }
+            qBox.oninput = function() {
+                sanitize(qBox);
+                const q = parseInt(qBox.value);
+                if (!isNaN(q) && q === App.quotient) rBox.focus();
+                tryComplete();
+            };
+            rBox.oninput = function() {
+                sanitize(rBox);
+                tryComplete();
+            };
+        }
+
+        function completeRepartoMath() {
+            hideError('rpMathError');
+            showError('rpMathSuccess', '¡Correcto! El cociente es ' + App.quotient + ' y el resto es ' + App.remainder + '.');
+            const finalEl = document.getElementById('rpMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.reparto = true;
+            triggerCelebration();
+            document.getElementById('repartoZones').style.display = 'none';
+            document.getElementById('repartoStatus').style.display = 'none';
+            document.getElementById('repartoBackBtn').disabled = true;
+            document.getElementById('rpContinueWrap').style.display = 'block';
+        }
+
+
+        /* ============================================
+           MÓDULO AGRUPACIÓN
+           ============================================ */
+        function buildAgrupacion() {
+            const st = App.agrupacion;
+            st.selectedTokens.clear();
+            st.groups = [];
+            st.mathPanelShown = false;
+
+            document.getElementById('agTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('agrupacionBackBtn').disabled = false;
+            document.getElementById('agrupacionGroupsRow').style.display = '';
+            document.getElementById('agrupacionArea').style.display = '';
+            document.getElementById('agruparBtnWrap').style.display = '';
+            document.getElementById('agrupacionStatus').style.display = '';
+
+            document.getElementById('agrupacionStatus').textContent = 'Selecciona las fichas para formar grupos de ' + App.divisor + '.';
+            document.getElementById('agrupacionStatus').classList.remove('ok');
+            document.getElementById('agrMathPanel').classList.remove('show');
+            document.getElementById('agMathQuotient').value = '';
+            document.getElementById('agMathRemainder').value = '';
+            document.getElementById('agMathFinal').classList.remove('show');
+            hideError('agMathError');
+            hideError('agMathSuccess');
+            document.getElementById('agruparBtn').disabled = false;
+            document.getElementById('agruparBtn').style.opacity = '1';
+            document.getElementById('agContinueWrap').style.display = 'none';
+            setupAutoMathCheck('agMathQuotient', 'agMathRemainder', completeAgrupacionMath);
+
+            const area = document.getElementById('agrupacionArea');
+            area.innerHTML = '';
+            area.classList.remove('all-grouped');
+            document.getElementById('agrupacionGroupsRow').innerHTML = '';
+
+            for (let i = 0; i < App.dividend; i++) {
+                const token = document.createElement('div');
+                token.className = 'agrupacion-token';
+                token.dataset.index = i;
+                token.addEventListener('mousedown', function(e) { startTokenDrag(i, token, e); });
+                token.addEventListener('touchstart', function(e) { startTokenDrag(i, token, e); }, { passive: false });
+                area.appendChild(token);
+            }
+
+            switchScreen('screen-agrupacion');
+        }
+
+        /* Selección de fichas "pintando" con el dedo/mouse: se toca la primera
+           ficha del grupo y, sin soltar, se recorre hasta la última — todas las
+           que se cruzan en el camino se suman (o se quitan, si el arrastre
+           partió sobre una ficha ya seleccionada). Evita tener que tocar ficha
+           por ficha. */
+        function startTokenDrag(index, el, e) {
+            const st = App.agrupacion;
+            if (st.mathPanelShown || el.classList.contains('grouped')) return;
+            e.preventDefault();
+            st.dragMode = true;
+            st.dragAction = st.selectedTokens.has(index) ? 'deselect' : 'select';
+            st.dragTouched = new Set();
+            applyTokenDrag(index, el);
+            const startX = e.touches ? e.touches[0].clientX : e.clientX;
+            const startY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragLastX = startX;
+            st.dragLastY = startY;
+            document.addEventListener('mousemove', onTokenDragMove);
+            document.addEventListener('touchmove', onTokenDragMove, { passive: false });
+            document.addEventListener('mouseup', endTokenDrag);
+            document.addEventListener('touchend', endTokenDrag);
+        }
+
+        function onTokenDragMove(e) {
+            const st = App.agrupacion;
+            if (!st.dragMode) return;
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            // El navegador no dispara un evento por cada ficha que el dedo cruza
+            // al moverse rápido: solo informa la posición actual. Revisando
+            // varios puntos intermedios entre el último punto conocido y este,
+            // evitamos que se "salten" fichas pequeñas en el camino.
+            const fromX = st.dragLastX, fromY = st.dragLastY;
+            const dist = Math.hypot(clientX - fromX, clientY - fromY);
+            const steps = Math.min(20, Math.max(1, Math.ceil(dist / 6)));
+            for (let i = 1; i <= steps; i++) {
+                const t = i / steps;
+                const x = fromX + (clientX - fromX) * t;
+                const y = fromY + (clientY - fromY) * t;
+                const el = document.elementFromPoint(x, y);
+                if (el && el.classList.contains('agrupacion-token') && !el.classList.contains('grouped')) {
+                    const idx = parseInt(el.dataset.index, 10);
+                    applyTokenDrag(idx, el);
+                }
+            }
+            st.dragLastX = clientX;
+            st.dragLastY = clientY;
+        }
+
+        function endTokenDrag() {
+            App.agrupacion.dragMode = false;
+            document.removeEventListener('mousemove', onTokenDragMove);
+            document.removeEventListener('touchmove', onTokenDragMove);
+            document.removeEventListener('mouseup', endTokenDrag);
+            document.removeEventListener('touchend', endTokenDrag);
+        }
+
+        function applyTokenDrag(index, el) {
+            const st = App.agrupacion;
+            if (st.dragTouched.has(index)) return;
+            st.dragTouched.add(index);
+            if (st.dragAction === 'select') selectToken(index, el);
+            else deselectToken(index, el);
+        }
+
+        const AGRUPACION_GROUP_COLORS = [
+            'radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46)',
+            'radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af)',
+            'radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d)',
+            'radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e)',
+            'radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6)',
+            'radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b)',
+            'radial-gradient(circle at 35% 35%, #c7d2fe, #818cf8, #3730a3)',
+            'radial-gradient(circle at 35% 35%, #bbf7d0, #4ade80, #166534)',
+            'radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e)',
+            'radial-gradient(circle at 35% 35%, #e9d5ff, #c084fc, #6b21a8)'
+        ];
+
+        function selectToken(index, el) {
+            const st = App.agrupacion;
+            st.selectedTokens.add(index);
+            el.classList.add('selected');
+            const nextGroup = st.groups.length;
+            el.style.background = AGRUPACION_GROUP_COLORS[nextGroup % AGRUPACION_GROUP_COLORS.length];
+            el.style.color = 'white';
+        }
+
+        function deselectToken(index, el) {
+            const st = App.agrupacion;
+            st.selectedTokens.delete(index);
+            el.classList.remove('selected');
+            el.style.background = '';
+            el.style.color = '#475569';
+        }
+
+
+
+        function doAgrupar() {
+            const st = App.agrupacion;
+            if (st.selectedTokens.size === 0) return;
+            if (st.selectedTokens.size !== App.divisor) {
+                document.getElementById('agrupacionStatus').textContent = 'Selecciona exactamente ' + App.divisor + ' fichas para formar un grupo.';
+                return;
+            }
+            if (st.mathPanelShown) return;
+
+            const area = document.getElementById('agrupacionArea');
+            const groupsRow = document.getElementById('agrupacionGroupsRow');
+            const groupColors = [
+                'radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46)',
+                'radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af)',
+                'radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d)',
+                'radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e)',
+                'radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6)',
+                'radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b)',
+                'radial-gradient(circle at 35% 35%, #c7d2fe, #818cf8, #3730a3)',
+                'radial-gradient(circle at 35% 35%, #bbf7d0, #4ade80, #166534)',
+                'radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e)',
+                'radial-gradient(circle at 35% 35%, #e9d5ff, #c084fc, #6b21a8)'
+            ];
+            const borderColors = ['#34d399','#60a5fa','#f472b6','#fbbf24','#a78bfa','#f87171','#818cf8','#4ade80','#f59e0b','#c084fc'];
+
+            const indices = Array.from(st.selectedTokens).sort((a,b) => a - b);
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'agrupacion-group';
+            const rows = indices.length <= 3 ? 1 : (indices.length <= 8 ? 2 : 3);
+            groupContainer.style.setProperty('--rows', rows);
+            const colorIdx = st.groups.length % groupColors.length;
+            const color = groupColors[colorIdx];
+            const borderColor = borderColors[colorIdx];
+            groupContainer.style.borderColor = borderColor;
+            groupContainer.style.background = borderColor + '15';
+
+            indices.forEach(idx => {
+                const token = area.querySelector('.agrupacion-token[data-index="' + idx + '"]');
+                if (token) {
+                    const clone = token.cloneNode(true);
+                    clone.classList.remove('selected');
+                    clone.style.background = color;
+                    clone.style.color = 'white';
+                    clone.style.cursor = 'default';
+                    clone.onclick = null;
+                    groupContainer.appendChild(clone);
+                    token.classList.add('grouped');
+                    token.classList.remove('selected');
+                    token.style.opacity = '0';
+                    setTimeout(() => token.style.display = 'none', 300);
+                }
+            });
+
+            const count = document.createElement('div');
+            count.className = 'agrupacion-group-count';
+            count.textContent = 'G' + (st.groups.length + 1);
+            groupContainer.appendChild(count);
+            groupsRow.appendChild(groupContainer);
+
+            st.groups.push(indices);
+            st.selectedTokens.clear();
+
+            const groupedCount = st.groups.length * App.divisor;
+            const remaining = App.dividend - groupedCount;
+
+            if (remaining < App.divisor) {
+                document.getElementById('agrupacionStatus').textContent = '¡Agrupación Completada!';
+                document.getElementById('agrupacionStatus').classList.add('ok');
+                document.getElementById('agruparBtnWrap').style.display = 'none';
+                area.classList.add('all-grouped');
+                if (area.children.length > 0) {
+                    const leftoverWrap = document.createElement('div');
+                    leftoverWrap.className = 'agrupacion-leftover-wrap';
+                    Array.from(area.children).forEach(token => {
+                        token.classList.add('leftover-final');
+                        leftoverWrap.appendChild(token);
+                    });
+                    groupsRow.appendChild(leftoverWrap);
+                }
+                area.style.display = 'none';
+                document.getElementById('agrMathPanel').classList.add('show');
+                st.mathPanelShown = true;
+                setTimeout(() => document.getElementById('agMathQuotient').focus(), 400);
+            } else {
+                document.getElementById('agrupacionStatus').textContent = 'Grupo formado. Selecciona ' + App.divisor + ' fichas más.';
+            }
+        }
+
+        function completeAgrupacionMath() {
+            hideError('agMathError');
+            showError('agMathSuccess', '¡Correcto! El cociente es ' + App.quotient + ' y el resto es ' + App.remainder + '.');
+            const finalEl = document.getElementById('agMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.agrupacion = true;
+            triggerCelebration();
+            document.getElementById('agrupacionGroupsRow').style.display = 'none';
+            document.getElementById('agrupacionArea').style.display = 'none';
+            document.getElementById('agruparBtnWrap').style.display = 'none';
+            document.getElementById('agrupacionStatus').style.display = 'none';
+            document.getElementById('agrupacionBackBtn').disabled = true;
+            document.getElementById('agContinueWrap').style.display = 'block';
+        }
+
+
+        /* ============================================
+           MÓDULO TABLAS DE MULTIPLICAR
+           ============================================ */
+        function buildTablas() {
+            const st = App.tablas;
+            st.products = [];
+            st.completed = false;
+            st.mathPanelShown = false;
+            st.locked = false;
+
+            document.getElementById('tablasTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('tablasBackBtn').disabled = false;
+
+            document.querySelector('#screen-tablas .table-wrapper').style.display = '';
+            document.getElementById('tablasStatus').style.display = '';
+            document.getElementById('tablasXBtnWrap').style.display = '';
+            document.getElementById('tablasStatus').textContent = 'Escribe los productos de la tabla. Si superas el dividendo, escribe X.';
+            document.getElementById('tablasStatus').classList.remove('ok');
+            document.getElementById('tabMathQuestions').classList.remove('show');
+            document.getElementById('tabDividendTarget').textContent = App.dividend;
+            document.getElementById('tabQ1').value = '';
+            document.getElementById('tabQ2').value = '';
+            document.getElementById('tabMathFinal').classList.remove('show');
+            hideError('tabMathError');
+            hideError('tabMathSuccess');
+            document.getElementById('tabContinueWrap').style.display = 'none';
+            setupAutoMathCheck('tabQ1', 'tabQ2', completeTablasMath);
+
+            const tbody = document.getElementById('tablasBody');
+            tbody.innerHTML = '';
+            const totalCols = Math.max(10, App.quotient + 1);
+            const colsPerRow = 10;
+            const numRows = Math.ceil(totalCols / colsPerRow);
+
+            for (let r = 0; r < numRows; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'tablas-row';
+                const start = r * colsPerRow + 1;
+                const end = Math.min(start + colsPerRow - 1, totalCols);
+
+                if (r === 0) {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'tablas-label';
+                    labelDiv.textContent = '× ' + App.divisor;
+                    rowDiv.appendChild(labelDiv);
+                }
+
+                for (let i = start; i <= end; i++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'tablas-cell';
+                    cellDiv.dataset.index = i;
+                    const expected = App.divisor * i;
+
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'tablas-header';
+                    headerDiv.textContent = i;
+                    cellDiv.appendChild(headerDiv);
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.inputMode = 'numeric';
+                    input.className = 'tablas-input';
+                    input.dataset.index = i;
+                    input.maxLength = 3;
+
+                    input.addEventListener('focus', function() {
+                        App.tablas.activeInput = input;
+                    });
+
+                    input.addEventListener('input', function() {
+                        const val = this.value.trim().toUpperCase();
+                        let isCorrect = false;
+                        if (expected > App.dividend) {
+                            if (val === 'X') {
+                                this.classList.add('correct');
+                                this.classList.remove('incorrect');
+                                st.products[i - 1] = 'X';
+                                isCorrect = true;
+                            } else if (val !== '') {
+                                this.classList.add('incorrect');
+                                this.classList.remove('correct');
+                            } else {
+                                this.classList.remove('correct', 'incorrect');
+                            }
+                        } else {
+                            const num = parseInt(val);
+                            if (!isNaN(num) && num === expected) {
+                                this.classList.add('correct');
+                                this.classList.remove('incorrect');
+                                st.products[i - 1] = num;
+                                isCorrect = true;
+                            } else if (val !== '') {
+                                this.classList.add('incorrect');
+                                this.classList.remove('correct');
+                            } else {
+                                this.classList.remove('correct', 'incorrect');
+                            }
+                        }
+                        if (isCorrect) {
+                            const next = document.querySelector('.tablas-input[data-index="' + (i + 1) + '"]');
+                            if (next) next.focus();
+                        }
+                        if (!st.locked) { maybeFinishTablas(); }
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const next = document.querySelector('.tablas-input[data-index="' + (i + 1) + '"]');
+                            if (next) next.focus();
+                        }
+                    });
+
+                    cellDiv.appendChild(input);
+                    rowDiv.appendChild(cellDiv);
+                }
+
+                tbody.appendChild(rowDiv);
+            }
+
+            switchScreen('screen-tablas');
+            setTimeout(() => {
+                const first = document.querySelector('.tablas-input[data-index="1"]');
+                if (first) { first.focus(); App.tablas.activeInput = first; }
+            }, 400);
+        }
+
+        function markActiveTablasInputAsX() {
+            let target = App.tablas.activeInput;
+            if (!target || !document.body.contains(target)) {
+                target = document.querySelector('.tablas-input:not(.correct)');
+            }
+            if (!target) return;
+            target.value = 'X';
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.focus();
+            document.getElementById('tablasXBtnWrap').style.display = 'none';
+        }
+
+        function finishTablas() {
+            const st = App.tablas;
+            st.completed = true;
+            st.locked = true;
+            document.querySelectorAll('.tablas-input').forEach(function(input) {
+                input.readOnly = true;
+            });
+            document.getElementById('tablasStatus').innerHTML =
+                '¡Tabla completada! Ahora responde las preguntas finales.';
+            document.getElementById('tablasStatus').classList.add('ok');
+            document.getElementById('tabMathQuestions').classList.add('show');
+            st.mathPanelShown = true;
+            setTimeout(function() { document.getElementById('tabQ1').focus(); }, 400);
+        }
+
+        function maybeFinishTablas() {
+            const st = App.tablas;
+            if (st.locked) return;
+
+            let allPreviousCorrect = true;
+            const inputs = Array.from(document.querySelectorAll('.tablas-input'))
+                .sort(function(a, b) { return parseInt(a.dataset.index) - parseInt(b.dataset.index); });
+
+            for (let idx = 0; idx < inputs.length; idx++) {
+                const input = inputs[idx];
+                const i = parseInt(input.dataset.index);
+                const expected = App.divisor * i;
+                const val = input.value.trim().toUpperCase();
+
+                if (expected > App.dividend) {
+                    if (val === 'X') {
+                        if (allPreviousCorrect) {
+                            finishTablas();
+                            return;
+                        }
+                    } else if (val !== '') {
+                        allPreviousCorrect = false;
+                    } else {
+                        allPreviousCorrect = false;
+                    }
+                } else {
+                    if (val === '' || val === null) {
+                        allPreviousCorrect = false;
+                    } else if (parseInt(val) === expected) {
+                        input.readOnly = true;
+                    } else {
+                        allPreviousCorrect = false;
+                    }
+                }
+            }
+        }
+
+        function completeTablasMath() {
+            hideError('tabMathError');
+            showError('tabMathSuccess', '¡Correcto! Pudiste avanzar ' + App.quotient + ' veces y sobraron ' + App.remainder + '.');
+            const finalEl = document.getElementById('tabMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.tablas = true;
+            triggerCelebration();
+            document.querySelector('#screen-tablas .table-wrapper').style.display = 'none';
+            document.getElementById('tablasStatus').style.display = 'none';
+            document.getElementById('tablasXBtnWrap').style.display = 'none';
+            document.getElementById('tablasBackBtn').disabled = true;
+            document.getElementById('tabContinueWrap').style.display = 'block';
+        }
+
+        /* ============================================
+           CELEBRACIÓN
+           ============================================ */
+        function triggerCelebration() {
+            const container = document.getElementById('celebration');
+            if (!container) return;
+            const colors = ['#5b8cff','#ff8f5b','#ffd25b','#5bff9e','#ff5b8f','#c45bff'];
+            for (let i = 0; i < 60; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '★';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = '-10px';
+                star.style.fontSize = (Math.random() * 14 + 10) + 'px';
+                star.style.color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+                star.style.animationDelay = (Math.random() * 0.3) + 's';
+                container.appendChild(star);
+                setTimeout(() => { if (star.parentNode) star.parentNode.removeChild(star); }, 2000);
+            }
+        }
+
+        function triggerBigCelebration() {
+            const container = document.getElementById('celebration');
+            if (!container) return;
+            const colors = ['#5b8cff','#ff8f5b','#ffd25b','#5bff9e','#ff5b8f','#c45bff'];
+            for (let i = 0; i < 120; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '★';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = '-10px';
+                star.style.fontSize = (Math.random() * 16 + 12) + 'px';
+                star.style.color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                star.style.animationDelay = (Math.random() * 0.5) + 's';
+                container.appendChild(star);
+                setTimeout(() => { if (star.parentNode) star.parentNode.removeChild(star); }, 3000);
+            }
+        }
+
+        /* ============================================
+           ATAJOS DE TECLADO
+           ============================================ */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const activeScreen = document.querySelector('.screen.active');
+                if (!activeScreen) return;
+                const id = activeScreen.id;
+                if (id === 'screen-welcome') return;
+                if (id === 'screen-manual') goToWelcome();
+                else if (id === 'screen-strategy') goToWelcome();
+                else if (id === 'screen-reparto' || id === 'screen-agrupacion' || id === 'screen-tablas') goToCompare();
+                else if (id === 'screen-compare') goToStrategySelect();
+                else if (id === 'screen-complete') resetAll();
+            }
+        });
+
+        /* ============================================
+           FOCOS POR ENTER EN INPUTS DE BIENVENIDA
+           ============================================ */
+        document.getElementById('inputDividend').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') document.getElementById('inputDivisor').focus();
+        });
+        document.getElementById('inputDivisor').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') onManualStart();
+        });
+
+        App.reset();
+    </script>
+</body>
+</html>

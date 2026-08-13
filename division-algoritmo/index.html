@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark">
+<title>Divisiones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   DIVISIONES — misma identidad que el resto de la colección (fondo violeta
+   oscuro, tarjetas de vidrio esmerilado, acento ámbar). Se conservan los
+   mismos NOMBRES de variable del archivo original; solo cambian sus
+   valores. La "pared" (el borde que encierra las cifras tomadas) sigue
+   siendo puro CSS, ahora en un rojo-coral que se distingue bien del fondo
+   oscuro.
+   ========================================================================== */
+:root{
+  color-scheme: dark;
+  --ink:        #f6f3ff;
+  --ink-soft:   #c9bdf0;
+  --ink-faint:  #8f7fc4;
+  --paper:      #1e1147;
+  --rule-line:  rgba(255,255,255,.05);
+  --surface:    rgba(255,255,255,.07);
+  --surface-2:  rgba(255,255,255,.12);
+  --border-soft: rgba(255,255,255,.16);
+
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+
+  --pared:      #fb7185;
+  --pared-bg:   rgba(251,113,133,.16);
+  --pared-hist: rgba(251,113,133,.35);
+  --accent:     #fbbf24;
+  --accent-bg:  rgba(251,191,36,.14);
+  --success:    #34d399;
+  --success-bg: rgba(52,211,153,.15);
+
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+  --shadow-card: 0 14px 34px rgba(0,0,0,.4);
+
+  --font-ui:  'Nunito', 'Segoe UI', sans-serif;
+  --font-num: 'Baloo 2', 'Segoe UI', sans-serif;
+
+  --cell: clamp(30px, 7vw, 52px);
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; min-height:100%; }
+body{
+  font-family: var(--font-ui); color: var(--ink); font-weight:600;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2)),
+    linear-gradient(var(--rule-line) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251,113,133,0.06) 1px, transparent 1px);
+  background-size: auto, auto, auto, 100% 34px, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 46px, 46px 0;
+  background-attachment: fixed;
+  min-height:100vh; -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+button{ font-family:inherit; }
+h1,h2,h3{ margin:0; font-family: var(--font-num); }
+:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
+@media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+
+#app{ width:100%; max-width: 1080px; margin:0 auto; padding: 22px 16px 34px; }
+
+/* ==========================================================================
+   Pantalla: selección de nivel
+   ========================================================================== */
+.wrap-centro{ display:flex; flex-direction:column; align-items:center; }
+.hero{ text-align:center; margin-bottom: 32px; padding-top:10px; }
+.hero h1{ font-size: clamp(2.1rem,5.5vw,3rem); font-weight:800; line-height:1.12; letter-spacing:-.01em; }
+.hero p{ color: var(--ink-soft); font-weight:500; font-size:1.06rem; max-width:520px; margin:14px auto 0; line-height:1.5; }
+
+.nivel-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:clamp(10px, 2.5vw, 16px); width:100%; max-width: 520px; }
+@media (max-width:480px){ .nivel-grid{ grid-template-columns:1fr; } }
+.nivel-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(16px,4vw,22px) 10px; border-radius:var(--radius-m); border:none;
+  color:#fff; cursor:pointer; font-family:var(--font-num); font-weight:800;
+  font-size:clamp(1rem, 2.6vw, 1.15rem); min-height:96px; transition:transform .15s ease, box-shadow .15s ease;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+}
+.nivel-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.nivel-card:active{ transform:translateY(0) scale(.98); }
+.nivel-emoji{ font-size:clamp(1.5rem, 4.5vw, 1.9rem); }
+.nivel-card.n-facil{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.nivel-card.n-intermedio{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.nivel-card.n-dificil{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.nivel-card.personalizado{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+.nivel-card h3{ font-size:1em; font-weight:800; margin:0; }
+
+.personal-card{
+  background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px);
+  border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+  padding: 30px clamp(20px,5vw,40px); width:100%; max-width:420px; text-align:center;
+}
+.personal-card label{ display:block; font-weight:700; font-size:.9rem; color: var(--ink-soft); margin-bottom:16px; }
+.personal-row{ display:flex; align-items:center; justify-content:center; gap: clamp(10px,3vw,16px); }
+.personal-input{
+  width:100%; max-width:130px; font-family: var(--font-num); font-weight:700; font-size: clamp(1.4rem,6vw,1.9rem);
+  text-align:center; color: var(--ink); border:2.5px solid var(--border-soft); border-radius: var(--radius-m);
+  padding:12px 6px; background: var(--surface-2);
+}
+.personal-input:focus{ outline:none; border-color: var(--accent); background:rgba(255,255,255,.16); }
+.personal-sep{ font-family: var(--font-num); font-weight:800; font-size: clamp(1.4rem,5vw,1.8rem); color: var(--ink-soft); }
+.personal-error{
+  margin-top:14px; padding:9px 14px; border-radius:10px; background: var(--pared-bg); color: var(--pared);
+  font-weight:700; font-size:.86rem; display:none;
+}
+.personal-error.show{ display:block; }
+
+footer.credits{ text-align:center; color: var(--ink-faint); font-weight:600; font-size:.76rem; padding:20px 10px 4px; }
+
+/* ==========================================================================
+   Laboratorio: layout de dos columnas (contenido + tabla fija)
+   ========================================================================== */
+.lab-main{ width:100%; display:flex; flex-direction:column; align-items:center; }
+
+.lab-topbar{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.ghost-btn{
+  border:2px solid var(--border-soft); background: var(--surface); color: var(--ink-soft); font-weight:700; font-size:.85rem;
+  padding:8px 14px; border-radius:999px; cursor:pointer; transition: all .15s ease;
+}
+.ghost-btn:hover{ border-color: var(--accent); color: var(--accent); }
+.problema-pill{
+  font-family: var(--font-num); font-weight:700; font-size:1.05rem; color: var(--ink);
+  background: var(--surface); border:2px solid var(--ink); border-radius:14px; padding:6px 16px;
+}
+
+.fase-hint{
+  text-align:center; font-weight:600; color: var(--ink-soft); background: var(--surface-2);
+  border:1.5px dashed var(--border-soft); border-radius:12px; padding:9px 14px; margin-bottom:16px; max-width:640px; font-size:.88rem;
+}
+.fase-hint b{ color: var(--pared); }
+
+/* --- Tabla del divisor: panel opcional, colapsable, EN FLUJO NORMAL --------
+   (sin position:fixed/sticky: así el navegador puede llevar el input
+   enfocado por sobre el teclado con su comportamiento nativo). ------------- */
+.tabla-card{
+  background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px);
+  border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+  padding:14px 16px; width:100%; margin-bottom:16px;
+}
+.tabla-titulo{ font-family: var(--font-num); font-weight:700; font-size:1rem; color: var(--ink); text-align:center; margin-bottom:10px; }
+.tabla-titulo b{ color: var(--accent); }
+.tabla-opcional{ font-family: var(--font-ui); font-weight:600; font-size:.72rem; color: var(--ink-faint); }
+.tabla-filas{ display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; }
+.tabla-fila{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-family: var(--font-num); font-size:.82rem; color: var(--ink-soft); font-weight:600;
+  background: var(--surface-2); border-radius:7px; padding:6px 4px;
+}
+.tabla-fila.resuelta{ background: var(--success-bg); color: var(--success); }
+.tabla-fila.activa{ background: var(--accent-bg); box-shadow: 0 0 0 2px var(--accent); }
+.tabla-input{
+  width:100%; max-width:44px; font-family: var(--font-num); font-weight:700; font-size:.88rem; text-align:center;
+  border:2px solid var(--border-soft); border-radius:6px; padding:3px 2px; color: var(--ink); outline:none;
+}
+.tabla-input:focus{ border-color: var(--accent); }
+.tabla-input.wrong-flash{ background: var(--pared-bg); border-color: var(--pared); }
+.tabla-valor{ font-weight:800; }
+
+@media (max-width: 860px){
+  #app{ padding: 8px 6px 6px; }
+  .lab-topbar{ margin-bottom:6px; gap:6px; }
+  .ghost-btn{ padding:5px 10px; font-size:.74rem; }
+  .problema-pill{ font-size:.86rem; padding:4px 10px; }
+  .fase-hint{ padding:5px 9px; margin-bottom:8px; font-size:.74rem; }
+
+  .division-card{ padding: 10px 8px; gap:6px; }
+  .pared-outer{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  .tabla-card{ padding:8px 10px; margin-bottom:10px; }
+  .tabla-titulo{ font-size:.82rem; margin-bottom:6px; }
+  .tabla-filas{ gap:4px; }
+  .tabla-fila{ padding:4px 2px; font-size:.68rem; }
+  .tabla-input{ max-width:36px; font-size:.74rem; padding:2px; }
+}
+
+@media (max-width: 400px){
+  :root{ --cell: clamp(22px, 7.5vw, 40px); }
+  .personal-input{ max-width: 96px; padding:9px 4px; }
+  .div-sep, .div-num{ padding:0; }
+}
+
+/* ==========================================================================
+   La grilla de la división: una columna fija por cada cifra del dividendo
+   ========================================================================== */
+.division-card{
+  background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px);
+  border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+  padding: clamp(14px,4vw,30px); width:100%; display:flex; flex-direction:column; gap:10px;
+}
+
+.pared-outer{ display:flex; align-items:flex-start; gap: clamp(6px,2vw,14px); flex-wrap:wrap; }
+.pared-grid{ display:grid; gap: 4px clamp(1px,.5vw,3px); align-content:start; }
+.resto-top-row{ display:flex; align-items:center; gap: clamp(3px,1vw,6px); flex-wrap:wrap; padding-top:2px; }
+
+/* --- La pared misma: borde inferior en cada cifra del grupo, y borde
+   derecho SOLO en la última, unidos en la esquina. Se aplica directamente
+   sobre cada celda de la grilla — nunca se calcula aparte ni se mueve. ---- */
+.pared-borde{ border-bottom: 3px solid var(--pared) !important; transition: border-color .35s ease; }
+.pared-esquina{ border-right: 3px solid var(--pared) !important; border-bottom-right-radius: 7px; }
+.pared-borde.historica{ border-bottom-color: var(--pared-hist) !important; }
+.pared-esquina.historica{ border-right-color: var(--pared-hist) !important; }
+
+.div-digit{
+  font-family: var(--font-num); font-weight:700; font-size: clamp(1.1rem,4.5vw,1.8rem); color: var(--ink);
+  background: transparent; border:none;
+  width: var(--cell); height: calc(var(--cell) * 0.95); display:flex; align-items:center; justify-content:center;
+  transition: all .25s ease; cursor:default; border-radius:8px;
+}
+.div-digit.grupo-digit{ background: var(--surface-2); }
+.div-digit.consumido{ opacity:.35; }
+.div-digit.clickable{ cursor:pointer; border:2px dashed var(--accent); background: var(--accent-bg); }
+.div-digit.clickable:hover{ transform: translateY(-2px); }
+.div-digit.invita{ animation: pulse-invita 1.1s ease-in-out infinite; }
+@keyframes pulse-invita{ 0%,100%{ box-shadow:0 0 0 0 rgba(46,111,142,0.45);} 50%{ box-shadow:0 0 0 7px rgba(46,111,142,0);} }
+
+.div-sep{ font-family: var(--font-num); font-weight:800; font-size: clamp(1.1rem,4.5vw,1.8rem); color: var(--ink-soft); padding:0 1px; }
+.div-num{ font-family: var(--font-num); font-weight:800; font-size: clamp(1.1rem,4.5vw,1.8rem); color: var(--ink); }
+.div-quot-digit{
+  font-family: var(--font-num); font-weight:800; font-size: clamp(1.1rem,4.5vw,1.8rem); color: var(--success);
+  background: var(--success-bg); border-radius:8px; width: var(--cell); height: calc(var(--cell) * 0.95);
+  display:flex; align-items:center; justify-content:center;
+}
+.div-quot-input{
+  width: var(--cell); height: calc(var(--cell) * 0.95); font-family: var(--font-num); font-weight:800;
+  font-size: clamp(1rem,4vw,1.6rem); text-align:center; color: var(--ink);
+  border:2.5px solid var(--accent); border-radius:8px; outline:none; background:rgba(255,255,255,.16);
+}
+.div-quot-input.wrong-flash{ border-color: var(--pared); background: var(--pared-bg); }
+
+.falta-input{
+  width: 100%; height: calc(var(--cell) * 0.95);
+  font-family: var(--font-num); font-weight:700; font-size: clamp(1.1rem,4.5vw,1.8rem);
+  text-align:center; border:2.5px solid var(--pared); border-radius:8px; padding:0; color: var(--ink); outline:none;
+}
+.falta-input.wrong-flash{ background: var(--pared-bg); }
+.falta-slash{ font-weight:900; color: var(--pared); font-size: 1.1rem; align-self:center; display:flex; align-items:center; justify-content:center; }
+
+/* ==========================================================================
+   Pantalla final
+   ========================================================================== */
+.final-banner{
+  text-align:center; background: var(--success-bg); border:2px solid var(--success);
+  color: var(--success); border-radius: var(--radius-m); padding:16px 22px; font-weight:800;
+  font-family: var(--font-num); font-size: clamp(1rem,3.6vw,1.35rem);
+}
+.btn-row{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+.primary-btn{
+  background: linear-gradient(135deg, var(--success), #10b981); color:#062b1c; border:none; border-radius:999px; padding:12px 24px;
+  font-weight:800; font-size:.96rem; cursor:pointer; transition: transform .12s ease, background .15s ease;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+}
+.primary-btn:hover{ transform: translateY(-2px); }
+</style>
+</head>
+<body>
+<a href="../index.html" title="Volver al catálogo de recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+
+<div id="app"></div>
+
+<script>
+/* ============================================================================
+   LA PARED DE LA DIVISIÓN — algoritmo de la división por agrupación con "muro"
+   ----------------------------------------------------------------------------
+   Índice:
+     1. Utilidades
+     2. Generación / validación de problemas por nivel
+     3. Motor: prefijo inicial ("dónde va la primera pared")
+     4. Estado global (modelo de "grupos": cada grupo = cifras + cociente + falta)
+     5. Render: selección de nivel + ejercicio personalizado
+     6. Render: laboratorio (tabla del divisor + escalera de grupos)
+     7. Interacciones: tabla del divisor
+     8. Interacciones: colocar la pared, responder cociente/falta, bajar cifra
+     9. Pantalla final
+    10. Arranque
+
+   La "pared" es puramente CSS: border-right + border-bottom sobre el
+   contenedor que envuelve las cifras de cada grupo (ver .pared-wrap). Nunca
+   se calcula por JavaScript, así que queda perfectamente pegada a las cifras
+   sin importar el tamaño de fuente ni el ancho de pantalla.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1. UTILIDADES
+   ------------------------------------------------------------------------- */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+let toastTimer = null;
+function mostrarToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#2c1468;border:1px solid rgba(255,255,255,.18);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-family:"Nunito",sans-serif;font-size:.86rem;z-index:4000;box-shadow:0 10px 24px rgba(0,0,0,0.4);max-width:90vw;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transition = '';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.transition = 'opacity .4s ease'; t.style.opacity = '0'; }, 2400);
+}
+
+/* ---------------------------------------------------------------------------
+   2. GENERACIÓN DE PROBLEMAS POR NIVEL
+   ------------------------------------------------------------------------- */
+function generarFacil(){
+  for(let i = 0; i < 500; i++){
+    const d = randInt(2, 9);
+    const qMax = Math.floor(99 / d);
+    if(qMax < 11) continue;
+    const q = randInt(11, qMax);
+    const r = randInt(0, d - 1);
+    const dividendo = d * q + r;
+    if(dividendo >= 30 && dividendo <= 99) return { dividendo, divisor: d };
+  }
+  return { dividendo: 96, divisor: 8 };
+}
+function generarIntermedio(){
+  for(let i = 0; i < 500; i++){
+    const divisor = randInt(2, 9);
+    const dividendo = randInt(100, 9999);
+    if(dividendo > divisor) return { dividendo, divisor };
+  }
+  return { dividendo: 1234, divisor: 5 };
+}
+function generarDificil(){
+  for(let i = 0; i < 500; i++){
+    const divisor = randInt(11, 99);
+    const dividendo = randInt(50, 9999);
+    if(dividendo > divisor) return { dividendo, divisor };
+  }
+  return { dividendo: 987, divisor: 23 };
+}
+function generarProblema(nivel){
+  if(nivel === 'facil') return generarFacil();
+  if(nivel === 'intermedio') return generarIntermedio();
+  return generarDificil();
+}
+
+function validarPersonalizado(divStr, disStr){
+  const dividendo = parseInt((divStr || '').trim(), 10);
+  const divisor = parseInt((disStr || '').trim(), 10);
+  if(!/^\d+$/.test((divStr||'').trim()) || !/^\d+$/.test((disStr||'').trim())){
+    return { error: 'Escribe solo números en ambos casilleros.' };
+  }
+  if(divisor < 1){
+    return { error: 'El divisor debe ser 1 o mayor.' };
+  }
+  if(dividendo <= divisor){
+    return { error: 'El dividendo debe ser mayor que el divisor.' };
+  }
+  if(String(dividendo).length > 6 || String(divisor).length > 4){
+    return { error: 'Usa números más pequeños (máximo 6 cifras el dividendo).' };
+  }
+  return { dividendo, divisor };
+}
+
+/* ---------------------------------------------------------------------------
+   3. MOTOR: PREFIJO INICIAL
+   ------------------------------------------------------------------------- */
+function calcularPrefijo(digitos, divisor){
+  for(let p = 1; p <= digitos.length; p++){
+    const val = parseInt(digitos.slice(0, p).join(''), 10);
+    if(val >= divisor) return p;
+  }
+  return digitos.length;
+}
+
+/* ---------------------------------------------------------------------------
+   4. ESTADO GLOBAL
+   Cada grupo: { digitos:[...], numero, cocienteDigito, falta, resuelto,
+                 esFinal, indentUnits }
+   ------------------------------------------------------------------------- */
+const state = {
+  screen: 'setup',      // 'setup' | 'personalizado' | 'lab'
+  nivel: null,
+  dividendo: 0, divisor: 0, dividendDigits: [],
+  prefijoCorrecto: 0,
+  tabla: [],
+  fase: 'tabla',         // 'tabla' | 'division' | 'final'
+  subFase: 'pared',      // 'pared' | 'cociente' | 'falta' | 'bajar' | 'terminado'
+  consumido: 0,
+  grupos: [],
+  cocienteDigitos: [],
+  restoFinal: null,
+};
+
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  if(state.screen === 'setup') app.appendChild(renderSetup());
+  else if(state.screen === 'personalizado') app.appendChild(renderPersonalizado());
+  else app.appendChild(renderLab());
+}
+
+/* ---------------------------------------------------------------------------
+   5. PANTALLA: SELECCIÓN DE NIVEL
+   ------------------------------------------------------------------------- */
+function renderSetup(){
+  const wrap = el('div', 'wrap-centro');
+  wrap.appendChild(el('div', 'hero', `
+    <h1>Divisiones</h1>
+    <p>Elige un nivel para practicar, o crea tu propio ejercicio.</p>
+  `));
+
+  const grid = el('div', 'nivel-grid');
+  const niveles = [
+    { id:'facil', cls:'n-facil', emoji:'⭐', label:'Fácil' },
+    { id:'intermedio', cls:'n-intermedio', emoji:'⭐⭐', label:'Intermedio' },
+    { id:'dificil', cls:'n-dificil', emoji:'⭐⭐⭐', label:'Difícil' },
+  ];
+  niveles.forEach(n => {
+    const card = el('button', 'nivel-card ' + n.cls, `<span class="nivel-emoji">${n.emoji}</span><h3>${n.label}</h3>`);
+    card.onclick = () => iniciarProblema(n.id);
+    grid.appendChild(card);
+  });
+
+  const cardPersonal = el('button', 'nivel-card personalizado', `<span class="nivel-emoji">✏️</span><h3>Crea tu ejercicio</h3>`);
+  cardPersonal.onclick = () => { state.screen = 'personalizado'; render(); };
+  grid.appendChild(cardPersonal);
+
+  wrap.appendChild(grid);
+  wrap.appendChild(el('footer', 'credits', 'Divisiones · Material interactivo para Educación Básica'));
+  return wrap;
+}
+
+/* Vista previa decorativa: una división ya resuelta (48 ÷ 4 = 12), mostrada
+   en miniatura con el mismo lenguaje visual real de la herramienta —
+   incluye a propósito el caso "08" para mostrar que el cero nunca se pierde. */
+function renderPersonalizado(){
+  const wrap = el('div', 'wrap-centro');
+  const nav = el('div', 'lab-topbar');
+  const back = el('button', 'ghost-btn', '← Volver');
+  back.onclick = () => { state.screen = 'setup'; render(); };
+  nav.appendChild(back);
+  wrap.appendChild(nav);
+
+  wrap.appendChild(el('div', 'hero', `<h1 style="font-size:1.6rem;">Crea tu propio ejercicio</h1>`));
+
+  const card = el('div', 'personal-card');
+  card.appendChild(el('label', '', 'Escribe el dividendo y el divisor'));
+
+  const row = el('div', 'personal-row');
+  const inputDividendo = document.createElement('input');
+  inputDividendo.type = 'text'; inputDividendo.inputMode = 'numeric'; inputDividendo.className = 'personal-input';
+  inputDividendo.placeholder = '267'; inputDividendo.id = 'inDividendo';
+  const inputDivisor = document.createElement('input');
+  inputDivisor.type = 'text'; inputDivisor.inputMode = 'numeric'; inputDivisor.className = 'personal-input';
+  inputDivisor.placeholder = '3'; inputDivisor.id = 'inDivisor';
+
+  row.appendChild(inputDividendo);
+  row.appendChild(el('span', 'personal-sep', ':'));
+  row.appendChild(inputDivisor);
+  card.appendChild(row);
+
+  const err = el('div', 'personal-error'); err.id = 'personalError';
+  card.appendChild(err);
+
+  const btn = el('button', 'primary-btn', 'Comenzar');
+  btn.style.marginTop = '20px'; btn.style.width = '100%';
+  btn.onclick = () => {
+    const r = validarPersonalizado(inputDividendo.value, inputDivisor.value);
+    if(r.error){ err.textContent = r.error; err.classList.add('show'); return; }
+    err.classList.remove('show');
+    iniciarConDatos(r.dividendo, r.divisor, 'personalizado');
+  };
+  card.appendChild(btn);
+
+  wrap.appendChild(card);
+  [inputDividendo, inputDivisor].forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') btn.click(); }));
+  setTimeout(() => inputDividendo.focus(), 30);
+  return wrap;
+}
+
+function iniciarProblema(nivel){
+  const p = generarProblema(nivel);
+  iniciarConDatos(p.dividendo, p.divisor, nivel);
+}
+
+function iniciarConDatos(dividendo, divisor, nivel){
+  state.nivel = nivel;
+  state.dividendo = dividendo; state.divisor = divisor;
+  state.dividendDigits = String(dividendo).split('').map(Number);
+  state.prefijoCorrecto = calcularPrefijo(state.dividendDigits, divisor);
+  state.tabla = Array.from({ length: 10 }, (_, i) => ({ n: i + 1, valor: (i + 1) * divisor, resuelto: false }));
+  state.tablaAbierta = true; // opcional: el estudiante puede usarla o ignorarla por completo
+  state.fase = 'division'; // ya no hay una fase de tabla obligatoria: se puede dividir de inmediato
+  state.subFase = 'pared';
+  state.consumido = 0;
+  state.grupos = [];
+  state.cocienteDigitos = []; state.restoFinal = null;
+  state.screen = 'lab';
+  render();
+  setTimeout(() => {
+    const first = document.querySelector('.tabla-input[data-idx="0"]');
+    if(first) first.focus();
+  }, 30);
+}
+
+function volverAlInicio(){ state.screen = 'setup'; render(); }
+
+/* ---------------------------------------------------------------------------
+   6. LABORATORIO
+   ------------------------------------------------------------------------- */
+function renderLab(){
+  const wrap = el('div');
+  wrap.style.width = '100%';
+
+  const topbar = el('div', 'lab-topbar');
+  const back = el('button', 'ghost-btn', '← Elegir otro nivel');
+  back.onclick = volverAlInicio;
+  topbar.appendChild(back);
+  topbar.appendChild(el('div', 'problema-pill', `${state.dividendo} : ${state.divisor}`));
+  const toggleTabla = el('button', 'ghost-btn', (state.tablaAbierta ? '▾ ' : '▸ ') + `Tabla del ${state.divisor}`);
+  toggleTabla.onclick = () => { state.tablaAbierta = !state.tablaAbierta; render(); };
+  topbar.appendChild(toggleTabla);
+  wrap.appendChild(topbar);
+
+  const main = el('div', 'lab-main');
+
+  if(state.tablaAbierta){
+    main.appendChild(construirTablaPanel());
+  }
+
+  const hint = el('div', 'fase-hint');
+  if(state.subFase === 'pared'){
+    hint.innerHTML = `Haz clic en la cifra del dividendo donde debe terminar el <b>primer grupo</b>. (La tabla es opcional: úsala solo si te sirve de apoyo.)`;
+  } else if(state.subFase === 'cociente'){
+    const g = state.grupos[state.grupos.length - 1];
+    hint.innerHTML = `¿Cuántas veces avanzas para acercarte a <b>${g.numero}</b> sin pasarte?`;
+  } else if(state.subFase === 'falta'){
+    const g = state.grupos[state.grupos.length - 1];
+    hint.innerHTML = `¿Cuánto <b>falta</b> para llegar a ${g.numero}?`;
+  } else if(state.subFase === 'bajar'){
+    hint.innerHTML = `Haz clic en la próxima cifra del dividendo para <b>bajarla</b>.`;
+  } else {
+    hint.innerHTML = '¡División resuelta!';
+  }
+  main.appendChild(hint);
+
+  const card = el('div', 'division-card');
+  card.appendChild(construirParedStage());
+  main.appendChild(card);
+  if(state.fase === 'final') main.appendChild(renderFinal());
+
+  wrap.appendChild(main);
+  wrap.appendChild(el('footer', 'credits', 'Divisiones · Material interactivo para Educación Básica'));
+  return wrap;
+}
+
+/* ---------------------------------------------------------------------------
+   7. TABLA DEL DIVISOR (opcional — panel colapsable, EN FLUJO NORMAL)
+   No usa position:fixed/sticky a propósito: así el teclado del celular nunca
+   la tapa, porque el navegador hace scroll nativo hasta el input enfocado.
+   ------------------------------------------------------------------------- */
+function construirTablaPanel(){
+  const card = el('div', 'tabla-card');
+  card.appendChild(el('div', 'tabla-titulo', `Tabla del <b>${state.divisor}</b> <span class="tabla-opcional">(opcional)</span>`));
+
+  const filas = el('div', 'tabla-filas');
+  const siguienteIdx = state.tabla.findIndex(f => !f.resuelto);
+
+  state.tabla.forEach((fila, idx) => {
+    const filaEl = el('div', 'tabla-fila' + (fila.resuelto ? ' resuelta' : '') + (idx === siguienteIdx ? ' activa' : ''));
+    filaEl.appendChild(el('span', '', `${state.divisor}×${fila.n}=`));
+    if(fila.resuelto){
+      filaEl.appendChild(el('span', 'tabla-valor', String(fila.valor)));
+    } else {
+      const input = document.createElement('input');
+      input.type = 'text'; input.inputMode = 'numeric'; input.className = 'tabla-input';
+      input.dataset.idx = idx;
+      input.setAttribute('aria-label', `${state.divisor} por ${fila.n}`);
+      input.addEventListener('input', () => manejarEntradaTabla(idx, input));
+      filaEl.appendChild(input);
+    }
+    filas.appendChild(filaEl);
+  });
+  card.appendChild(filas);
+  return card;
+}
+
+function manejarEntradaTabla(idx, inputEl){
+  const val = inputEl.value.replace(/\D/g, '');
+  inputEl.value = val;
+  if(val === '') return;
+
+  const objetivo = state.tabla[idx].valor;
+  if(parseInt(val, 10) === objetivo){
+    state.tabla[idx].resuelto = true;
+    render();
+    if(idx + 1 < state.tabla.length){
+      setTimeout(() => {
+        const next = document.querySelector(`.tabla-input[data-idx="${idx + 1}"]`);
+        if(next) next.focus();
+      }, 30);
+    }
+  } else if(val.length >= String(objetivo).length){
+    inputEl.classList.add('wrong-flash');
+    mostrarToast('Esa fila de la tabla no está correcta.');
+    setTimeout(() => { inputEl.value = ''; inputEl.classList.remove('wrong-flash'); }, 300);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   6b. LA GRILLA DE LA DIVISIÓN
+   Una sola cuadrícula CSS con una columna fija por cada cifra del dividendo
+   (grid-template-columns). Cada cifra —la original, o la que resulta de un
+   "falta"— se ubica con grid-column/grid-row calculados por índice, NUNCA
+   por flexbox ni márgenes aproximados. Por eso ninguna cifra se corre: cada
+   una vive siempre en su misma columna, en la fila que le corresponda según
+   el paso del proceso. El "falta" de un grupo vive en la fila donde
+   eventualmente aparecerá el grupo siguiente (la cifra que baja se agrega
+   ahí mismo, cayendo en línea recta desde su columna de origen).
+   ------------------------------------------------------------------------- */
+function construirParedStage(){
+  const N = state.dividendDigits.length;
+  const outer = el('div', 'pared-outer');
+
+  const grid = el('div', 'pared-grid');
+  grid.style.gridTemplateColumns = `repeat(${N}, var(--cell))`;
+
+  // Fila 1: las cifras originales del dividendo, cada una en su propia columna
+  state.dividendDigits.forEach((d, i) => {
+    const item = construirCeldaDividendo(d, i);
+    item.style.gridColumn = String(i + 1);
+    item.style.gridRow = '1';
+    if(state.grupos.length > 0 && i < state.grupos[0].digitos.length){
+      const esUltimo = (i === state.grupos[0].digitos.length - 1);
+      const historica = state.grupos.length > 1;
+      item.classList.add('pared-borde');
+      if(esUltimo) item.classList.add('pared-esquina');
+      if(historica) item.classList.add('historica');
+    }
+    grid.appendChild(item);
+  });
+
+  // Grupos 2°, 3°, ... cada uno en su propia fila, en las columnas exactas
+  // donde terminan (alineados con la cifra original que los originó).
+  for(let k = 1; k < state.grupos.length; k++){
+    const grupo = state.grupos[k];
+    const historica = (k !== state.grupos.length - 1);
+    const filaGrid = k + 1;
+    const colInicio = grupo.finCol - grupo.digitos.length + 1;
+    grupo.digitos.forEach((d, j) => {
+      const span = el('span', 'div-digit grupo-digit pared-borde' + (historica ? ' historica' : ''), String(d));
+      if(j === grupo.digitos.length - 1){
+        span.classList.add('pared-esquina');
+      }
+      span.style.gridColumn = String(colInicio + j);
+      span.style.gridRow = String(filaGrid);
+      grid.appendChild(span);
+    });
+  }
+
+  // El "falta" del grupo activo (pendiente o recién resuelto): vive en la
+  // fila donde nacerá el próximo grupo, terminando en la misma columna
+  // donde terminó la pared que lo originó.
+  if(state.grupos.length > 0){
+    construirFaltaEnGrid(grid);
+  }
+
+  outer.appendChild(grid);
+  outer.appendChild(construirRestoSuperior());
+  return outer;
+}
+
+function construirCeldaDividendo(d, i){
+  const esDelGrupo0 = state.grupos.length > 0 && i < state.grupos[0].digitos.length;
+  const consumido = i < state.consumido && !esDelGrupo0;
+  const invita = (state.subFase === 'bajar' && i === state.consumido);
+  const clickablePared = (state.subFase === 'pared');
+  const cell = el('button', 'div-digit' + (consumido ? ' consumido' : '') + (invita ? ' invita clickable' : '') + (clickablePared ? ' clickable' : ''), String(d));
+  cell.disabled = !(clickablePared || invita);
+  if(clickablePared) cell.onclick = () => clickDigitoPared(i);
+  if(invita) cell.onclick = () => clickBajarCifra(i);
+  return cell;
+}
+
+function construirRestoSuperior(){
+  const resto = el('div', 'resto-top-row');
+  resto.appendChild(el('span', 'div-sep', ':'));
+  resto.appendChild(el('span', 'div-num', String(state.divisor)));
+  resto.appendChild(el('span', 'div-sep', '='));
+  state.cocienteDigitos.forEach(d => resto.appendChild(el('span', 'div-quot-digit', String(d))));
+  if(state.subFase === 'cociente'){
+    resto.appendChild(construirInputCociente());
+  }
+  return resto;
+}
+
+function construirInputCociente(){
+  const input = document.createElement('input');
+  input.type = 'text'; input.inputMode = 'numeric'; input.maxLength = 1;
+  input.className = 'div-quot-input';
+  input.setAttribute('aria-label', 'Cifra del cociente');
+  input.addEventListener('input', () => manejarEntradaCociente(input));
+  setTimeout(() => input.focus(), 30);
+  return input;
+}
+
+function construirFaltaEnGrid(grid){
+  const k = state.grupos.length - 1;
+  const grupo = state.grupos[k];
+  const filaGrid = k + 2;
+
+  if(grupo.resuelto){
+    const digitos = String(grupo.falta).split(''); // preserva el 0 a la izquierda si corresponde
+    const colInicio = grupo.finCol - digitos.length + 1;
+    digitos.forEach((d, j) => {
+      const span = el('span', 'div-digit', d);
+      span.style.gridColumn = String(colInicio + j);
+      span.style.gridRow = String(filaGrid);
+      grid.appendChild(span);
+    });
+    if(grupo.esFinal){
+      const slash = el('span', 'falta-slash', '∕∕');
+      slash.style.gridColumn = String(grupo.finCol + 1);
+      slash.style.gridRow = String(filaGrid);
+      grid.appendChild(slash);
+    }
+    return;
+  }
+
+  if(state.subFase === 'falta'){
+    const correcto = grupo.numero - state.divisor * grupo.cocienteDigito;
+    const len = String(correcto).length;
+    const colInicio = grupo.finCol - len + 1;
+    const input = document.createElement('input');
+    input.type = 'text'; input.inputMode = 'numeric'; input.className = 'falta-input';
+    input.setAttribute('aria-label', 'Cuánto falta para llegar a ' + grupo.numero);
+    input.addEventListener('input', () => manejarEntradaFalta(input));
+    input.style.gridColumn = `${colInicio} / ${grupo.finCol + 1}`;
+    input.style.gridRow = String(filaGrid);
+    grid.appendChild(input);
+    setTimeout(() => input.focus(), 30);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   8. INTERACCIONES DEL PROCESO
+   ------------------------------------------------------------------------- */
+function clickDigitoPared(i){
+  if(state.subFase !== 'pared') return;
+  const correcto = (i === state.prefijoCorrecto - 1);
+  if(!correcto){
+    mostrarToast(`Esa no es la cifra correcta. Piensa: ¿alcanza el ${state.divisor} en las cifras tomadas hasta ahí?`);
+    return;
+  }
+  state.consumido = state.prefijoCorrecto;
+  const digitos = state.dividendDigits.slice(0, state.prefijoCorrecto);
+  state.grupos.push({
+    digitos, numero: parseInt(digitos.join(''), 10),
+    cocienteDigito: null, falta: null, resuelto: false, esFinal: false, finCol: state.consumido,
+  });
+  state.subFase = 'cociente';
+  render();
+}
+
+function manejarEntradaCociente(inputEl){
+  const val = inputEl.value.replace(/\D/g, '').slice(0, 1);
+  inputEl.value = val;
+  if(val === '') return;
+
+  const grupo = state.grupos[state.grupos.length - 1];
+  const correcto = Math.floor(grupo.numero / state.divisor);
+  if(parseInt(val, 10) === correcto){
+    grupo.cocienteDigito = correcto;
+    state.cocienteDigitos.push(correcto);
+    state.subFase = 'falta';
+    render();
+  } else {
+    inputEl.classList.add('wrong-flash');
+    mostrarToast(`Ese número no es correcto. Revisa la tabla del ${state.divisor}.`);
+    setTimeout(() => { inputEl.value = ''; inputEl.classList.remove('wrong-flash'); }, 260);
+  }
+}
+
+function manejarEntradaFalta(inputEl){
+  const val = inputEl.value.replace(/\D/g, '');
+  inputEl.value = val;
+  if(val === '') return;
+
+  const grupo = state.grupos[state.grupos.length - 1];
+  const correcto = grupo.numero - state.divisor * grupo.cocienteDigito;
+  if(parseInt(val, 10) === correcto){
+    grupo.falta = correcto;
+    grupo.resuelto = true;
+    const quedanCifras = state.consumido < state.dividendDigits.length;
+    if(quedanCifras){
+      state.subFase = 'bajar';
+      render();
+      setTimeout(() => {
+        const invita = document.querySelector('.div-digit.invita');
+        if(invita) invita.focus();
+      }, 30);
+    } else {
+      grupo.esFinal = true;
+      state.restoFinal = correcto;
+      state.fase = 'final';
+      state.subFase = 'terminado';
+      render();
+    }
+  } else if(val.length >= String(correcto).length){
+    inputEl.classList.add('wrong-flash');
+    mostrarToast('Ese no es el resto correcto todavía.');
+    setTimeout(() => { inputEl.value = ''; inputEl.classList.remove('wrong-flash'); }, 300);
+  }
+}
+
+function clickBajarCifra(i){
+  if(state.subFase !== 'bajar' || i !== state.consumido) return;
+  const digito = state.dividendDigits[i];
+  const grupoPrevio = state.grupos[state.grupos.length - 1];
+
+  // Se concatenan las CIFRAS (como texto) del "falta" anterior con la nueva,
+  // en vez de recalcular el número y volver a convertirlo a texto: así, si el
+  // falta era 0, ese 0 se conserva (ej. "0"+"4" = "04") en lugar de perderse
+  // (lo que pasaría si se hiciera 0*10+4=4 y luego String(4)="4").
+  const digitosPrevios = String(grupoPrevio.falta).split('');
+  const digitosNuevos = [...digitosPrevios, String(digito)].map(Number);
+  const numero = grupoPrevio.falta * 10 + digito;
+
+  state.consumido += 1;
+  state.grupos.push({
+    digitos: digitosNuevos, numero,
+    cocienteDigito: null, falta: null, resuelto: false, esFinal: false, finCol: state.consumido,
+  });
+  state.subFase = 'cociente';
+  render();
+}
+
+/* ---------------------------------------------------------------------------
+   9. PANTALLA FINAL
+   ------------------------------------------------------------------------- */
+function renderFinal(){
+  const container = el('div');
+  container.style.display = 'flex'; container.style.flexDirection = 'column'; container.style.alignItems = 'center'; container.style.marginTop = '16px';
+
+  container.appendChild(el('div', 'final-banner',
+    `🎉 ¡Muy bien! ${state.dividendo} : ${state.divisor} = ${state.cocienteDigitos.join('')} y resto ${state.restoFinal}`
+  ));
+
+  const btnRow = el('div', 'btn-row');
+  const btnNuevo = el('button', 'primary-btn', 'Resolver una nueva división');
+  btnNuevo.onclick = volverAlInicio;
+  btnRow.appendChild(btnNuevo);
+  container.appendChild(btnRow);
+
+  return container;
+}
+
+/* ---------------------------------------------------------------------------
+   10. ARRANQUE
+   ------------------------------------------------------------------------- */
+render();
+</script>
+</body>
+</html>
