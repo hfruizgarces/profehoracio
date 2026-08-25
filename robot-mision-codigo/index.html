@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark">
+<title>Robot: Misión Código</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   ROBOT: MISIÓN CÓDIGO — misma identidad de familia que el resto de los
+   recursos (fondo violeta oscuro, tarjetas de vidrio esmerilado, acento
+   ámbar) usada fielmente en la pantalla de inicio, con tokens propios para
+   los elementos del tablero de juego.
+   ========================================================================== */
+:root{
+  color-scheme: dark;
+  --ink:        #f6f3ff;
+  --ink-soft:   #c9bdf0;
+  --ink-faint:  #8f7fc4;
+  --paper:      #1e1147;
+  --rule-line:  rgba(255,255,255,.05);
+  --surface:    rgba(255,255,255,.07);
+  --surface-2:  rgba(255,255,255,.12);
+  --border-soft: rgba(255,255,255,.16);
+
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+
+  --pared:      #fb7185;
+  --pared-bg:   rgba(251,113,133,.16);
+  --accent:     #fbbf24;
+  --accent-bg:  rgba(251,191,36,.14);
+  --success:    #34d399;
+  --success-bg: rgba(52,211,153,.15);
+  --switch-c:   #38bdf8;
+  --door-c:     #f472b6;
+
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+  --shadow-card: 0 14px 34px rgba(0,0,0,.4);
+
+  --font-ui:  'Nunito', 'Segoe UI', sans-serif;
+  --font-num: 'Baloo 2', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; min-height:100%; }
+body{
+  font-family: var(--font-ui); color: var(--ink); font-weight:600;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2)),
+    linear-gradient(var(--rule-line) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251,113,133,0.06) 1px, transparent 1px);
+  background-size: auto, auto, auto, 100% 34px, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 46px, 46px 0;
+  background-attachment: fixed;
+  min-height:100vh; -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+button{ font-family:inherit; cursor:pointer; }
+h1,h2,h3{ margin:0; font-family: var(--font-num); }
+:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
+@media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+.hidden{ display:none !important; }
+
+#app{ width:100%; max-width: 1080px; margin:0 auto; padding: 18px 14px 24px; min-height:100vh; display:flex; flex-direction:column; }
+.screen{ flex:1; display:flex; flex-direction:column; animation:fadeIn .3s ease; }
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.btn{
+  border:none;border-radius:999px;
+  padding:13px 22px;font-weight:800;font-size:15px; font-family:var(--font-num);
+  background: var(--surface-2); color: var(--ink);
+  border:2px solid var(--border-soft);
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover{ transform:translateY(-2px); }
+.btn:active{ transform:translateY(0) scale(.97); }
+.btn-primary{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3a2205; border:none; box-shadow:0 6px 18px rgba(251,191,36,.28); }
+.btn-cyan{ background:linear-gradient(140deg,#0ea5b7,var(--switch-c)); color:#04303a; border:none; box-shadow:0 6px 18px rgba(56,189,248,.22); }
+.btn-ghost{ background:var(--surface); color: var(--ink-soft); }
+.btn:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
+
+/* ================= HOME / MENU ================= */
+.wrap-centro{ display:flex; flex-direction:column; align-items:center; flex:1; justify-content:flex-start; text-align:center; padding-top:clamp(6px,3vh,28px); }
+.hero-robot{ width:110px; height:110px; margin:0 auto 2px; }
+.hero h1{ font-size: clamp(2.1rem,6vw,3rem); font-weight:800; line-height:1.1; letter-spacing:-.01em;
+  background:linear-gradient(135deg,#fff,var(--switch-c)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p{ color: var(--ink-soft); font-weight:600; font-size:1.05rem; max-width:520px; margin:12px auto 0; line-height:1.5; }
+.menu-tagline{
+  font-family: var(--font-mono); font-size:12.5px; color:var(--accent); font-weight:500;
+  border:1px dashed var(--border-soft); border-radius:999px; padding:8px 18px;
+  margin:18px 0 26px; display:inline-flex; gap:10px; align-items:center;
+}
+.menu-tagline span{ opacity:.5; }
+.menu-actions{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.how-to{ margin-top:32px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:720px; }
+.how-step{ background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-m); padding:14px 16px; width:150px; backdrop-filter:blur(6px); }
+.how-step .num{ font-family:var(--font-mono); color:var(--switch-c); font-size:12px; }
+.how-step p{ font-size:12.5px; color:var(--ink-soft); margin:6px 0 0; font-weight:600; line-height:1.5; }
+footer.credits{ text-align:center; color: var(--ink-faint); font-weight:600; font-size:.76rem; padding:20px 10px 4px; }
+
+/* ================= SELECCIÓN DE DIFICULTAD ================= */
+.topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:10px; }
+.icon-btn{
+  background: var(--surface); border:1px solid var(--border-soft); border-radius:12px;
+  width:38px;height:38px; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:16px; flex-shrink:0;
+}
+.icon-btn:hover{ color:var(--ink); }
+.topbar h2{ font-size:1.25rem; text-align:center; flex:1; }
+
+.nivel-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:clamp(10px, 2.5vw, 16px); width:100%; max-width: 560px; margin:0 auto; }
+@media (max-width:480px){ .nivel-grid{ grid-template-columns:1fr; } }
+.nivel-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(18px,4vw,26px) 12px; border-radius:var(--radius-m); border:none;
+  color:#fff; cursor:pointer; font-family:var(--font-num); font-weight:800;
+  font-size:clamp(1rem, 2.6vw, 1.15rem); min-height:120px; transition:transform .15s ease, box-shadow .15s ease;
+  box-shadow:0 4px 14px rgba(0,0,0,.35); text-align:center;
+}
+.nivel-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.nivel-card:active{ transform:translateY(0) scale(.98); }
+.nivel-emoji{ font-size:clamp(1.6rem, 4.5vw, 2rem); }
+.nivel-card p{ margin:0; font-size:.78rem; font-weight:600; opacity:.92; line-height:1.4; font-family:var(--font-ui); }
+.nivel-card.n-programador{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.nivel-card.n-maestro{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.nivel-card.n-experto{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.nivel-card.n-custom{ background:linear-gradient(140deg,#92400e,#fbbf24); }
+
+/* ================= SELECCIÓN DE NIVEL ================= */
+.group-label{ font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); margin:22px 2px 8px; text-transform:uppercase; letter-spacing:.08em; }
+.group-label:first-of-type{ margin-top:4px; }
+.level-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:10px; }
+.level-tile{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:12px;
+  padding:10px 4px; text-align:center; color:var(--ink); backdrop-filter:blur(4px);
+}
+.level-tile .lv-num{ font-family:var(--font-num); font-size:17px; font-weight:800; }
+.level-tile .lv-stars{ font-size:11px; letter-spacing:1px; margin-top:4px; }
+.level-tile.tier-programador.done{ border-color:rgba(52,211,153,.5); background:rgba(52,211,153,.08); }
+.level-tile.tier-maestro.done{ border-color:rgba(56,189,248,.5); background:rgba(56,189,248,.08); }
+.level-tile.tier-experto.done{ border-color:rgba(244,114,182,.5); background:rgba(244,114,182,.08); }
+.level-tile:disabled{ opacity:.28; }
+
+/* ================= MODAL (modo de juego / fin de nivel) ================= */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(10,4,30,.72); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; z-index:80; padding:18px;
+}
+.modal{
+  background:var(--paper); background:linear-gradient(160deg,#241457,#1a0f3d);
+  border:1px solid var(--border-soft); border-radius:var(--radius-l); padding:26px 24px;
+  max-width:420px; width:100%; text-align:center; box-shadow:var(--shadow-card); animation:popIn .28s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.modal h2{ font-size:1.3rem; }
+.modal .modal-sub{ color:var(--ink-soft); font-size:.85rem; font-weight:600; margin-top:6px; }
+.mode-options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+.mode-opt{
+  background:var(--surface); border:2px solid var(--border-soft); border-radius:var(--radius-m);
+  padding:14px 16px; text-align:left; color:var(--ink); width:100%;
+}
+.mode-opt:hover{ border-color:var(--accent); }
+.mode-opt h3{ font-size:1rem; }
+.mode-opt p{ font-size:.78rem; color:var(--ink-soft); margin:4px 0 0; font-weight:600; line-height:1.4; }
+.modal .stars-row{ font-size:38px; letter-spacing:8px; margin:12px 0; color:rgba(255,255,255,.14); }
+.modal .stars-row span.lit{ color:var(--accent); text-shadow:0 0 14px rgba(251,191,36,.6); }
+.modal-stats{ display:flex; justify-content:space-around; margin:14px 0; font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); }
+.modal-stats div b{ display:block; font-size:16px; color:var(--ink); font-family:var(--font-num); }
+.modal-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.modal-actions .btn{ flex:1; }
+
+/* ================= JUEGO ================= */
+#screen-game{ gap:10px; }
+.game-topbar{ display:flex; align-items:center; gap:10px; margin-bottom:2px; }
+.game-topbar .gt-title{ flex:1; font-size:.95rem; font-weight:800; color:var(--ink-soft); }
+.game-topbar .gt-title b{ color:var(--ink); font-family:var(--font-num); font-size:1.05rem; }
+
+.feedback-bar{
+  min-height:40px; width:100%; text-align:center; font-size:13px; color:var(--ink-soft); font-weight:600;
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-m); padding:9px 14px;
+  display:flex; align-items:center; justify-content:center; gap:8px; line-height:1.4; backdrop-filter:blur(4px);
+}
+.feedback-bar.ok{ color:var(--success); border-color:rgba(52,211,153,.35); }
+.feedback-bar.err{ color:var(--pared); border-color:rgba(251,113,133,.35); }
+.feedback-bar.win{ color:var(--accent); border-color:rgba(251,191,36,.4); }
+
+.board-sticky-zone{ position:relative; z-index:2; }
+
+.board-wrap{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-l);
+  padding:12px; box-shadow:var(--shadow-card); display:flex; justify-content:center; margin-top:8px; backdrop-filter:blur(6px);
+}
+#board{ position:relative; display:grid; background:#e9e4fb; border-radius:12px; overflow:hidden; border:1px solid var(--border-soft); }
+.cell{ position:relative; border:1px solid rgba(30,17,71,.08); }
+.cell.floor{ background:repeating-linear-gradient(45deg, rgba(30,17,71,.03) 0 8px, transparent 8px 16px); }
+.cell.wall{ background:linear-gradient(145deg,#2a1760,#1a0e3d); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.cell.hazard{ background:radial-gradient(circle at 50% 50%, rgba(225,29,72,.55), rgba(225,29,72,.18)); }
+.cell.hazard::after{ content:"⚠"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:56%; opacity:.9; }
+.cell.start{ outline:3px dashed #0d9668; outline-offset:-3px; }
+.cell.goal{ background:radial-gradient(circle at 50% 50%, rgba(217,119,6,.45), rgba(217,119,6,.10)); }
+.cell.goal::after{ content:"★"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#b45309; font-size:56%; text-shadow:0 1px 2px rgba(255,255,255,.5); }
+.cell.goal.visited::after{ color:#0d9668; }
+.cell.key::after{ content:"🔑"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:52%; }
+.cell.key.taken::after{ opacity:.18; }
+.cell.switchtile{ background:radial-gradient(circle, rgba(3,105,161,.4), rgba(3,105,161,.08)); }
+.cell.switchtile::after{ content:"◈"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#0369a1; font-size:52%; }
+.cell.switchtile.on::after{ color:#0d9668; text-shadow:0 0 8px rgba(13,150,104,.5); }
+.cell.door{ background:linear-gradient(145deg,#9d174d,#5b0e30); box-shadow: inset 0 0 0 1px rgba(244,114,182,.35); }
+.cell.door::after{ content:"▦"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fbcfe8; font-size:52%; }
+.cell.door.open{ background:transparent; box-shadow:none; }
+.cell.door.open::after{ content:""; }
+.goal-order-badge{ position:absolute; top:1px; right:2px; font-family:var(--font-mono); font-size:9px; color:#5b21b6; z-index:3; }
+
+#robot{ position:absolute; z-index:5; display:flex; align-items:center; justify-content:center;
+  transition:left .38s cubic-bezier(.5,0,.3,1), top .38s cubic-bezier(.5,0,.3,1); pointer-events:none;
+  filter:drop-shadow(0 3px 6px rgba(30,17,71,.45)); }
+#robot svg{ width:98%; height:98%; overflow:visible; }
+#robot.state-turn .rb-nose{ animation: noseFlash .46s ease; }
+@keyframes noseFlash{ 0%,100%{ opacity:1; } 40%{ opacity:.25; transform:scale(1.35); } }
+#robot.state-idle .rb-body{ animation: floaty 2.6s ease-in-out infinite; }
+#robot.state-happy .rb-body{ animation: bounce .5s ease-in-out infinite; }
+#robot.state-shock .rb-body{ animation: shake .35s ease-in-out; }
+#robot.state-win .rb-body{ animation: spinWin .7s ease-in-out; }
+@keyframes floaty{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-4%);} }
+@keyframes bounce{ 0%,100%{ transform:translateY(0) scale(1);} 50%{ transform:translateY(-8%) scale(1.04);} }
+@keyframes shake{ 0%,100%{ transform:translateX(0) rotate(0);} 25%{ transform:translateX(-6%) rotate(-6deg);} 75%{ transform:translateX(6%) rotate(6deg);} }
+@keyframes spinWin{ 0%{ transform:rotate(0) scale(1);} 50%{ transform:rotate(180deg) scale(1.2);} 100%{ transform:rotate(360deg) scale(1);} }
+.dir-0{ transform:rotate(0deg); } .dir-1{ transform:rotate(90deg); } .dir-2{ transform:rotate(180deg); } .dir-3{ transform:rotate(270deg); }
+
+.control-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; }
+.run-stop-btn{ font-size:22px; line-height:1; padding:0; width:64px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; }
+.run-stop-btn#btnRun{ padding-left:3px; }
+
+.lower-panel{ display:flex; gap:12px; margin-top:14px; align-items:flex-start; }
+.cmd-column{ flex:0 0 128px; display:flex; flex-direction:column; gap:8px; }
+.cmd-btn{
+  display:flex; align-items:center; gap:8px; padding:11px 10px;
+  border-radius:12px; border:2px solid var(--border-soft); background:var(--surface); color:var(--ink);
+  font-size:12px; font-weight:800; font-family:var(--font-num); width:100%;
+}
+.cmd-btn .ico{ font-size:19px; flex-shrink:0; }
+.cmd-btn.c-forward{ border-color:rgba(52,211,153,.45); }
+.cmd-btn.c-forward:active,.cmd-btn.c-forward:hover{ background:rgba(52,211,153,.14); }
+.cmd-btn.c-left,.cmd-btn.c-right{ border-color:rgba(251,191,36,.45); }
+.cmd-btn.c-left:hover,.cmd-btn.c-right:hover{ background:rgba(251,191,36,.14); }
+.cmd-btn.c-repeat{ border-color:rgba(56,189,248,.5); }
+.cmd-btn.c-repeat:hover{ background:rgba(56,189,248,.14); }
+.cmd-btn.c-pickup,.cmd-btn.c-activate{ border-color:rgba(244,114,182,.45); }
+.cmd-btn.c-pickup:hover,.cmd-btn.c-activate:hover{ background:rgba(244,114,182,.12); }
+.cmd-btn:active{ transform:scale(.96); }
+
+.program-column{ flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
+.panel-box{ background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-m); padding:12px 14px; backdrop-filter:blur(4px); }
+.panel-box h3{ font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:8px; font-family:var(--font-mono); font-weight:600; }
+
+.repeat-editor{ margin-top:0; border:2px dashed var(--switch-c); border-radius:12px; padding:10px; background:rgba(56,189,248,.07); }
+.repeat-editor .re-head{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--switch-c); font-family:var(--font-mono); margin-bottom:8px; }
+.re-count-ctrl{ display:flex; align-items:center; gap:8px; }
+.re-count-ctrl button{ width:26px;height:26px; border-radius:8px; border:1px solid var(--border-soft); background:var(--surface-2); color:var(--ink); }
+
+.program-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; max-height:230px; overflow-y:auto; scroll-behavior:smooth; }
+.prog-block{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border-soft); font-size:12.5px; font-weight:700; }
+.prog-block .step-n{ font-family:var(--font-mono); color:var(--ink-faint); font-size:11px; width:16px; flex-shrink:0; }
+.prog-block .step-label{ flex:1; }
+.prog-block .step-actions{ display:flex; gap:4px; }
+.prog-block .step-actions button{ width:22px;height:22px; border-radius:6px; border:none; background:transparent; color:var(--ink-faint); font-size:12px; }
+.prog-block .step-actions button:hover{ color:var(--pared); }
+.prog-block.active-step{ border-color:var(--accent); background:rgba(251,191,36,.14); box-shadow:0 0 0 1px var(--accent); }
+.prog-block.repeat-block{ background:rgba(56,189,248,.08); border-color:rgba(56,189,248,.4); flex-direction:column; align-items:stretch; }
+.repeat-block .rb-top{ display:flex; align-items:center; gap:8px; }
+.repeat-block .rb-children{ display:flex; flex-direction:column; gap:4px; margin:6px 0 0 22px; border-left:2px solid rgba(56,189,248,.35); padding-left:8px; }
+.repeat-block .rb-children .prog-block{ background:#150c38; }
+.empty-program{ color:var(--ink-faint); font-size:12px; text-align:center; padding:16px 6px; font-style:italic; font-weight:600; }
+
+.program-actions{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.program-actions .btn{ flex:1; padding:8px 6px; font-size:12px; }
+.instr-counter{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); text-align:right; margin-top:6px; }
+.instr-counter.over{ color:var(--pared); }
+
+.hint-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.hint-text{ font-size:12px; color:var(--ink-soft); background:var(--surface-2); border-radius:8px; padding:9px; margin-top:8px; display:none; line-height:1.5; font-weight:600; }
+.hint-text.show{ display:block; animation:fadeIn .25s ease; }
+
+@media (max-width:720px){
+  .lower-panel{ flex-direction:row; }
+  .cmd-column{ flex:0 0 108px; }
+}
+@media (max-width:480px){
+  .cmd-btn{ flex-direction:column; gap:2px; padding:9px 4px; font-size:10px; }
+  .cmd-btn .ico{ font-size:18px; }
+  .cmd-column{ flex:0 0 78px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME + SELECCIÓN DE DIFICULTAD ============ -->
+  <section id="screen-menu" class="screen wrap-centro">
+    <div class="hero-robot" id="heroRobotSlot"></div>
+    <div class="hero">
+      <h1>ROBOT: MISIÓN CÓDIGO</h1>
+      <p>Programa cada paso. Ejecuta. Llega al objetivo.</p>
+    </div>
+    <div class="menu-tagline">El robot no adivina <span>·</span> solo hace exactamente lo que tú le indicas</div>
+    <div class="nivel-grid" id="diffGrid" style="margin-top:22px;"></div>
+    <button class="btn btn-ghost" id="btnReset" style="margin-top:22px; font-size:12.5px; padding:8px 16px;">↺ Borrar progreso</button>
+  </section>
+
+  <!-- ============ SELECCIÓN DE NIVEL ============ -->
+  <section id="screen-levels" class="screen hidden">
+    <div class="topbar">
+      <button class="icon-btn" id="btnBackToSelect">←</button>
+      <h2 id="levelsTitle">Niveles</h2>
+      <span style="width:38px"></span>
+    </div>
+    <div id="levelsContainer"></div>
+  </section>
+
+  <!-- ============ JUEGO ============ -->
+  <section id="screen-game" class="screen hidden">
+    <div class="game-topbar">
+      <button class="icon-btn" id="btnExitGame">←</button>
+      <div class="gt-title"><b id="gameLevelTitle">Nivel 1</b></div>
+      <button class="icon-btn" id="btnRestartLevel" title="Reiniciar robot">↺</button>
+    </div>
+
+    <div class="feedback-bar" id="feedbackBar">Observa hacia dónde mira el robot y arma tu programa.</div>
+
+    <div class="board-sticky-zone">
+      <div class="board-wrap"><div id="board"><div id="robot" class="state-idle dir-0"></div></div></div>
+      <div class="control-row">
+        <button class="btn btn-primary run-stop-btn" id="btnRun" aria-label="Ejecutar programa" title="Ejecutar programa">▶</button>
+        <button class="btn btn-ghost run-stop-btn" id="btnStop" disabled aria-label="Detener" title="Detener">⏹</button>
+      </div>
+    </div>
+
+    <div class="lower-panel">
+      <div class="cmd-column" id="cmdColumn"></div>
+
+      <div class="program-column">
+        <div class="panel-box" id="repeatEditorHost"></div>
+        <div class="panel-box" style="flex:1;">
+          <h3>Mi programa</h3>
+          <ul class="program-list" id="programList"></ul>
+          <div class="instr-counter" id="instrCounter"></div>
+          <div class="program-actions">
+            <button class="btn btn-ghost" id="btnUndo">↩ Deshacer</button>
+            <button class="btn btn-ghost" id="btnClear">🗑 Limpiar</button>
+          </div>
+        </div>
+        <div class="panel-box" id="hintPanel">
+          <div class="hint-toggle-row">
+            <h3 style="margin:0;">Ayuda</h3>
+            <button class="btn btn-ghost" id="btnHint" style="padding:6px 12px;font-size:11.5px;">💡 Pista</button>
+          </div>
+          <div id="hintTexts"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CREA TU DESAFÍO (EDITOR) ============ -->
+  <section id="screen-editor" class="screen hidden">
+    <div class="game-topbar">
+      <button class="icon-btn" id="btnExitEditor">←</button>
+      <div class="gt-title"><b>Crea tu Desafío</b></div>
+      <button class="icon-btn" id="btnClearEditor" title="Vaciar tablero">🗑</button>
+    </div>
+
+    <div class="feedback-bar" id="editorFeedback">Elige una herramienta y toca el tablero para colocarla.</div>
+
+    <div class="board-sticky-zone">
+      <div class="board-wrap"><div id="edBoard"></div></div>
+      <div id="dirCtrlHost"></div>
+      <div class="control-row">
+        <button class="btn btn-primary" id="btnTestLevel" style="width:auto;padding:0 24px;height:56px;border-radius:16px;">▶ PROBAR NIVEL</button>
+      </div>
+    </div>
+
+    <div class="lower-panel">
+      <div class="cmd-column" id="edPalette"></div>
+      <div class="program-column">
+        <div class="panel-box">
+          <h3>Cómo funciona</h3>
+          <p style="font-size:12px;color:var(--ink-soft);font-weight:600;line-height:1.6;margin:0;">
+            Toca una herramienta y luego una casilla del tablero para colocarla. El robot 🤖, la llave 🔑 y el interruptor ◈ son únicos: tocar otra casilla los mueve.
+            Las puertas con llave se abren con ACTIVAR parado justo frente a ellas (tras recoger la llave). La puerta con interruptor se abre activando el interruptor a distancia.
+            Usa 🧹 para vaciar una casilla.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="credits">Robot: Misión Código — recurso educativo de pensamiento computacional</footer>
+</div>
+
+<div id="modalSlot"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   ROBOT SVG — versión más amigable
+   ========================================================= */
+function robotSVG(){
+  return `<svg viewBox="0 0 100 100" class="rb-body">
+    <ellipse cx="50" cy="92" rx="24" ry="5" fill="rgba(0,0,0,0.28)"/>
+    <path d="M 26 40 Q 26 14 50 14 Q 74 14 74 40 L 74 62 Q 74 82 50 82 Q 26 82 26 62 Z" fill="url(#gradBody)" stroke="#1e1147" stroke-width="2"/>
+    <path class="rb-nose" d="M 50 2 L 58 16 L 42 16 Z" fill="#f97316" stroke="#1e1147" stroke-width="1.5" stroke-linejoin="round"/>
+    <ellipse cx="36" cy="55" rx="6" ry="4.5" fill="#f472b6" opacity="0.65"/>
+    <ellipse cx="64" cy="55" rx="6" ry="4.5" fill="#f472b6" opacity="0.65"/>
+    <circle cx="39" cy="42" r="9" fill="#1e1147"/>
+    <circle cx="61" cy="42" r="9" fill="#1e1147"/>
+    <circle cx="39" cy="42" r="4.6" fill="#22d3ee" class="rb-eye"/>
+    <circle cx="61" cy="42" r="4.6" fill="#22d3ee" class="rb-eye"/>
+    <circle cx="41" cy="40" r="1.6" fill="#fff"/>
+    <circle cx="63" cy="40" r="1.6" fill="#fff"/>
+    <path d="M 42 63 Q 50 70 58 63" stroke="#1e1147" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <rect x="14" y="34" width="10" height="24" rx="5" fill="#7c3aed" stroke="#1e1147" stroke-width="1.5"/>
+    <rect x="76" y="34" width="10" height="24" rx="5" fill="#7c3aed" stroke="#1e1147" stroke-width="1.5"/>
+    <rect x="32" y="78" width="13" height="15" rx="5.5" fill="#5b21b6" stroke="#1e1147" stroke-width="1.5"/>
+    <rect x="55" y="78" width="13" height="15" rx="5.5" fill="#5b21b6" stroke="#1e1147" stroke-width="1.5"/>
+    <defs>
+      <linearGradient id="gradBody" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#dcd4f7"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+document.getElementById('heroRobotSlot').innerHTML = robotSVG();
+document.getElementById('heroRobotSlot').classList.add('state-idle');
+document.getElementById('robot').innerHTML = robotSVG();
+
+/* =========================================================
+   NIVELES  (generados y verificados algorítmicamente:
+   geometría válida + solubles respetando orden de metas,
+   llaves, interruptores y puertas)
+   ========================================================= */
+const LEVELS = [{"id":"p01","difficulty":"programador","size":{"w":7,"h":3},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[5,0],[1,1],[3,1],[4,1],[5,1]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":0},{"id":"p02","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":2,"dir":0},"walls":[[1,1],[1,2]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":1},{"id":"p03","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":4,"y":2,"dir":2},"walls":[[0,1],[1,1],[3,1],[4,1],[3,2],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[4,5]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":2},{"id":"p04","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":2,"dir":0},"walls":[[1,1],[1,2]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":3},{"id":"p05","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":6,"y":2,"dir":2},"walls":[[1,0],[1,1],[3,1],[5,1],[6,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[3,4]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":4},{"id":"p06","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[1,1]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":5},{"id":"p07","difficulty":"programador","size":{"w":7,"h":3},"start":{"x":4,"y":0,"dir":1},"walls":[[3,0],[1,1],[2,1],[3,1],[4,1],[5,1]],"goals":[{"x":2,"y":0}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":6},{"id":"p08","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":2,"dir":0},"walls":[[1,1],[1,2],[1,3],[2,3],[1,4],[1,5]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":7},{"id":"p09","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":2,"y":2,"dir":1},"walls":[[1,1],[2,1],[3,1],[4,1],[1,2],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[4,5]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":8},{"id":"p10","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[1,3],[2,3],[3,3],[4,3]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":20,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Primeros pasos","indexInDiff":9},{"id":"p11","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":0,"dir":3},"walls":[[1,1],[2,1],[1,2],[1,3],[0,5],[1,5]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":10},{"id":"p12","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":0,"dir":3},"walls":[[1,1],[2,1]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":11},{"id":"p13","difficulty":"programador","size":{"w":3,"h":5},"start":{"x":0,"y":4,"dir":0},"walls":[[1,1],[1,2],[1,3],[1,4]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right"],"optimal":12,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":12},{"id":"p14","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[3,0],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[3,4],[1,5],[2,5],[3,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":12,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":13},{"id":"p15","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":4,"y":4,"dir":2},"walls":[[1,1],[2,1],[3,1],[3,2],[1,3],[3,3],[4,3],[1,4],[3,4],[1,5],[3,5],[1,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":14},{"id":"p16","difficulty":"programador","size":{"w":7,"h":7},"start":{"x":6,"y":4,"dir":3},"walls":[[1,1],[2,1],[3,1],[5,1],[1,2],[5,2],[1,3],[3,3],[4,3],[5,3],[6,3],[1,4],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5]],"goals":[{"x":6,"y":2}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":15},{"id":"p17","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":2,"dir":0},"walls":[[1,1],[1,2]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":16},{"id":"p18","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[3,1],[3,2],[0,3],[1,3],[2,3],[3,3]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":17},{"id":"p19","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":2,"dir":0},"walls":[[1,1],[1,2]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":18},{"id":"p20","difficulty":"programador","size":{"w":3,"h":5},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[1,1],[1,3],[2,3]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Girando con confianza","indexInDiff":19},{"id":"p21","difficulty":"programador","size":{"w":5,"h":3},"start":{"x":2,"y":2,"dir":3},"walls":[[1,1],[2,1],[3,1],[3,2]],"goals":[{"x":4,"y":2}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":20},{"id":"p22","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":0,"y":4,"dir":1},"walls":[[1,1],[3,1],[1,2],[3,2],[0,3],[1,3],[3,3],[3,4]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":15,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":21},{"id":"p23","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[5,2],[1,3],[3,3],[5,3],[3,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":22},{"id":"p24","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[1,1],[1,3],[2,3],[0,5],[1,5]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":17,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":23},{"id":"p25","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":0,"dir":3},"walls":[[1,1],[2,1]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":24},{"id":"p26","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":25},{"id":"p27","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1],[1,2],[1,3],[1,4],[1,5]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":17,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":26},{"id":"p28","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[3,4]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":27},{"id":"p29","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[5,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[3,3],[5,3],[5,4]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":28},{"id":"p30","difficulty":"programador","size":{"w":7,"h":7},"start":{"x":4,"y":2,"dir":1},"walls":[[1,1],[3,1],[4,1],[5,1],[6,1],[1,2],[3,2],[1,3],[2,3],[3,3],[4,3],[5,3],[5,4],[1,5],[3,5],[4,5],[5,5],[1,6]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Rutas más largas","indexInDiff":29},{"id":"p31","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":0,"y":4,"dir":2},"walls":[[1,1],[2,1],[3,1],[3,2],[0,3],[1,3],[2,3],[3,3],[1,4],[1,5],[3,5],[3,6]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right"],"optimal":14,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":30},{"id":"p32","difficulty":"programador","size":{"w":5,"h":3},"start":{"x":0,"y":0,"dir":2},"walls":[[1,0],[1,1],[3,1],[3,2]],"goals":[{"x":4,"y":2}],"unlocked":["forward","left","right"],"optimal":14,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":31},{"id":"p33","difficulty":"programador","size":{"w":5,"h":3},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[1,1],[2,1],[3,1]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":32},{"id":"p34","difficulty":"programador","size":{"w":5,"h":7},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[1,1],[2,1],[3,1],[1,2],[1,3],[3,3],[4,3],[1,4],[3,4],[1,5],[3,5]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":33},{"id":"p35","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":4,"y":2,"dir":0},"walls":[[1,0],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[4,3]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":34},{"id":"p36","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":4,"dir":3},"walls":[[0,1],[1,1],[1,3],[2,3],[1,5],[2,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":14,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":35},{"id":"p37","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":4,"dir":2},"walls":[[1,1],[1,2],[1,3],[2,3],[1,4],[1,5]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":36},{"id":"p38","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":37},{"id":"p39","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":2,"dir":0},"walls":[[1,1],[1,2]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":38},{"id":"p40","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":6,"y":0,"dir":2},"walls":[[5,0],[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[1,3],[3,3],[4,3],[5,3],[6,3]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"optimal":15,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Rincones del tablero","indexInDiff":39},{"id":"p41","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":40},{"id":"p42","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":41},{"id":"p43","difficulty":"programador","size":{"w":7,"h":3},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[5,2]],"goals":[{"x":6,"y":2}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":42},{"id":"p44","difficulty":"programador","size":{"w":7,"h":7},"start":{"x":2,"y":6,"dir":0},"walls":[[5,0],[1,1],[3,1],[5,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3],[1,4],[3,4],[5,4],[1,5],[3,5],[5,5],[1,6],[3,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":43},{"id":"p45","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[1,2],[5,2],[1,3],[3,3],[4,3],[5,3],[3,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":44},{"id":"p46","difficulty":"programador","size":{"w":5,"h":5},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[1,2],[1,3],[3,3],[4,3]],"goals":[{"x":0,"y":2}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":45},{"id":"p47","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":46},{"id":"p48","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[1,1],[1,2],[1,3],[1,4],[1,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":47},{"id":"p49","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":2,"y":2,"dir":3},"walls":[[1,1],[2,1],[1,3],[2,3],[1,4],[1,5]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":48},{"id":"p50","difficulty":"programador","size":{"w":3,"h":3},"start":{"x":2,"y":2,"dir":3},"walls":[[1,1],[2,1]],"goals":[{"x":2,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Último tramo","indexInDiff":49},{"id":"p51","difficulty":"programador","size":{"w":3,"h":5},"start":{"x":0,"y":4,"dir":0},"walls":[[1,1],[1,2],[1,3],[1,4]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right"],"optimal":12,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":50},{"id":"p52","difficulty":"programador","size":{"w":3,"h":7},"start":{"x":0,"y":0,"dir":1},"walls":[[0,1],[1,1],[1,2],[1,3],[1,5],[2,5]],"goals":[{"x":2,"y":6}],"unlocked":["forward","left","right"],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":51},{"id":"p53","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":6,"y":2,"dir":2},"walls":[[1,0],[1,1],[3,1],[5,1],[6,1],[1,2],[3,2],[5,2],[1,3],[3,3],[5,3],[3,4]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":52},{"id":"p54","difficulty":"programador","size":{"w":3,"h":5},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[1,2],[1,3]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":53},{"id":"p55","difficulty":"programador","size":{"w":7,"h":5},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[5,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3]],"goals":[{"x":4,"y":2}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":54},{"id":"m01","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[5,1],[5,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":0},{"id":"m02","difficulty":"maestro","size":{"w":9,"h":7},"start":{"x":8,"y":2,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[7,1],[8,1],[1,2],[5,2],[1,3],[2,3],[3,3],[5,3],[6,3],[7,3],[8,3],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5]],"goals":[{"x":8,"y":0}],"unlocked":["forward","left","right"],"hazards":[[0,6],[2,2]],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":1},{"id":"m03","difficulty":"maestro","size":{"w":7,"h":9},"start":{"x":4,"y":6,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[1,3],[2,3],[3,3],[4,3],[5,3],[1,4],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[3,6],[1,7],[3,7],[4,7],[5,7],[1,8]],"goals":[{"x":0,"y":8}],"unlocked":["forward","left","right"],"hazards":[[2,4]],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":2},{"id":"m04","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":4,"y":6,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[0,3],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[4,5]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":3},{"id":"m05","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[1,1],[3,1],[4,1],[3,2],[1,3],[2,3],[3,3],[1,4],[1,5],[2,5],[3,5],[3,6],[0,7],[1,7],[3,7]],"goals":[{"x":0,"y":0},{"x":0,"y":8}],"unlocked":["forward","left","right"],"hazards":[[2,4]],"optimal":28,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":4},{"id":"m06","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[5,0],[1,1],[2,1],[3,1],[5,1],[7,1],[3,2],[5,2],[7,2],[1,3],[3,3],[5,3],[7,3],[1,4],[7,4]],"goals":[{"x":0,"y":0},{"x":0,"y":4}],"unlocked":["forward","left","right"],"hazards":[[8,4]],"optimal":25,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":5},{"id":"m07","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":0,"y":6,"dir":0},"walls":[[1,1],[2,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4],[1,5],[3,5],[1,6]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"optimal":26,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":6},{"id":"m08","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":4,"y":4,"dir":3},"walls":[[5,0],[1,1],[3,1],[5,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3],[1,4],[5,4]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":7},{"id":"m09","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":6,"y":4,"dir":0},"walls":[[3,0],[1,1],[3,1],[5,1],[7,1],[1,2],[3,2],[5,2],[7,2],[1,3],[3,3],[5,3],[7,3],[1,4],[5,4],[7,4]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":8},{"id":"m10","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":6,"y":4,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[1,3],[3,3],[4,3],[5,3],[6,3],[1,4]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Obstáculos en el camino","indexInDiff":9},{"id":"m11","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[0,3],[1,3],[3,3],[5,3],[5,4]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"hazards":[[0,4]],"optimal":21,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":10},{"id":"m12","difficulty":"maestro","size":{"w":7,"h":9},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[1,3],[3,3],[4,3],[5,3],[3,4],[5,4],[0,5],[1,5],[2,5],[3,5],[5,5],[5,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":23,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":11},{"id":"m13","difficulty":"maestro","size":{"w":7,"h":9},"start":{"x":6,"y":2,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[3,2],[0,3],[1,3],[3,3],[5,3],[6,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[5,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"hazards":[[6,0]],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":12},{"id":"m14","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":4,"y":6,"dir":0},"walls":[[3,0],[1,1],[3,1],[1,2],[1,3],[2,3],[3,3],[4,3],[1,5],[2,5],[3,5],[3,6]],"goals":[{"x":2,"y":6}],"unlocked":["forward","left","right"],"hazards":[[4,0]],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":13},{"id":"m15","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":6,"y":0,"dir":3},"walls":[[1,0],[7,0],[1,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3],[7,3],[7,4]],"goals":[{"x":8,"y":4}],"unlocked":["forward","left","right"],"hazards":[[4,2]],"optimal":23,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":14},{"id":"m16","difficulty":"maestro","size":{"w":5,"h":5},"start":{"x":2,"y":4,"dir":0},"walls":[[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4]],"goals":[{"x":4,"y":4},{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":15},{"id":"m17","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":6,"y":4,"dir":3},"walls":[[7,0],[1,1],[2,1],[3,1],[5,1],[7,1],[3,2],[5,2],[0,3],[1,3],[3,3],[5,3],[6,3],[7,3],[3,4],[7,4]],"goals":[{"x":8,"y":4}],"unlocked":["forward","left","right"],"hazards":[[0,4],[8,0]],"optimal":19,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":16},{"id":"m18","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[5,0],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[1,3],[3,3],[5,3],[1,4]],"goals":[{"x":0,"y":0},{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":25,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":17},{"id":"m19","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[3,0],[1,1],[3,1],[4,1],[5,1],[1,2],[1,3],[2,3],[3,3],[4,3],[5,3]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":18},{"id":"m20","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":4,"y":6,"dir":0},"walls":[[1,1],[2,1],[3,1],[4,1],[1,2],[1,3],[3,3],[1,4],[3,4],[1,5],[3,5],[3,6]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Dos objetivos","indexInDiff":19},{"id":"m21","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":0,"y":8,"dir":0},"walls":[[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4],[0,5],[1,5],[3,5],[3,6],[1,7],[2,7],[3,7],[1,8]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"hazards":[[2,8]],"optimal":20,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":20},{"id":"m22","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":4,"y":2,"dir":2},"walls":[[1,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[5,2],[1,3],[3,3],[5,3],[3,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":21},{"id":"m23","difficulty":"maestro","size":{"w":7,"h":9},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[5,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[3,3],[5,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[5,6],[0,7],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"hazards":[[6,0],[0,8]],"optimal":15,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":22},{"id":"m24","difficulty":"maestro","size":{"w":7,"h":7},"start":{"x":6,"y":0,"dir":2},"walls":[[3,0],[5,0],[1,1],[3,1],[5,1],[1,2],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5]],"goals":[{"x":6,"y":6}],"unlocked":["forward","left","right"],"hazards":[[4,0]],"optimal":21,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":23},{"id":"m25","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":0,"y":6,"dir":1},"walls":[[1,1],[2,1],[3,1],[3,2],[0,3],[1,3],[3,3],[3,4],[0,5],[1,5],[2,5],[3,5]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":24},{"id":"m26","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":0,"y":4,"dir":1},"walls":[[1,1],[3,1],[4,1],[1,2],[0,3],[1,3],[2,3],[3,3],[0,5],[1,5],[2,5],[3,5],[1,7],[2,7],[3,7],[4,7]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"hazards":[[4,8]],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":25},{"id":"m27","difficulty":"maestro","size":{"w":9,"h":9},"start":{"x":8,"y":6,"dir":0},"walls":[[3,0],[1,1],[3,1],[5,1],[6,1],[7,1],[1,2],[5,2],[1,3],[2,3],[3,3],[5,3],[6,3],[7,3],[8,3],[3,4],[5,4],[0,5],[1,5],[3,5],[5,5],[7,5],[3,6],[5,6],[7,6],[1,7],[2,7],[3,7],[4,7],[5,7],[7,7],[8,7]],"goals":[{"x":8,"y":8}],"unlocked":["forward","left","right"],"hazards":[[4,6]],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":26},{"id":"m28","difficulty":"maestro","size":{"w":9,"h":7},"start":{"x":8,"y":0,"dir":3},"walls":[[1,0],[1,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[3,2],[1,3],[2,3],[3,3],[5,3],[6,3],[7,3],[8,3],[3,4],[0,5],[1,5],[3,5],[4,5],[5,5],[6,5],[7,5]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":24,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":27},{"id":"m29","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":4,"y":2,"dir":0},"walls":[[1,0],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[4,3],[1,4],[1,5],[2,5],[3,5],[1,7],[2,7],[3,7],[4,7]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"hazards":[[4,8]],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":28},{"id":"m30","difficulty":"maestro","size":{"w":5,"h":7},"start":{"x":2,"y":0,"dir":2},"walls":[[1,0],[3,0],[1,1],[3,1],[3,2],[1,3],[2,3],[3,3],[1,4],[1,5],[3,5],[3,6]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":8,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Zonas de peligro","indexInDiff":29},{"id":"m31","difficulty":"maestro","size":{"w":5,"h":5},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[1,1],[3,1],[4,1],[1,2],[1,3],[2,3],[3,3]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":21,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":30},{"id":"m32","difficulty":"maestro","size":{"w":7,"h":9},"start":{"x":4,"y":0,"dir":3},"walls":[[5,0],[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[0,3],[1,3],[3,3],[4,3],[5,3],[1,4],[5,4],[1,5],[2,5],[3,5],[5,5],[5,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"hazards":[[4,2],[6,0]],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":31},{"id":"m33","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":4,"y":0,"dir":1},"walls":[[3,0],[7,0],[1,1],[3,1],[4,1],[5,1],[7,1],[1,2],[3,2],[7,2],[1,3],[3,3],[5,3],[6,3],[7,3],[1,4]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right"],"hazards":[[8,0]],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":32},{"id":"m34","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":0,"y":4,"dir":0},"walls":[[3,0],[1,1],[3,1],[5,1],[1,2],[3,2],[5,2],[1,3],[3,3],[5,3],[1,4],[5,4]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"optimal":28,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":33},{"id":"m35","difficulty":"maestro","size":{"w":9,"h":9},"start":{"x":4,"y":0,"dir":2},"walls":[[3,0],[5,0],[1,1],[2,1],[3,1],[5,1],[7,1],[5,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[7,4],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[7,5],[3,6],[7,6],[1,7],[3,7],[5,7],[6,7],[7,7],[1,8]],"goals":[{"x":2,"y":0}],"unlocked":["forward","left","right"],"optimal":13,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":34},{"id":"m36","difficulty":"maestro","size":{"w":7,"h":7},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[0,3],[1,3],[3,3],[5,3],[1,4],[5,4],[1,5],[2,5],[3,5],[4,5],[5,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"hazards":[[0,4]],"optimal":24,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":35},{"id":"m37","difficulty":"maestro","size":{"w":5,"h":5},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[1,2],[1,3],[3,3],[3,4]],"goals":[{"x":4,"y":0},{"x":4,"y":4}],"unlocked":["forward","left","right"],"optimal":25,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":36},{"id":"m38","difficulty":"maestro","size":{"w":7,"h":7},"start":{"x":0,"y":2,"dir":1},"walls":[[5,0],[0,1],[1,1],[3,1],[5,1],[3,2],[5,2],[0,3],[1,3],[2,3],[3,3],[5,3],[3,4],[1,5],[3,5],[4,5],[5,5],[1,6]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"hazards":[[0,0],[0,6]],"optimal":21,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":37},{"id":"m40","difficulty":"maestro","size":{"w":9,"h":9},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[5,1],[7,1],[8,1],[3,2],[5,2],[0,3],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4],[1,5],[2,5],[3,5],[5,5],[6,5],[7,5],[8,5],[3,6],[0,7],[1,7],[3,7],[4,7],[5,7],[6,7],[7,7]],"goals":[{"x":0,"y":8}],"unlocked":["forward","left","right"],"optimal":26,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":38},{"id":"m41","difficulty":"maestro","size":{"w":9,"h":7},"start":{"x":8,"y":2,"dir":3},"walls":[[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[8,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[1,4],[5,4],[1,5],[3,5],[5,5],[6,5],[7,5],[3,6]],"goals":[{"x":8,"y":0}],"unlocked":["forward","left","right"],"optimal":12,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Planificación avanzada","indexInDiff":39},{"id":"m42","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":0,"y":0,"dir":1},"walls":[[5,0],[0,1],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[3,2],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[1,4]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":40},{"id":"m43","difficulty":"maestro","size":{"w":9,"h":9},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[7,1],[1,2],[7,2],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4],[0,5],[1,5],[2,5],[3,5],[5,5],[6,5],[7,5],[8,5],[1,6],[5,6],[1,7],[3,7],[4,7],[5,7],[6,7],[7,7]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"hazards":[[6,6]],"optimal":23,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":41},{"id":"m44","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":0,"y":4,"dir":0},"walls":[[5,0],[0,1],[1,1],[3,1],[5,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[1,4]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right"],"hazards":[[0,0]],"optimal":24,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":42},{"id":"m45","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":2,"y":6,"dir":3},"walls":[[1,0],[1,1],[3,1],[3,2],[0,3],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[3,6],[0,7],[1,7],[2,7],[3,7]],"goals":[{"x":0,"y":8}],"unlocked":["forward","left","right"],"hazards":[[0,0]],"optimal":20,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":43},{"id":"m46","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[3,1],[5,1],[1,2],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[5,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"optimal":17,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":44},{"id":"m47","difficulty":"maestro","size":{"w":5,"h":5},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[1,1],[2,1],[3,1],[3,2],[1,3],[3,3],[1,4]],"goals":[{"x":0,"y":0},{"x":0,"y":4}],"unlocked":["forward","left","right"],"optimal":25,"maxInstructions":null,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":45},{"id":"m48","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":0,"y":4,"dir":1},"walls":[[5,0],[1,1],[3,1],[5,1],[6,1],[7,1],[1,2],[3,2],[0,3],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right"],"hazards":[[6,0]],"optimal":26,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":46},{"id":"m49","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":2,"y":4,"dir":3},"walls":[[5,0],[0,1],[1,1],[3,1],[5,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[3,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right"],"hazards":[[6,0]],"optimal":14,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":47},{"id":"m50","difficulty":"maestro","size":{"w":7,"h":7},"start":{"x":6,"y":0,"dir":2},"walls":[[5,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[0,3],[1,3],[3,3],[5,3],[6,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"hazards":[[0,2]],"optimal":16,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":48},{"id":"m51","difficulty":"maestro","size":{"w":9,"h":7},"start":{"x":4,"y":4,"dir":2},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4],[5,4],[1,5],[3,5],[5,5],[7,5],[8,5],[1,6],[5,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right"],"optimal":14,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Rutas engañosas","indexInDiff":49},{"id":"m52","difficulty":"maestro","size":{"w":9,"h":5},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[7,0],[1,1],[2,1],[3,1],[4,1],[5,1],[7,1],[3,2],[7,2],[1,3],[2,3],[3,3],[5,3],[6,3],[7,3]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right"],"hazards":[[0,0]],"optimal":24,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":50},{"id":"m54","difficulty":"maestro","size":{"w":5,"h":9},"start":{"x":0,"y":8,"dir":0},"walls":[[1,1],[2,1],[3,1],[4,1],[0,3],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[1,6],[1,7],[3,7],[4,7],[1,8]],"goals":[{"x":4,"y":8}],"unlocked":["forward","left","right"],"optimal":21,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":51},{"id":"m55","difficulty":"maestro","size":{"w":7,"h":5},"start":{"x":0,"y":4,"dir":0},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[1,3],[3,3],[4,3],[5,3],[6,3],[1,4]],"goals":[{"x":6,"y":4}],"unlocked":["forward","left","right"],"optimal":27,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":52},{"id":"m56","difficulty":"maestro","size":{"w":5,"h":5},"start":{"x":4,"y":2,"dir":2},"walls":[[1,1],[3,1],[4,1],[1,2],[3,2],[1,3],[2,3],[3,3]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right"],"optimal":17,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":53},{"id":"m57","difficulty":"maestro","size":{"w":9,"h":7},"start":{"x":6,"y":4,"dir":1},"walls":[[3,0],[1,1],[3,1],[5,1],[6,1],[7,1],[1,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[1,4],[5,4],[1,5],[3,5],[5,5],[6,5],[7,5],[8,5],[3,6]],"goals":[{"x":6,"y":2}],"unlocked":["forward","left","right"],"hazards":[[8,6]],"optimal":18,"maxInstructions":null,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Las zonas marcadas con ⚠ no son muros: si entras en ellas, la misión se interrumpe. Evita esos caminos sin salida.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Reto final","indexInDiff":54},{"id":"e01","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":0,"y":0,"dir":2},"walls":[[1,0],[1,1],[2,1],[3,1],[0,3],[1,3],[2,3],[3,3],[1,4],[1,5],[3,5],[4,5]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"keys":[{"x":2,"y":0,"id":"k1"}],"doors":[{"x":2,"y":5,"keyId":"k1"}],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones."],"group":0,"groupName":"Domina la repetición","indexInDiff":0},{"id":"e02","difficulty":"experto","size":{"w":5,"h":9},"start":{"x":0,"y":8,"dir":1},"walls":[[1,1],[2,1],[3,1],[1,2],[1,3],[2,3],[3,3],[3,4],[1,5],[3,5],[1,6],[3,6],[0,7],[1,7],[3,7],[3,8]],"goals":[{"x":0,"y":6},{"x":2,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":1},{"id":"e03","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":8,"y":0,"dir":2},"walls":[[7,0],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,2],[7,2],[1,3],[3,3],[4,3],[5,3],[7,3],[5,4]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":21,"maxInstructions":24,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":2},{"id":"e04","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":4,"y":4,"dir":2},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[0,3],[1,3],[3,3],[4,3],[5,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[5,6]],"goals":[{"x":6,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":26,"maxInstructions":29,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":3},{"id":"e05","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":2,"y":6,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[5,1],[5,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[5,4],[1,5],[2,5],[3,5],[5,5],[3,6],[5,6],[0,7],[1,7],[2,7],[3,7],[5,7]],"goals":[{"x":0,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":20,"maxInstructions":23,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":4},{"id":"e06","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":2,"y":4,"dir":1},"walls":[[1,0],[1,1],[3,1],[4,1],[5,1],[7,1],[5,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[7,3],[1,4],[7,4]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":23,"maxInstructions":26,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":5},{"id":"e07","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":0,"y":0,"dir":2},"walls":[[1,0],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[2,3],[3,3],[5,3],[1,4],[5,4],[1,5],[3,5],[4,5],[5,5],[3,6]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":6},{"id":"e08","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":2,"y":2,"dir":2},"walls":[[1,1],[2,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4],[1,5],[3,5],[3,6]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":26,"maxInstructions":29,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":7},{"id":"e09","difficulty":"experto","size":{"w":5,"h":5},"start":{"x":2,"y":4,"dir":0},"walls":[[1,1],[2,1],[3,1],[1,2],[1,3],[3,3],[1,4],[3,4]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"keys":[{"x":4,"y":4,"id":"k1"}],"doors":[{"x":4,"y":1,"keyId":"k1"}],"optimal":25,"maxInstructions":28,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones."],"group":0,"groupName":"Domina la repetición","indexInDiff":8},{"id":"e10","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":8,"y":6,"dir":0},"walls":[[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[1,2],[5,2],[1,3],[3,3],[5,3],[6,3],[7,3],[8,3],[1,4],[3,4],[5,4],[1,5],[3,5],[4,5],[5,5],[7,5],[1,6],[7,6]],"goals":[{"x":4,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":24,"maxInstructions":27,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":0,"groupName":"Domina la repetición","indexInDiff":9},{"id":"e11","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":6,"y":8,"dir":3},"walls":[[0,1],[1,1],[3,1],[4,1],[5,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[1,4],[1,5],[2,5],[3,5],[4,5],[5,5],[5,6],[1,7],[2,7],[3,7],[5,7],[6,7],[3,8]],"goals":[{"x":2,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":16,"maxInstructions":19,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":10},{"id":"e12","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":4,"y":0,"dir":1},"walls":[[3,0],[1,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3]],"goals":[{"x":6,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":34,"maxInstructions":37,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":11},{"id":"e13","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":8,"y":0,"dir":2},"walls":[[7,0],[1,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[1,4],[5,4],[1,5],[3,5],[5,5],[6,5],[7,5],[3,6]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":17,"maxInstructions":20,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":12},{"id":"e14","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":4,"y":0,"dir":3},"walls":[[1,0],[5,0],[1,1],[3,1],[4,1],[5,1],[7,1],[3,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4],[7,4],[0,5],[1,5],[3,5],[5,5],[7,5],[3,6],[5,6],[7,6],[1,7],[2,7],[3,7],[5,7],[7,7],[5,8]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":11,"maxInstructions":14,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":13},{"id":"e15","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":8,"y":0,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[1,2],[7,2],[1,3],[2,3],[3,3],[5,3],[7,3],[3,4],[5,4],[0,5],[1,5],[3,5],[5,5],[6,5],[7,5],[5,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":22,"maxInstructions":25,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":14},{"id":"e16","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":4,"y":6,"dir":0},"walls":[[1,1],[2,1],[3,1],[4,1],[1,3],[2,3],[3,3],[1,4],[3,4],[1,5],[3,5],[3,6]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":20,"maxInstructions":23,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":15},{"id":"e17","difficulty":"experto","size":{"w":7,"h":5},"start":{"x":2,"y":4,"dir":1},"walls":[[3,0],[1,1],[3,1],[5,1],[1,2],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3],[1,4]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":29,"maxInstructions":32,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":16},{"id":"e18","difficulty":"experto","size":{"w":5,"h":5},"start":{"x":0,"y":2,"dir":0},"walls":[[1,1],[2,1],[3,1],[1,2],[3,2],[0,3],[1,3],[3,3]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":18,"maxInstructions":21,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":17},{"id":"e19","difficulty":"experto","size":{"w":5,"h":9},"start":{"x":0,"y":6,"dir":0},"walls":[[3,0],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4],[1,5],[3,5],[1,6],[0,7],[1,7],[2,7],[3,7]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":26,"maxInstructions":29,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":18},{"id":"e20","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[5,0],[1,1],[2,1],[3,1],[5,1],[7,1],[3,2],[7,2],[0,3],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":14,"maxInstructions":17,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":1,"groupName":"Llaves y puertas","indexInDiff":19},{"id":"e21","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":0,"y":6,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[7,1],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[3,4],[7,4],[0,5],[1,5],[3,5],[5,5],[7,5],[3,6],[5,6]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":28,"maxInstructions":31,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":20},{"id":"e22","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[0,3],[1,3],[2,3],[3,3],[1,5],[2,5],[3,5],[4,5]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"keys":[{"x":4,"y":0,"id":"k1"}],"doors":[{"x":1,"y":4,"keyId":"k1"}],"optimal":33,"maxInstructions":36,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones."],"group":2,"groupName":"Interruptores","indexInDiff":21},{"id":"e23","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":6,"y":2,"dir":3},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[3,2],[1,3],[3,3],[5,3],[6,3],[1,4],[3,4],[1,5],[3,5],[4,5],[5,5],[1,6]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":34,"maxInstructions":37,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":22},{"id":"e24","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":0,"y":6,"dir":1},"walls":[[1,0],[1,1],[3,1],[3,2],[1,3],[2,3],[3,3],[1,4],[0,5],[1,5],[3,5],[3,6]],"goals":[{"x":4,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":11,"maxInstructions":14,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":23},{"id":"e25","difficulty":"experto","size":{"w":5,"h":5},"start":{"x":0,"y":0,"dir":1},"walls":[[3,0],[0,1],[1,1],[3,1],[1,2],[3,2],[1,3],[3,3]],"goals":[{"x":4,"y":0},{"x":0,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":29,"maxInstructions":32,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":24},{"id":"e26","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":0,"y":8,"dir":1},"walls":[[7,0],[0,1],[1,1],[2,1],[3,1],[5,1],[7,1],[5,2],[7,2],[1,3],[2,3],[3,3],[4,3],[5,3],[7,3],[1,4],[5,4],[1,5],[2,5],[3,5],[5,5],[6,5],[7,5],[3,6],[7,6],[0,7],[1,7],[3,7],[5,7],[7,7],[3,8],[5,8]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":26,"maxInstructions":29,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":25},{"id":"e27","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":6,"y":2,"dir":2},"walls":[[0,1],[1,1],[3,1],[5,1],[6,1],[3,2],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3],[5,4],[1,5],[2,5],[3,5],[5,5],[1,6],[3,6],[1,7],[3,7],[4,7],[5,7],[6,7]],"goals":[{"x":6,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":27,"maxInstructions":30,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":26},{"id":"e28","difficulty":"experto","size":{"w":5,"h":5},"start":{"x":0,"y":2,"dir":0},"walls":[[1,1],[2,1],[3,1],[1,2],[0,3],[1,3],[3,3],[4,3]],"goals":[{"x":0,"y":4},{"x":4,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":25,"maxInstructions":28,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":27},{"id":"e29","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":8,"y":6,"dir":0},"walls":[[3,0],[1,1],[2,1],[3,1],[5,1],[7,1],[3,2],[5,2],[7,2],[0,3],[1,3],[3,3],[5,3],[7,3],[8,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[6,5],[7,5],[1,6],[5,6],[7,6],[1,7],[3,7],[4,7],[5,7],[7,7],[8,7]],"goals":[{"x":8,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":33,"maxInstructions":36,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":28},{"id":"e30","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":0,"y":4,"dir":0},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[1,3],[2,3],[3,3],[5,3],[1,4],[5,4],[0,5],[1,5],[3,5],[4,5],[5,5],[1,6],[3,6],[1,7],[3,7],[5,7],[5,8]],"goals":[{"x":6,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":30,"maxInstructions":33,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":2,"groupName":"Interruptores","indexInDiff":29},{"id":"e31","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":2,"y":2,"dir":3},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[1,4],[5,4],[1,5],[2,5],[3,5],[4,5],[5,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":28,"maxInstructions":31,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":30},{"id":"e32","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":0,"y":6,"dir":0},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3],[7,3],[8,3],[1,4],[5,4],[7,4],[1,5],[3,5],[5,5],[7,5],[1,6],[3,6]],"goals":[{"x":8,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":34,"maxInstructions":37,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":31},{"id":"e33","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":2,"y":6,"dir":1},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[3,3],[5,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[1,6],[5,6]],"goals":[{"x":6,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":15,"maxInstructions":18,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":32},{"id":"e34","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":0,"y":2,"dir":2},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[5,2],[1,3],[3,3],[5,3],[3,4],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":29,"maxInstructions":32,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":33},{"id":"e35","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":6,"y":4,"dir":3},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[7,4],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[1,6],[7,6],[1,7],[3,7],[4,7],[5,7],[7,7],[5,8]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":30,"maxInstructions":33,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":34},{"id":"e36","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[0,3],[1,3],[2,3],[3,3],[5,3],[1,4],[5,4],[1,5],[3,5],[4,5],[5,5],[3,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":19,"maxInstructions":22,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":35},{"id":"e37","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":0,"y":6,"dir":0},"walls":[[1,1],[2,1],[3,1],[1,2],[3,2],[1,3],[3,3],[1,4],[3,4],[1,5],[3,5],[1,6]],"goals":[{"x":2,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":26,"maxInstructions":29,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":36},{"id":"e38","difficulty":"experto","size":{"w":5,"h":9},"start":{"x":2,"y":4,"dir":1},"walls":[[1,1],[3,1],[4,1],[1,2],[1,3],[2,3],[3,3],[1,4],[1,5],[2,5],[3,5],[4,5],[1,6],[1,7],[3,7],[3,8]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":14,"maxInstructions":17,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":37},{"id":"e39","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":4,"y":2,"dir":0},"walls":[[5,0],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[0,3],[1,3],[3,3],[4,3],[5,3],[1,4],[3,4],[1,5],[3,5],[5,5],[1,6],[5,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":6,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":38},{"id":"e40","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":4,"y":2,"dir":3},"walls":[[7,0],[1,1],[2,1],[3,1],[4,1],[5,1],[7,1],[5,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":3,"groupName":"Múltiples objetivos","indexInDiff":39},{"id":"e41","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":4,"y":0,"dir":2},"walls":[[3,0],[5,0],[0,1],[1,1],[3,1],[5,1],[7,1],[8,1],[3,2],[5,2],[1,3],[2,3],[3,3],[5,3],[7,3],[5,4],[7,4],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":21,"maxInstructions":24,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":40},{"id":"e42","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":0,"y":0,"dir":1},"walls":[[3,0],[0,1],[1,1],[3,1],[4,1],[5,1],[1,2],[3,2],[1,3],[3,3],[5,3],[1,4],[5,4],[1,5],[2,5],[3,5],[4,5],[5,5]],"goals":[{"x":4,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":22,"maxInstructions":25,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":41},{"id":"e43","difficulty":"experto","size":{"w":7,"h":5},"start":{"x":2,"y":2,"dir":3},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3]],"goals":[{"x":0,"y":0},{"x":4,"y":2}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":33,"maxInstructions":36,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":42},{"id":"e44","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":6,"y":6,"dir":2},"walls":[[5,0],[1,1],[3,1],[5,1],[7,1],[1,2],[3,2],[7,2],[0,3],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[3,4],[1,5],[2,5],[3,5],[5,5],[6,5],[7,5],[3,6],[5,6],[7,6],[1,7],[3,7],[5,7],[7,7],[1,8],[5,8]],"goals":[{"x":0,"y":8}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":43},{"id":"e45","difficulty":"experto","size":{"w":5,"h":5},"start":{"x":2,"y":0,"dir":1},"walls":[[1,0],[1,1],[2,1],[3,1],[3,2],[1,3],[3,3],[1,4]],"goals":[{"x":0,"y":0},{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":25,"maxInstructions":28,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":44},{"id":"e46","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":0,"y":0,"dir":2},"walls":[[1,0],[1,1],[3,1],[4,1],[5,1],[1,2],[5,2],[1,3],[2,3],[3,3],[5,3],[3,4],[5,4],[0,5],[1,5],[3,5],[5,5],[5,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":13,"maxInstructions":16,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":45},{"id":"e47","difficulty":"experto","size":{"w":7,"h":9},"start":{"x":0,"y":2,"dir":1},"walls":[[0,1],[1,1],[2,1],[3,1],[5,1],[5,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[5,4],[0,5],[1,5],[3,5],[5,5],[3,6],[5,6],[1,7],[2,7],[3,7],[4,7],[5,7]],"goals":[{"x":0,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":12,"maxInstructions":15,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":46},{"id":"e48","difficulty":"experto","size":{"w":9,"h":9},"start":{"x":8,"y":8,"dir":0},"walls":[[1,0],[1,1],[3,1],[5,1],[6,1],[7,1],[8,1],[1,2],[3,2],[1,3],[3,3],[4,3],[5,3],[6,3],[7,3],[1,4],[3,4],[7,4],[1,5],[3,5],[5,5],[7,5],[1,6],[5,6],[7,6],[1,7],[2,7],[3,7],[4,7],[5,7],[7,7],[7,8]],"goals":[{"x":8,"y":0}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":19,"maxInstructions":22,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":47},{"id":"e49","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":2,"y":6,"dir":1},"walls":[[1,1],[2,1],[3,1],[3,2],[0,3],[1,3],[3,3],[3,4],[1,5],[2,5],[3,5],[1,6]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":29,"maxInstructions":32,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":48},{"id":"e50","difficulty":"experto","size":{"w":7,"h":7},"start":{"x":4,"y":2,"dir":2},"walls":[[1,1],[2,1],[3,1],[4,1],[5,1],[1,2],[3,2],[5,2],[1,3],[3,3],[5,3],[3,4],[0,5],[1,5],[3,5],[4,5],[5,5],[6,5]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":31,"maxInstructions":34,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":4,"groupName":"Optimización extrema","indexInDiff":49},{"id":"e51","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":6,"y":0,"dir":1},"walls":[[5,0],[0,1],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[3,2],[5,2],[1,3],[3,3],[5,3],[7,3],[8,3],[1,4],[5,4],[7,4],[1,5],[2,5],[3,5],[4,5],[5,5],[7,5]],"goals":[{"x":8,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":19,"maxInstructions":22,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Desafíos combinados","indexInDiff":50},{"id":"e52","difficulty":"experto","size":{"w":5,"h":9},"start":{"x":2,"y":2,"dir":2},"walls":[[1,1],[2,1],[3,1],[1,2],[3,2],[1,3],[3,3],[3,4],[0,5],[1,5],[2,5],[3,5],[1,6],[1,7],[3,7],[4,7]],"goals":[{"x":0,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":34,"maxInstructions":37,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Desafíos combinados","indexInDiff":51},{"id":"e53","difficulty":"experto","size":{"w":5,"h":7},"start":{"x":0,"y":0,"dir":1},"walls":[[3,0],[0,1],[1,1],[3,1],[3,2],[1,3],[2,3],[3,3],[1,4],[1,5],[2,5],[3,5]],"goals":[{"x":2,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":24,"maxInstructions":27,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Desafíos combinados","indexInDiff":52},{"id":"e54","difficulty":"experto","size":{"w":9,"h":5},"start":{"x":2,"y":0,"dir":3},"walls":[[3,0],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[5,2],[7,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[7,3]],"goals":[{"x":0,"y":4}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":32,"maxInstructions":35,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Desafíos combinados","indexInDiff":53},{"id":"e55","difficulty":"experto","size":{"w":9,"h":7},"start":{"x":4,"y":0,"dir":1},"walls":[[3,0],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[3,2],[0,3],[1,3],[3,3],[5,3],[6,3],[7,3],[8,3],[3,4],[5,4],[1,5],[2,5],[3,5],[5,5],[7,5],[7,6]],"goals":[{"x":8,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":29,"maxInstructions":32,"hints":["Sigue el único camino libre de muros: en este tablero no existen atajos, solo una ruta correcta.","Busca los tramos rectos largos y reemplázalos por un bloque REPETIR: así te mantendrás dentro del límite de instrucciones.","Recuerda: cada giro cambia la dirección hacia la que \"avanzar\" moverá al robot desde ese momento."],"group":5,"groupName":"Desafíos combinados","indexInDiff":54},{"id":"e_showcase1","difficulty":"experto","size":{"w":6,"h":6},"start":{"x":0,"y":0,"dir":1},"walls":[[2,0],[2,1],[2,2],[2,4],[2,5]],"keys":[{"x":1,"y":4,"id":"k1"}],"doors":[{"x":2,"y":3,"keyId":"k1"}],"goals":[{"x":5,"y":5}],"unlocked":["forward","left","right","repeat","pickup"],"optimal":18,"maxInstructions":21,"hints":["Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Dibuja mentalmente la ruta completa antes de programar: en este nivel varias mecánicas se combinan.","Dibuja mentalmente la ruta completa antes de programar: en este nivel varias mecánicas se combinan."],"group":5,"groupName":"Desafíos combinados","indexInDiff":55},{"id":"e_showcase2","difficulty":"experto","size":{"w":7,"h":6},"hazards":[[3,1],[3,2],[3,3]],"start":{"x":0,"y":0,"dir":1},"walls":[[1,4],[2,4],[4,4],[5,4]],"switches":[{"x":6,"y":0,"doorX":3,"doorY":4}],"doors":[{"x":3,"y":4,"keyId":null}],"goals":[{"x":0,"y":5},{"x":6,"y":5}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":13,"maxInstructions":16,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Un interruptor en otra zona del tablero puede abrir una puerta: actívalo antes de necesitarla.","Las zonas marcadas con ⚠ no son muros, pero igual detienen la misión si entras en ellas."],"group":5,"groupName":"Desafíos combinados","indexInDiff":56},{"id":"e_showcase3","difficulty":"experto","size":{"w":6,"h":6},"start":{"x":0,"y":5,"dir":0},"walls":[[1,0],[1,1],[1,2],[1,3],[3,2],[3,3],[3,4],[3,5]],"keys":[{"x":0,"y":0,"id":"k1"}],"doors":[{"x":1,"y":4,"keyId":"k1"}],"goals":[{"x":5,"y":0},{"x":5,"y":5}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":19,"maxInstructions":22,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Dibuja mentalmente la ruta completa antes de programar: en este nivel varias mecánicas se combinan."],"group":5,"groupName":"Desafíos combinados","indexInDiff":57},{"id":"e_showcase4","difficulty":"experto","size":{"w":7,"h":7},"hazards":[[3,3],[4,3]],"start":{"x":0,"y":6,"dir":0},"walls":[[2,1],[2,2],[2,3],[2,4],[2,5],[5,1],[5,2],[5,3],[5,4]],"keys":[{"x":6,"y":0,"id":"k1"}],"switches":[{"x":0,"y":0,"doorX":2,"doorY":0}],"doors":[{"x":2,"y":0,"keyId":null},{"x":5,"y":6,"keyId":"k1"}],"goals":[{"x":2,"y":6},{"x":6,"y":6}],"unlocked":["forward","left","right","repeat","pickup","activate"],"optimal":12,"maxInstructions":15,"hints":["Hay más de un objetivo: revisa el número dentro de cada estrella, marcan el orden en que debes visitarlas.","Para abrir la puerta necesitas la llave, pero además debes pararte justo frente a ella y usar ACTIVAR: recoger la llave sola no la abre.","Un interruptor en otra zona del tablero puede abrir una puerta: actívalo antes de necesitarla."],"group":5,"groupName":"Desafíos combinados","indexInDiff":58}];
+
+const byDiff = {programador:[], maestro:[], experto:[]};
+LEVELS.forEach(lv=> byDiff[lv.difficulty].push(lv));
+
+const DIFFS = [
+  {id:'programador', emoji:'🟢', name:'Programador', cls:'n-programador', desc:'Movimiento y giros. Tableros pequeños, un solo objetivo.'},
+  {id:'maestro', emoji:'🔵', name:'Maestro del Código', cls:'n-maestro', desc:'Obstáculos, zonas de peligro y hasta dos objetivos en orden.'},
+  {id:'experto', emoji:'🟣', name:'Desafío Experto', cls:'n-experto', desc:'Repetición, llaves, interruptores y límite de instrucciones.'},
+  {id:'custom', emoji:'🛠️', name:'Crea tu Desafío', cls:'n-custom', desc:'Diseña tu propio tablero y ponlo a prueba.'},
+];
+const MODES = [
+  {id:'aprendizaje', name:'Modo Aprendizaje', desc:'Sin presión: pistas disponibles y retroalimentación detallada para descubrir la solución con calma.'},
+  {id:'desafio', name:'Modo Desafío', desc:'Sin pistas: exige mayor planificación y precisión en cada intento.'},
+];
+
+/* =========================================================
+   GUARDADO
+   ========================================================= */
+const SAVE_KEY = 'robot_mision_codigo_save_v2';
+function loadSave(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)) || {stars:{}}; }catch(e){ return {stars:{}}; } }
+function writeSave(s){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }catch(e){} }
+let save = loadSave();
+
+const state = {
+  difficulty:'programador', mode:'aprendizaje', levelId:null,
+  program:[], repeatDraft:null, running:false, hintsShown:0, attempts:0,
+};
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+const screens = {
+  menu: document.getElementById('screen-menu'),
+  levels: document.getElementById('screen-levels'),
+  editor: document.getElementById('screen-editor'),
+  game: document.getElementById('screen-game'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.add('hidden'));
+  screens[name].classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+document.getElementById('btnReset').onclick = ()=>{
+  if(confirm('¿Borrar todo el progreso guardado (estrellas de todos los niveles)?')){ save = {stars:{}}; writeSave(save); }
+};
+document.getElementById('btnBackToSelect').onclick = ()=> showScreen('menu');
+
+function renderMenuScreen(){
+  const grid = document.getElementById('diffGrid');
+  grid.innerHTML = '';
+  DIFFS.forEach(d=>{
+    const btn = document.createElement('button');
+    btn.className = 'nivel-card ' + d.cls;
+    btn.innerHTML = `<div class="nivel-emoji">${d.emoji}</div><h3>${d.name}</h3><p>${d.desc}</p>`;
+    btn.onclick = ()=>{
+      if(d.id==='custom'){ openEditor(); return; }
+      state.difficulty = d.id; renderLevelsScreen(); showScreen('levels');
+    };
+    grid.appendChild(btn);
+  });
+}
+renderMenuScreen();
+
+function renderLevelsScreen(){
+  const diffMeta = DIFFS.find(d=>d.id===state.difficulty);
+  document.getElementById('levelsTitle').textContent = `${diffMeta.emoji} ${diffMeta.name}`;
+  const container = document.getElementById('levelsContainer');
+  container.innerHTML = '';
+  const levels = byDiff[state.difficulty];
+  let lastGroup = -1;
+  let grid = null;
+  levels.forEach((lv, idx)=>{
+    if(lv.group !== lastGroup){
+      const label = document.createElement('div');
+      label.className = 'group-label';
+      label.textContent = `${lv.groupName}`;
+      container.appendChild(label);
+      grid = document.createElement('div');
+      grid.className = 'level-grid';
+      container.appendChild(grid);
+      lastGroup = lv.group;
+    }
+    const unlocked = idx===0 || (save.stars[levels[idx-1].id]!==undefined);
+    const stars = save.stars[lv.id] || 0;
+    const tile = document.createElement('button');
+    tile.className = `level-tile btn tier-${state.difficulty}` + (stars>0?' done':'');
+    tile.disabled = !unlocked;
+    const starsHtml = [1,2,3].map(n=>`<span style="color:${n<=stars?'var(--accent)':'rgba(255,255,255,.16)'}">★</span>`).join('');
+    tile.innerHTML = `<div class="lv-num">${idx+1}</div><div class="lv-stars">${starsHtml}</div>`;
+    tile.onclick = ()=>{ if(unlocked) openModeModal(lv.id); };
+    grid.appendChild(tile);
+  });
+}
+
+/* =========================================================
+   MODAL: elegir modo antes de iniciar el nivel
+   ========================================================= */
+function openModeModal(levelId){
+  const lv = LEVELS.find(l=>l.id===levelId);
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>Nivel ${lv.indexInDiff+1}</h2>
+      <div class="modal-sub">¿Cómo quieres resolverlo?</div>
+      <div class="mode-options">
+        ${MODES.map(m=>`<button class="mode-opt btn" data-mode="${m.id}"><h3>${m.name}</h3><p>${m.desc}</p></button>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('modalSlot').appendChild(overlay);
+  overlay.querySelectorAll('.mode-opt').forEach(b=>{
+    b.onclick = ()=>{ state.mode = b.dataset.mode; overlay.remove(); startLevel(levelId); };
+  });
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+}
+
+/* =========================================================
+   MOTOR DE JUEGO
+   ========================================================= */
+let currentLevel = null;
+let robotPos = {x:0,y:0,dir:0};
+let visitedGoals = [];
+let collectedKeys = [];
+let activeSwitches = [];
+let unlockedDoors = [];
+let cellSize = 60;
+let execTimer = null;
+let boardResizeObserver = null;
+
+const CMD_META = {
+  forward:{icon:'⬆', label:'Avanzar', cls:'c-forward'},
+  left:{icon:'↶', label:'Girar izq.', cls:'c-left'},
+  right:{icon:'↷', label:'Girar der.', cls:'c-right'},
+  repeat:{icon:'🔁', label:'Repetir', cls:'c-repeat'},
+  pickup:{icon:'🔑', label:'Recoger', cls:'c-pickup'},
+  activate:{icon:'◈', label:'Activar', cls:'c-activate'},
+};
+
+function startLevel(levelId){
+  startLevelObject(LEVELS.find(l=>l.id===levelId));
+}
+function startLevelObject(levelObj){
+  currentLevel = levelObj;
+  state.levelId = levelObj.id;
+  state.program = [];
+  state.repeatDraft = null;
+  state.hintsShown = 0;
+  state.attempts = 0;
+  resetRobotState();
+  const titlePrefix = currentLevel.difficulty==='custom' ? 'Tu desafío' : `Nivel ${currentLevel.indexInDiff+1} · ${DIFFS.find(d=>d.id===state.difficulty).name}`;
+  document.getElementById('gameLevelTitle').textContent = titlePrefix;
+  renderCommandColumn();
+  renderProgramList();
+  setFeedback('Observa hacia dónde mira el robot y arma tu programa.', '');
+  document.getElementById('hintTexts').innerHTML = '';
+  document.getElementById('btnHint').disabled = false;
+  const hasHints = currentLevel.hints && currentLevel.hints.length>0;
+  document.getElementById('hintPanel').style.display = (state.mode==='desafio' || !hasHints) ? 'none':'block';
+
+  showScreen('game');
+  setupBoardResizeObserver();
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{ renderBoard(); }));
+}
+document.getElementById('btnExitGame').onclick = ()=>{
+  if(execTimer) clearTimeout(execTimer);
+  if(boardResizeObserver) boardResizeObserver.disconnect();
+  if(currentLevel && currentLevel.difficulty==='custom'){ showScreen('editor'); }
+  else { renderLevelsScreen(); showScreen('levels'); }
+};
+document.getElementById('btnRestartLevel').onclick = ()=>{
+  if(execTimer){ clearTimeout(execTimer); execTimer=null; }
+  resetRobotState(); renderBoard(); setFeedback('Robot reiniciado en su posición inicial.', ''); setRunningUI(false);
+};
+
+function resetRobotState(){
+  robotPos = {x:currentLevel.start.x, y:currentLevel.start.y, dir:currentLevel.start.dir};
+  visitedGoals = []; collectedKeys = []; activeSwitches = []; unlockedDoors = [];
+}
+
+function setupBoardResizeObserver(){
+  if(boardResizeObserver) boardResizeObserver.disconnect();
+  const wrap = document.querySelector('.board-wrap');
+  boardResizeObserver = new ResizeObserver(()=>{ if(currentLevel && !screens.game.classList.contains('hidden')) renderBoard(); });
+  boardResizeObserver.observe(wrap);
+}
+
+/* ---------- Consultas de tablero ---------- */
+function isWall(x,y){ return currentLevel.walls.some(w=>w[0]===x&&w[1]===y); }
+function isHazard(x,y){ return (currentLevel.hazards||[]).some(h=>h[0]===x&&h[1]===y); }
+function keyAt(x,y){ return (currentLevel.keys||[]).find(k=>k.x===x&&k.y===y); }
+function switchAt(x,y){ return (currentLevel.switches||[]).find(s=>s.x===x&&s.y===y); }
+function doorAt(x,y){ return (currentLevel.doors||[]).find(d=>d.x===x&&d.y===y); }
+function goalIndexAt(x,y){ return currentLevel.goals.findIndex(g=>g.x===x&&g.y===y); }
+function doorIsOpen(door){
+  if(door.keyId){ return unlockedDoors.includes(door); }
+  return activeSwitches.some(sw=> sw.doorX===door.x && sw.doorY===door.y);
+}
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  const {w,h} = currentLevel.size;
+  const boardWrap = document.querySelector('.board-wrap');
+  const wrapWidth = boardWrap.clientWidth || boardWrap.getBoundingClientRect().width;
+  if(!wrapWidth){ requestAnimationFrame(renderBoard); return; }
+  const availW = wrapWidth - 26;
+  const availH = Math.max(260, window.innerHeight * 0.46);
+  cellSize = Math.max(18, Math.floor(Math.min(availW / w, availH / h, 92)));
+  board.style.gridTemplateColumns = `repeat(${w}, ${cellSize}px)`;
+  board.style.gridTemplateRows = `repeat(${h}, ${cellSize}px)`;
+  board.style.width = (cellSize*w)+'px';
+  board.style.height = (cellSize*h)+'px';
+  Array.from(board.querySelectorAll('.cell')).forEach(c=>c.remove());
+
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const cell = document.createElement('div');
+      cell.className = 'cell floor';
+      cell.dataset.x=x; cell.dataset.y=y;
+      if(isWall(x,y)) cell.classList.add('wall');
+      if(isHazard(x,y)) cell.classList.add('hazard');
+      if(currentLevel.start.x===x && currentLevel.start.y===y) cell.classList.add('start');
+      const gi = goalIndexAt(x,y);
+      if(gi>=0){
+        cell.classList.add('goal');
+        if(currentLevel.goals.length>1){
+          const badge = document.createElement('span');
+          badge.className='goal-order-badge'; badge.textContent = (gi+1);
+          cell.appendChild(badge);
+        }
+      }
+      const k = keyAt(x,y); if(k){ cell.classList.add('key'); cell.dataset.keyId=k.id; }
+      const sw = switchAt(x,y); if(sw){ cell.classList.add('switchtile'); }
+      const dr = doorAt(x,y); if(dr){ cell.classList.add('door'); }
+      board.insertBefore(cell, document.getElementById('robot'));
+    }
+  }
+  updateBoardDynamics();
+  positionRobot(true);
+}
+
+function updateBoardDynamics(){
+  const board = document.getElementById('board');
+  board.querySelectorAll('.cell.goal').forEach(c=>{
+    const gi = goalIndexAt(+c.dataset.x, +c.dataset.y);
+    c.classList.toggle('visited', gi>=0 && gi < visitedGoals.length && visitedGoals[gi]);
+  });
+  board.querySelectorAll('.cell.key').forEach(c=> c.classList.toggle('taken', collectedKeys.includes(c.dataset.keyId)));
+  board.querySelectorAll('.cell.switchtile').forEach(c=>{
+    const sw = switchAt(+c.dataset.x, +c.dataset.y);
+    c.classList.toggle('on', sw && activeSwitches.includes(sw));
+  });
+  board.querySelectorAll('.cell.door').forEach(c=>{
+    const dr = doorAt(+c.dataset.x, +c.dataset.y);
+    c.classList.toggle('open', dr && doorIsOpen(dr));
+  });
+}
+
+function positionRobot(instant){
+  const robot = document.getElementById('robot');
+  robot.style.transition = instant ? 'none' : '';
+  robot.style.width = cellSize+'px'; robot.style.height = cellSize+'px';
+  robot.style.left = (robotPos.x*cellSize)+'px'; robot.style.top = (robotPos.y*cellSize)+'px';
+  robot.className = 'state-idle dir-'+robotPos.dir;
+  if(instant){ void robot.offsetWidth; robot.style.transition=''; }
+}
+
+/* =========================================================
+   PANEL DE COMANDOS (columna) + PROGRAMA
+   ========================================================= */
+function renderCommandColumn(){
+  const col = document.getElementById('cmdColumn');
+  col.innerHTML = '';
+  currentLevel.unlocked.forEach(type=>{
+    const meta = CMD_META[type];
+    const btn = document.createElement('button');
+    btn.className = 'cmd-btn ' + meta.cls;
+    btn.innerHTML = `<span class="ico">${meta.icon}</span><span>${meta.label.toUpperCase()}</span>`;
+    btn.onclick = ()=> onCommandClick(type);
+    col.appendChild(btn);
+  });
+  document.getElementById('repeatEditorHost').innerHTML = '';
+  document.getElementById('repeatEditorHost').classList.add('hidden');
+}
+
+function onCommandClick(type){
+  if(state.running) return;
+  if(type==='repeat'){
+    if(state.repeatDraft) return;
+    state.repeatDraft = {count:2, children:[]};
+    renderRepeatEditor();
+    return;
+  }
+  const block = {type, label: CMD_META[type].label};
+  if(state.repeatDraft){ state.repeatDraft.children.push(block); renderRepeatEditor(); }
+  else { state.program.push(block); renderProgramList(); }
+}
+
+function renderRepeatEditor(){
+  const host = document.getElementById('repeatEditorHost');
+  if(!state.repeatDraft){ host.innerHTML=''; host.classList.add('hidden'); return; }
+  host.classList.remove('hidden');
+  const d = state.repeatDraft;
+  host.innerHTML = '';
+  const box = document.createElement('div');
+  box.className = 'repeat-editor';
+  const head = document.createElement('div');
+  head.className = 're-head';
+  head.innerHTML = `<span>🔁 Bloque REPETIR</span>`;
+  const countCtrl = document.createElement('div');
+  countCtrl.className = 're-count-ctrl';
+  countCtrl.innerHTML = `<button id="reMinus">−</button><span id="reCountVal" style="font-family:var(--font-num);color:var(--ink)">×${d.count}</span><button id="rePlus">+</button>`;
+  head.appendChild(countCtrl);
+  box.appendChild(head);
+
+  const list = document.createElement('div');
+  list.style.cssText='display:flex;flex-direction:column;gap:4px;margin-bottom:8px;';
+  if(d.children.length===0){
+    list.innerHTML = '<div class="empty-program">Toca comandos de la izquierda para agregarlos dentro del repetir.</div>';
+  } else {
+    d.children.forEach((c,i)=>{
+      const row = document.createElement('div');
+      row.className='prog-block';
+      row.innerHTML = `<span class="step-n">${i+1}</span><span class="step-label">${CMD_META[c.type].icon} ${c.label}</span>
+        <span class="step-actions"><button data-i="${i}" class="reDel">✕</button></span>`;
+      list.appendChild(row);
+    });
+  }
+  box.appendChild(list);
+
+  const actions = document.createElement('div');
+  actions.style.cssText='display:flex;gap:8px;';
+  actions.innerHTML = `<button class="btn btn-cyan" id="reConfirm" style="flex:1;padding:8px;font-size:12px;">✓ Agregar</button>
+    <button class="btn btn-ghost" id="reCancel" style="flex:1;padding:8px;font-size:12px;">Cancelar</button>`;
+  box.appendChild(actions);
+  host.appendChild(box);
+
+  document.getElementById('reMinus').onclick = ()=>{ d.count = Math.max(2,d.count-1); renderRepeatEditor(); };
+  document.getElementById('rePlus').onclick = ()=>{ d.count = Math.min(12,d.count+1); renderRepeatEditor(); };
+  box.querySelectorAll('.reDel').forEach(b=> b.onclick = ()=>{ d.children.splice(+b.dataset.i,1); renderRepeatEditor(); });
+  document.getElementById('reConfirm').onclick = ()=>{
+    if(d.children.length===0) return;
+    state.program.push({type:'repeat', count:d.count, children:d.children});
+    state.repeatDraft = null; renderRepeatEditor(); renderProgramList();
+  };
+  document.getElementById('reCancel').onclick = ()=>{ state.repeatDraft=null; renderRepeatEditor(); };
+}
+
+function countInstructions(list){
+  return list.reduce((sum,b)=> sum + (b.type==='repeat' ? b.count*countInstructions(b.children) : 1), 0);
+}
+
+function renderProgramList(){
+  const ul = document.getElementById('programList');
+  ul.innerHTML = '';
+  if(state.program.length===0){
+    ul.innerHTML = '<div class="empty-program">Tu programa está vacío. Agrega instrucciones desde la izquierda.</div>';
+  } else {
+    state.program.forEach((b,i)=> ul.appendChild(renderBlock(b,i,state.program,[i])));
+  }
+  const total = countInstructions(state.program);
+  const counter = document.getElementById('instrCounter');
+  const limit = currentLevel.maxInstructions;
+  counter.textContent = limit ? `${total} / ${limit} instrucciones` : `${total} instrucciones`;
+  counter.classList.toggle('over', !!limit && total>limit);
+}
+
+function renderBlock(b,i,parentArr,path){
+  if(b.type==='repeat'){
+    const li = document.createElement('li');
+    li.className = 'prog-block repeat-block';
+    li.dataset.path = path.join('-');
+    const top = document.createElement('div');
+    top.className='rb-top';
+    top.innerHTML = `<span class="step-n">${i+1}</span><span class="step-label">🔁 REPETIR × ${b.count}</span>
+      <span class="step-actions"><button class="delBtn">✕</button></span>`;
+    top.querySelector('.delBtn').onclick = ()=>{ parentArr.splice(i,1); renderProgramList(); };
+    li.appendChild(top);
+    const childrenWrap = document.createElement('div');
+    childrenWrap.className='rb-children';
+    b.children.forEach((c,ci)=> childrenWrap.appendChild(renderBlock(c,ci,b.children,path.concat(ci))));
+    li.appendChild(childrenWrap);
+    return li;
+  }
+  const li = document.createElement('li');
+  li.className='prog-block';
+  li.dataset.path = path.join('-');
+  li.innerHTML = `<span class="step-n">${i+1}</span><span class="step-label">${CMD_META[b.type].icon} ${b.label}</span>
+    <span class="step-actions">
+      ${i>0?'<button class="upBtn">↑</button>':''}
+      ${i<parentArr.length-1?'<button class="downBtn">↓</button>':''}
+      <button class="delBtn">✕</button>
+    </span>`;
+  li.querySelector('.delBtn').onclick = ()=>{ parentArr.splice(i,1); renderProgramList(); };
+  const up = li.querySelector('.upBtn'); if(up) up.onclick=()=>{ [parentArr[i-1],parentArr[i]]=[parentArr[i],parentArr[i-1]]; renderProgramList(); };
+  const down = li.querySelector('.downBtn'); if(down) down.onclick=()=>{ [parentArr[i+1],parentArr[i]]=[parentArr[i],parentArr[i+1]]; renderProgramList(); };
+  return li;
+}
+
+document.getElementById('btnUndo').onclick = ()=>{ if(state.running) return; state.program.pop(); renderProgramList(); };
+document.getElementById('btnClear').onclick = ()=>{ if(state.running) return; state.program = []; renderProgramList(); };
+
+/* =========================================================
+   PISTAS
+   ========================================================= */
+document.getElementById('btnHint').onclick = ()=>{
+  const hints = currentLevel.hints || [];
+  if(state.hintsShown >= hints.length) return;
+  const div = document.createElement('div');
+  div.className = 'hint-text show';
+  div.textContent = `Pista ${state.hintsShown+1}: ${hints[state.hintsShown]}`;
+  document.getElementById('hintTexts').appendChild(div);
+  state.hintsShown++;
+  if(state.hintsShown>=hints.length) document.getElementById('btnHint').disabled = true;
+};
+
+/* =========================================================
+   EJECUCIÓN
+   ========================================================= */
+function flattenProgram(list, path=[]){
+  let out = [];
+  list.forEach((b,i)=>{
+    const p = path.concat(i);
+    if(b.type==='repeat'){ for(let r=0;r<b.count;r++){ out = out.concat(flattenProgram(b.children, p)); } }
+    else out.push({type:b.type, path:p.join('-')});
+  });
+  return out;
+}
+
+function setFeedback(msg, kind){
+  const bar = document.getElementById('feedbackBar');
+  bar.textContent = msg;
+  bar.className = 'feedback-bar' + (kind?(' '+kind):'');
+}
+function setRunningUI(running){
+  state.running = running;
+  document.getElementById('btnRun').disabled = running;
+  document.getElementById('btnStop').disabled = !running;
+  document.getElementById('btnUndo').disabled = running;
+  document.getElementById('btnClear').disabled = running;
+  document.querySelectorAll('.cmd-btn').forEach(b=>b.disabled = running);
+}
+
+document.getElementById('btnStop').onclick = ()=>{
+  if(execTimer) clearTimeout(execTimer);
+  execTimer = null;
+  setRunningUI(false);
+  setFeedback('Ejecución detenida. Ajusta tu programa y vuelve a intentar.', '');
+  document.querySelectorAll('.prog-block.active-step').forEach(e=>e.classList.remove('active-step'));
+};
+
+document.getElementById('btnRun').onclick = ()=>{
+  if(state.program.length===0){ setFeedback('Agrega al menos una instrucción antes de ejecutar.', 'err'); return; }
+  if(currentLevel.maxInstructions && countInstructions(state.program) > currentLevel.maxInstructions){
+    setFeedback(`Tu programa usa demasiadas instrucciones. El límite de este nivel es ${currentLevel.maxInstructions}.`, 'err');
+    return;
+  }
+  resetRobotState();
+  renderBoard();
+  const actions = flattenProgram(state.program);
+  state.attempts++;
+  setRunningUI(true);
+  setFeedback('Ejecutando programa…', '');
+  document.getElementById('robot').classList.remove('state-win');
+  runStep(actions, 0, actions.length);
+};
+
+/* Resalta el paso activo sin mover el scroll de la página: el desplazamiento
+   queda contenido dentro de .program-list, así la vista nunca abandona al robot. */
+function highlightStep(path){
+  document.querySelectorAll('.prog-block.active-step').forEach(e=>e.classList.remove('active-step'));
+  if(path===null) return;
+  const list = document.getElementById('programList');
+  const el = list.querySelector(`.prog-block[data-path="${path}"]`);
+  if(el){
+    el.classList.add('active-step');
+    const elTop = el.offsetTop, elBottom = elTop + el.offsetHeight;
+    if(elTop < list.scrollTop) list.scrollTop = elTop;
+    else if(elBottom > list.scrollTop + list.clientHeight) list.scrollTop = elBottom - list.clientHeight;
+  }
+}
+
+function runStep(actions, idx, totalUsed){
+  if(idx >= actions.length){ finishRun(true, totalUsed); return; }
+  const act = actions[idx];
+  highlightStep(act.path);
+  const robot = document.getElementById('robot');
+
+  if(act.type==='left' || act.type==='right'){
+    robotPos.dir = (robotPos.dir + (act.type==='right'?1:3)) % 4;
+    positionRobot(false);
+    robot.classList.add('state-turn');
+    setTimeout(()=> robot.classList.remove('state-turn'), 480);
+    execTimer = setTimeout(()=> runStep(actions, idx+1, totalUsed), 460);
+    return;
+  }
+  if(act.type==='pickup'){
+    const k = keyAt(robotPos.x, robotPos.y);
+    if(k && !collectedKeys.includes(k.id)){
+      collectedKeys.push(k.id); updateBoardDynamics(); setFeedback('🔑 Llave recogida. Ahora ve hasta la puerta y usa ACTIVAR para abrirla.', 'ok');
+    } else {
+      setFeedback('Aquí no hay nada que recoger todavía.', 'err');
+      finishRun(false, totalUsed, act.path, 'noPickup'); return;
+    }
+    execTimer = setTimeout(()=> runStep(actions, idx+1, totalUsed), 400);
+    return;
+  }
+  if(act.type==='activate'){
+    const sw = switchAt(robotPos.x, robotPos.y);
+    const fdx=[0,1,0,-1][robotPos.dir], fdy=[-1,0,1,0][robotPos.dir];
+    const frontX = robotPos.x+fdx, frontY = robotPos.y+fdy;
+    const frontDoor = doorAt(frontX, frontY);
+    if(sw && !activeSwitches.includes(sw)){
+      activeSwitches.push(sw); updateBoardDynamics(); setFeedback('◈ ¡Interruptor activado!', 'ok');
+    } else if(frontDoor && frontDoor.keyId && collectedKeys.includes(frontDoor.keyId) && !unlockedDoors.includes(frontDoor)){
+      unlockedDoors.push(frontDoor); updateBoardDynamics(); setFeedback('🔓 ¡Puerta desbloqueada con la llave!', 'ok');
+    } else {
+      setFeedback('Aquí no hay ningún interruptor, y no tienes una puerta con llave justo frente a ti.', 'err');
+      finishRun(false, totalUsed, act.path, 'noSwitch'); return;
+    }
+    execTimer = setTimeout(()=> runStep(actions, idx+1, totalUsed), 400);
+    return;
+  }
+
+  const dx=[0,1,0,-1][robotPos.dir], dy=[-1,0,1,0][robotPos.dir];
+  const nx = robotPos.x+dx, ny = robotPos.y+dy;
+  const {w,h} = currentLevel.size;
+  const outOfBounds = nx<0||ny<0||nx>=w||ny>=h;
+  const blockedWall = !outOfBounds && isWall(nx,ny);
+  const dr = !outOfBounds ? doorAt(nx,ny) : null;
+  const blockedDoor = dr && !doorIsOpen(dr);
+
+  if(outOfBounds || blockedWall || blockedDoor){
+    robot.classList.add('state-shock');
+    setTimeout(()=>robot.classList.remove('state-shock'), 400);
+    finishRun(false, totalUsed, act.path, 'crash'); return;
+  }
+
+  robotPos.x = nx; robotPos.y = ny;
+  positionRobot(false);
+
+  if(isHazard(nx,ny)){
+    execTimer = setTimeout(()=>{ finishRun(false, totalUsed, act.path, 'hazard'); }, 400);
+    return;
+  }
+  const gi = goalIndexAt(nx,ny);
+  if(gi>=0){
+    if(gi === visitedGoals.length){ visitedGoals.push(true); updateBoardDynamics(); }
+    else if(!visitedGoals[gi]){
+      execTimer = setTimeout(()=> finishRun(false, totalUsed, act.path, 'wrongOrder'), 360);
+      return;
+    }
+  }
+  execTimer = setTimeout(()=> runStep(actions, idx+1, totalUsed), 400);
+}
+
+function finishRun(success, totalUsed, failPath, reason){
+  execTimer = null;
+  setRunningUI(false);
+  const robot = document.getElementById('robot');
+  if(success){
+    const allGoals = visitedGoals.length === currentLevel.goals.length && visitedGoals.every(Boolean);
+    const lastGoal = currentLevel.goals[currentLevel.goals.length-1];
+    const endsOnGoal = lastGoal && robotPos.x===lastGoal.x && robotPos.y===lastGoal.y;
+    if(allGoals && endsOnGoal){ robot.classList.add('state-win'); onLevelWin(totalUsed); }
+    else if(allGoals && !endsOnGoal){
+      setFeedback('Tocaste el objetivo, pero tu programa siguió moviendo al robot y se pasó de largo. Debe terminar exactamente sobre la meta.', 'err');
+      highlightStep(null);
+    }
+    else { setFeedback('El programa terminó, pero la misión todavía no. Le faltó llegar a algún objetivo.', 'err'); highlightStep(null); }
+    return;
+  }
+  highlightStep(failPath);
+  let msg = '';
+  if(reason==='crash') msg = '¡Ups! Esa instrucción hizo que el robot chocara contra un muro (o saliera del tablero).';
+  else if(reason==='hazard') msg = 'El robot entró en una zona peligrosa. Parece que tendremos que revisar esas instrucciones.';
+  else if(reason==='wrongOrder') msg = 'El robot llegó a un objetivo antes de tiempo: recuerda que el orden de las estrellas importa.';
+  else if(reason==='noPickup') msg = 'El robot intentó RECOGER, pero no había ninguna llave en esa casilla.';
+  else if(reason==='noSwitch') msg = 'El robot intentó ACTIVAR, pero no había ningún interruptor en esa casilla.';
+  else msg = 'El programa siguió tus instrucciones... demasiado literalmente, y algo salió mal.';
+  setFeedback(msg, 'err');
+}
+
+/* =========================================================
+   VICTORIA / MODAL
+   ========================================================= */
+function computeStars(used){
+  const opt = currentLevel.optimal;
+  if(used <= opt) return 3;
+  if(used <= opt + Math.ceil(opt*0.5)) return 2;
+  return 1;
+}
+function onLevelWin(used){
+  setFeedback('🎉 ¡Misión cumplida!', 'win');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+
+  if(currentLevel.difficulty==='custom'){
+    overlay.innerHTML = `
+      <div class="modal">
+        <h2>¡Lo lograste! 🎉</h2>
+        <div class="modal-sub">Tu robot completó el desafío que creaste.</div>
+        <div class="modal-stats"><div><b>${used}</b>Instrucciones</div><div><b>${state.attempts}</b>Intentos</div></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="mBackLevels">Seguir editando</button>
+          <button class="btn btn-primary" id="mRetry">↺ Repetir</button>
+        </div>
+      </div>`;
+    document.getElementById('modalSlot').appendChild(overlay);
+    document.getElementById('mBackLevels').onclick = ()=>{ overlay.remove(); showScreen('editor'); };
+    document.getElementById('mRetry').onclick = ()=>{ overlay.remove(); startLevelObject(currentLevel); };
+    return;
+  }
+
+  const stars = computeStars(used);
+  const prevStars = save.stars[currentLevel.id] || 0;
+  save.stars[currentLevel.id] = Math.max(prevStars, stars);
+  writeSave(save);
+
+  const nextLv = byDiff[state.difficulty][currentLevel.indexInDiff+1];
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>¡Nivel superado!</h2>
+      <div class="stars-row">${[1,2,3].map(n=>`<span class="${n<=stars?'lit':''}">★</span>`).join('')}</div>
+      <div class="modal-stats">
+        <div><b>${used}</b>Instrucciones</div>
+        <div><b>${currentLevel.maxInstructions||'—'}</b>Límite</div>
+        <div><b>${state.attempts}</b>Intentos</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="mBackLevels">Ver niveles</button>
+        <button class="btn btn-primary" id="mRetry">↺ Repetir</button>
+        ${nextLv?'<button class="btn btn-cyan" id="mNext">Siguiente →</button>':''}
+      </div>
+    </div>`;
+  document.getElementById('modalSlot').appendChild(overlay);
+  document.getElementById('mBackLevels').onclick = ()=>{ overlay.remove(); renderLevelsScreen(); showScreen('levels'); };
+  document.getElementById('mRetry').onclick = ()=>{ overlay.remove(); startLevel(currentLevel.id); };
+  const nextBtn = document.getElementById('mNext');
+  if(nextBtn) nextBtn.onclick = ()=>{ overlay.remove(); startLevel(nextLv.id); };
+}
+
+/* =========================================================
+   EDITOR: "Crea tu Desafío"
+   Tablero de 9x9 (el tamaño máximo que usa el juego). Herramientas
+   con una sola instancia (robot, llave, interruptor, puerta-interruptor)
+   se mueven al tocar otra casilla; el resto se pueden colocar varias veces.
+   ========================================================= */
+const ED_SIZE = 9;
+const EDITOR_KEY = 'robot_mision_codigo_custom_v1';
+const ED_TOOLS = [
+  {id:'robot', icon:'🤖', label:'Inicio robot', unique:true},
+  {id:'wall', icon:'⬛', label:'Muro', unique:false},
+  {id:'goal', icon:'★', label:'Objetivo', unique:false},
+  {id:'hazard', icon:'⚠', label:'Peligro', unique:false},
+  {id:'key', icon:'🔑', label:'Llave', unique:true},
+  {id:'doorkey', icon:'▦', label:'Puerta+llave', unique:false},
+  {id:'switch', icon:'◈', label:'Interruptor', unique:true},
+  {id:'doorswitch', icon:'▧', label:'Puerta+interr.', unique:true},
+  {id:'erase', icon:'🧹', label:'Vaciar', unique:false},
+];
+let edLevel = null;
+let edTool = 'robot';
+let edCellSize = 40;
+let edResizeObserver = null;
+
+function blankEdLevel(){
+  return { size:{w:ED_SIZE,h:ED_SIZE}, start:null, walls:[], goals:[], hazards:[], keys:[], switches:[], doors:[] };
+}
+function loadEditor(){
+  try{ const raw = JSON.parse(localStorage.getItem(EDITOR_KEY)); return raw || blankEdLevel(); }catch(e){ return blankEdLevel(); }
+}
+function saveEditor(){ try{ localStorage.setItem(EDITOR_KEY, JSON.stringify(edLevel)); }catch(e){} }
+
+function openEditor(){
+  edLevel = loadEditor();
+  renderEditorPalette();
+  showScreen('editor');
+  setupEditorResizeObserver();
+  requestAnimationFrame(()=> requestAnimationFrame(()=> renderEditorBoard()));
+}
+document.getElementById('btnExitEditor').onclick = ()=>{ if(edResizeObserver) edResizeObserver.disconnect(); showScreen('menu'); };
+document.getElementById('btnClearEditor').onclick = ()=>{
+  if(confirm('¿Vaciar todo el tablero que estás diseñando?')){ edLevel = blankEdLevel(); saveEditor(); renderEditorBoard(); }
+};
+
+function setupEditorResizeObserver(){
+  if(edResizeObserver) edResizeObserver.disconnect();
+  const wrap = document.querySelectorAll('#screen-editor .board-wrap')[0];
+  edResizeObserver = new ResizeObserver(()=>{ if(!screens.editor.classList.contains('hidden')) renderEditorBoard(); });
+  edResizeObserver.observe(wrap);
+}
+
+function renderEditorPalette(){
+  const col = document.getElementById('edPalette');
+  col.innerHTML = '';
+  ED_TOOLS.forEach(t=>{
+    const btn = document.createElement('button');
+    btn.className = 'cmd-btn' + (edTool===t.id ? ' active-tool':'');
+    btn.style.borderColor = edTool===t.id ? 'var(--accent)' : '';
+    btn.innerHTML = `<span class="ico">${t.icon}</span><span>${t.label.toUpperCase()}</span>`;
+    btn.onclick = ()=>{ edTool = t.id; renderEditorPalette(); };
+    col.appendChild(btn);
+  });
+}
+
+function edClearCell(x,y){
+  edLevel.walls = edLevel.walls.filter(w=>!(w[0]===x&&w[1]===y));
+  edLevel.goals = edLevel.goals.filter(g=>!(g.x===x&&g.y===y));
+  edLevel.hazards = edLevel.hazards.filter(h=>!(h[0]===x&&h[1]===y));
+  edLevel.doors = edLevel.doors.filter(d=>!(d.x===x&&d.y===y));
+  if(edLevel.keys[0] && edLevel.keys[0].x===x && edLevel.keys[0].y===y) edLevel.keys = [];
+  if(edLevel.switches[0] && edLevel.switches[0].x===x && edLevel.switches[0].y===y) edLevel.switches = [];
+}
+
+function edHandleCellClick(x,y){
+  const isStart = edLevel.start && edLevel.start.x===x && edLevel.start.y===y;
+  if(edTool==='erase'){ edClearCell(x,y); if(isStart) edLevel.start=null; saveEditor(); renderEditorBoard(); return; }
+
+  if(edTool==='robot'){
+    if(isStart){ edLevel.start = null; } else { edClearCell(x,y); edLevel.start = {x,y,dir:0}; }
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(isStart){ setEditorFeedback('Ahí está el inicio del robot: elige otra casilla o usa 🧹 para vaciarla primero.', 'err'); return; }
+
+  if(edTool==='key'){
+    const already = edLevel.keys[0] && edLevel.keys[0].x===x && edLevel.keys[0].y===y;
+    edClearCell(x,y);
+    if(!already) edLevel.keys = [{x,y,id:'k1'}]; else edLevel.keys = [];
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='switch'){
+    const already = edLevel.switches[0] && edLevel.switches[0].x===x && edLevel.switches[0].y===y;
+    const oldDoorXY = edLevel.switches[0] ? {x:edLevel.switches[0].doorX,y:edLevel.switches[0].doorY} : null;
+    edClearCell(x,y);
+    if(!already) edLevel.switches = [{x,y,doorX: oldDoorXY?oldDoorXY.x:-1, doorY: oldDoorXY?oldDoorXY.y:-1}];
+    else { edLevel.switches = []; edLevel.doors = edLevel.doors.filter(d=>d.keyId!==null || true).filter(d=>!(d.keyId===null && oldDoorXY && d.x===oldDoorXY.x && d.y===oldDoorXY.y)); }
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='doorswitch'){
+    const already = edLevel.doors.find(d=> d.keyId===null && d.x===x && d.y===y);
+    edClearCell(x,y);
+    edLevel.doors = edLevel.doors.filter(d=> d.keyId!==null);
+    if(!already){
+      edLevel.doors.push({x,y,keyId:null});
+      if(edLevel.switches[0]){ edLevel.switches[0].doorX=x; edLevel.switches[0].doorY=y; }
+      else { setEditorFeedback('Coloca también un interruptor ◈: sin él, esta puerta nunca se abrirá.', 'err'); }
+    } else if(edLevel.switches[0]){ edLevel.switches[0].doorX=-1; edLevel.switches[0].doorY=-1; }
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='doorkey'){
+    const already = edLevel.doors.find(d=> d.keyId==='k1' && d.x===x && d.y===y);
+    edClearCell(x,y);
+    if(!already) edLevel.doors.push({x,y,keyId:'k1'});
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='goal'){
+    const already = edLevel.goals.find(g=>g.x===x&&g.y===y);
+    edClearCell(x,y);
+    if(!already) edLevel.goals.push({x,y});
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='wall'){
+    const already = edLevel.walls.find(w=>w[0]===x&&w[1]===y);
+    edClearCell(x,y);
+    if(!already) edLevel.walls.push([x,y]);
+    saveEditor(); renderEditorBoard(); return;
+  }
+  if(edTool==='hazard'){
+    const already = edLevel.hazards.find(h=>h[0]===x&&h[1]===y);
+    edClearCell(x,y);
+    if(!already) edLevel.hazards.push([x,y]);
+    saveEditor(); renderEditorBoard(); return;
+  }
+}
+
+function setEditorFeedback(msg, kind){
+  const bar = document.getElementById('editorFeedback');
+  bar.textContent = msg;
+  bar.className = 'feedback-bar' + (kind?(' '+kind):'');
+}
+
+function renderEditorBoard(){
+  const host = document.getElementById('edBoard');
+  const {w,h} = edLevel.size;
+  const wrap = document.querySelectorAll('#screen-editor .board-wrap')[0];
+  const wrapWidth = wrap.clientWidth || wrap.getBoundingClientRect().width;
+  if(!wrapWidth){ requestAnimationFrame(renderEditorBoard); return; }
+  const availW = wrapWidth - 26;
+  const availH = Math.max(240, window.innerHeight * 0.42);
+  edCellSize = Math.max(16, Math.floor(Math.min(availW / w, availH / h, 60)));
+  host.style.position='relative';
+  host.style.display='grid';
+  host.style.gridTemplateColumns = `repeat(${w}, ${edCellSize}px)`;
+  host.style.gridTemplateRows = `repeat(${h}, ${edCellSize}px)`;
+  host.style.width = (edCellSize*w)+'px';
+  host.style.height = (edCellSize*h)+'px';
+  host.style.background = '#e9e4fb';
+  host.style.borderRadius = '12px';
+  host.style.overflow = 'hidden';
+  host.style.border = '1px solid var(--border-soft)';
+  host.innerHTML = '';
+
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const cell = document.createElement('div');
+      cell.className = 'cell floor';
+      if(edLevel.walls.some(ww=>ww[0]===x&&ww[1]===y)) cell.classList.add('wall');
+      if(edLevel.hazards.some(hh=>hh[0]===x&&hh[1]===y)) cell.classList.add('hazard');
+      const gi = edLevel.goals.findIndex(g=>g.x===x&&g.y===y);
+      if(gi>=0){ cell.classList.add('goal'); const b=document.createElement('span'); b.className='goal-order-badge'; b.textContent=gi+1; cell.appendChild(b); }
+      if(edLevel.keys[0] && edLevel.keys[0].x===x && edLevel.keys[0].y===y) cell.classList.add('key');
+      if(edLevel.switches[0] && edLevel.switches[0].x===x && edLevel.switches[0].y===y) cell.classList.add('switchtile');
+      if(edLevel.doors.some(d=>d.x===x&&d.y===y)) cell.classList.add('door');
+      if(edLevel.start && edLevel.start.x===x && edLevel.start.y===y) cell.classList.add('start');
+      cell.onclick = ()=> edHandleCellClick(x,y);
+      host.appendChild(cell);
+      if(edLevel.start && edLevel.start.x===x && edLevel.start.y===y){
+        const rb = document.createElement('div');
+        rb.id = 'edRobot';
+        rb.className = 'state-idle dir-'+edLevel.start.dir;
+        rb.style.cssText = `position:absolute; left:${x*edCellSize}px; top:${y*edCellSize}px; width:${edCellSize}px; height:${edCellSize}px; display:flex; align-items:center; justify-content:center; pointer-events:none; filter:drop-shadow(0 3px 6px rgba(30,17,71,.45));`;
+        rb.innerHTML = robotSVG();
+        host.appendChild(rb);
+      }
+    }
+  }
+
+  const dirHost = document.getElementById('dirCtrlHost');
+  dirHost.innerHTML = '';
+  if(edLevel.start){
+    dirHost.style.cssText = 'display:flex; gap:8px; justify-content:center; margin:8px 0;';
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11.5px;color:var(--ink-soft);font-weight:700;display:flex;align-items:center;margin-right:4px;';
+    label.textContent = 'Mirando hacia:';
+    dirHost.appendChild(label);
+    [['↑',0],['→',1],['↓',2],['←',3]].forEach(([sym,d])=>{
+      const b = document.createElement('button');
+      b.className = 'btn btn-ghost';
+      b.style.cssText = 'padding:6px 12px;font-size:14px;'+(edLevel.start.dir===d?'border-color:var(--accent);color:var(--accent);':'');
+      b.textContent = sym;
+      b.onclick = ()=>{ edLevel.start.dir = d; saveEditor(); renderEditorBoard(); };
+      dirHost.appendChild(b);
+    });
+  }
+}
+
+document.getElementById('btnTestLevel').onclick = ()=>{
+  if(!edLevel.start){ setEditorFeedback('Coloca primero el robot 🤖 en el tablero.', 'err'); return; }
+  if(edLevel.goals.length===0){ setEditorFeedback('Coloca al menos un objetivo ★ en el tablero.', 'err'); return; }
+  const badDoorSwitch = edLevel.doors.find(d=> d.keyId===null) && !edLevel.switches[0];
+  if(badDoorSwitch){ setEditorFeedback('Tienes una puerta con interruptor, pero no colocaste el interruptor ◈.', 'err'); return; }
+  if(edLevel.doors.find(d=>d.keyId==='k1') && !edLevel.keys[0]){ setEditorFeedback('Tienes una puerta con llave, pero no colocaste la llave 🔑.', 'err'); return; }
+
+  const customLevel = {
+    id:'custom', difficulty:'custom', size:edLevel.size, start:{...edLevel.start},
+    walls: edLevel.walls.map(w=>[...w]), goals: edLevel.goals.map(g=>({...g})),
+    hazards: edLevel.hazards.map(h=>[...h]), keys: edLevel.keys.map(k=>({...k})),
+    switches: edLevel.switches.map(s=>({...s})), doors: edLevel.doors.map(d=>({...d})),
+    unlocked:['forward','left','right','repeat','pickup','activate'],
+    maxInstructions:null, hints:[], optimal:null, indexInDiff:0,
+  };
+  state.mode = 'aprendizaje';
+  startLevelObject(customLevel);
+};
+
+})();
+
+</script>
+</body>
+</html>
