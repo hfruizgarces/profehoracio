@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Cuadrículas y Coordenadas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6; --purple:#a78bfa;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12); --surface-soft:rgba(255,255,255,.05);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh; overflow-x:hidden;
+}
+button{ font-family:inherit; }
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+
+.wrap{ max-width:560px; margin:0 auto; padding:16px 16px 50px; }
+.screen{ display:none; animation:fadeIn .35s ease; }
+.screen.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.card{
+  background:var(--surface); border:1px solid var(--border-soft); backdrop-filter:blur(6px);
+  border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; width:100%;
+}
+
+/* ---------- Portada ---------- */
+.hero{ text-align:center; padding:26px 6px 10px; }
+.hero h1{ font-size:clamp(1.6rem,5.6vw,2.2rem); margin-bottom:10px; }
+.hero .subtitle{ color:var(--text-dim); font-weight:600; }
+
+.level-selector{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(10px,2.5vw,16px);
+  width:100%; max-width:480px; margin:20px auto 0;
+}
+@media (max-width:480px){ .level-selector{ grid-template-columns:1fr; } }
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(16px,4vw,22px) 10px; min-height:90px; border:none; border-radius:var(--radius-sm);
+  cursor:pointer; transition:var(--transition); text-align:center; width:100%;
+  color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.juego{ background:linear-gradient(140deg,#6d28d9,#a78bfa); }
+.level-btn.online-btn{ background:linear-gradient(140deg,#0e7490,#22d3ee); }
+.level-btn.cat-localizar{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.cat-posicionar{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.cat-trayectoria{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.level-btn:disabled{ opacity:.55; cursor:wait; transform:none; }
+.level-btn .level-star{ font-size:clamp(1.4rem,4vw,1.7rem); }
+.level-btn .level-name{ font-weight:800; font-size:clamp(1rem,2.6vw,1.1rem); font-family:var(--font-display); }
+
+footer.credits{ text-align:center; color:var(--text-faint); font-weight:700; font-size:.78rem; padding:24px 10px 4px; }
+.loading-msg{ text-align:center; color:var(--text-dim); font-weight:700; margin-top:16px; display:none; }
+.loading-msg.show{ display:block; }
+
+/* ---------- Barra superior ---------- */
+.app-topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-right:52px; }
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border-soft);
+  color:var(--text); padding:9px 14px; border-radius:999px; font-weight:700; font-size:.9rem; cursor:pointer;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.contador-pill{
+  display:inline-flex; align-items:center; gap:6px; background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4);
+  color:var(--accent); padding:8px 16px; border-radius:999px; font-weight:800; font-family:var(--font-display); font-size:.85rem;
+}
+.contador-pill.timer-urgente{ background:rgba(251,113,133,.18); border-color:var(--error); color:var(--error); animation:parpadeoUrgente .8s ease-in-out infinite; }
+@keyframes parpadeoUrgente{ 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
+
+.naval-objetivo{
+  text-align:center; margin-bottom:16px; padding:16px; border-radius:16px;
+  background:linear-gradient(140deg, rgba(56,189,248,.22), rgba(167,139,250,.22));
+  border:2px solid var(--blue); animation:pulseObjetivo 1.4s ease-in-out infinite;
+}
+.naval-objetivo .objetivo-label{ font-size:.78rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.naval-objetivo .objetivo-coord{ font-family:var(--font-display); font-weight:800; font-size:2.4rem; color:var(--blue); text-shadow:0 0 18px rgba(56,189,248,.5); }
+@keyframes pulseObjetivo{ 0%,100%{ box-shadow:0 0 0 0 rgba(56,189,248,.35); } 50%{ box-shadow:0 0 0 10px rgba(56,189,248,0); } }
+
+.hint-banner{
+  text-align:center; font-weight:700; color:var(--text-dim);
+  background:var(--surface-soft); border:1.5px dashed var(--border-soft);
+  border-radius:14px; padding:10px 16px; margin-bottom:16px; font-size:.86rem;
+}
+
+/* ---------- Grilla SVG ---------- */
+.grilla-wrap{ display:flex; justify-content:center; margin-bottom:18px; overflow-x:auto; }
+.objeto-emoji{ font-size:22px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+.celda-clickeable{ fill:transparent; cursor:pointer; }
+.celda-clickeable:hover{ fill:rgba(56,189,248,.18); }
+.punto-clickeable{ fill:rgba(255,255,255,.04); stroke:transparent; stroke-width:14; cursor:pointer; }
+.punto-clickeable:hover{ fill:rgba(56,189,248,.5); }
+.punto-marca{ fill:var(--blue); stroke:#0c4a6e; stroke-width:1.5; }
+.celda-marcada{ fill:rgba(52,211,153,.28); stroke:var(--primary); stroke-width:2; }
+.celda-incorrecta{ fill:rgba(251,113,133,.28); stroke:var(--error); stroke-width:2; }
+
+/* ---------- Input de coordenada ---------- */
+.coord-form{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.coord-form input{
+  width:64px; padding:10px; text-align:center; border-radius:10px; border:2px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:800; font-size:1.1rem;
+}
+.coord-form span{ font-family:var(--font-display); font-weight:800; color:var(--text-dim); font-size:1.2rem; }
+
+/* ---------- Trayectoria ---------- */
+.trayectoria-form{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; align-items:center; }
+.trayectoria-fila{ display:flex; align-items:center; gap:8px; flex-wrap:nowrap; justify-content:center; }
+.trayectoria-fila input{
+  width:48px; padding:8px 4px; text-align:center; border-radius:10px; border:2px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:800; font-size:1.05rem; flex-shrink:0;
+}
+.direccion-toggle{ display:flex; border-radius:10px; overflow:hidden; border:2px solid var(--border-soft); flex-shrink:0; }
+.direccion-toggle button{
+  width:42px; padding:9px 0; border:none; background:var(--surface-soft); color:var(--text-faint); font-weight:700; cursor:pointer; font-family:var(--font-display); font-size:1.1rem;
+}
+.direccion-toggle button.activo{ background:var(--purple); color:#1e1147; }
+
+.btn{
+  display:block; width:100%; margin:0 auto; padding:14px; border:none; border-radius:14px;
+  font-family:var(--font-display); font-weight:800; font-size:1.05rem; cursor:pointer;
+  transition:var(--transition); color:#062339; background:var(--blue);
+  box-shadow:0 4px 14px rgba(56,189,248,.35);
+}
+.btn:hover{ transform:translateY(-2px); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+
+.msg-feedback{ text-align:center; font-weight:700; min-height:1.3em; margin-bottom:6px; }
+
+.resultado-final{ display:none; }
+.resultado-final.mostrar{
+  display:flex; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center;
+  background:rgba(10,4,30,.65); padding:18px; backdrop-filter:blur(3px);
+}
+.resultado-card{
+  background:linear-gradient(160deg,#2c1468,#4c1d95); border:2px solid var(--primary); border-radius:var(--radius);
+  padding:22px 20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.4); max-width:360px; width:100%;
+  animation:popCard .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popCard{ from{transform:scale(.85); opacity:0;} to{transform:scale(1); opacity:1;} }
+.resultado-card .star-burst{ display:inline-block; animation:pop .5s ease; font-size:1.8rem; }
+@keyframes pop{ 0%{transform:scale(0);} 60%{transform:scale(1.3);} 100%{transform:scale(1);} }
+.resultado-card h2{ font-size:1.25rem; color:var(--primary); margin:6px 0 8px; }
+.resultado-card p{ color:var(--text-dim); font-weight:700; margin-bottom:18px; font-size:.9rem; }
+.win-actions-row{ display:flex; gap:10px; justify-content:center; }
+.win-btn-icon{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:14px 6px;
+  border:2px solid var(--border-soft); border-radius:14px; background:var(--surface-soft); color:var(--text);
+  cursor:pointer; transition:var(--transition); font-family:var(--font-display); font-weight:700; font-size:.72rem;
+}
+.win-btn-icon:hover{ transform:translateY(-2px); border-color:var(--primary); background:rgba(52,211,153,.14); }
+.win-btn-icon-glyph{ font-size:1.6rem; line-height:1; }
+
+/* ---------- Confeti ---------- */
+.celebration{ position:fixed; inset:0; pointer-events:none; z-index:9999; overflow:hidden; }
+.confetti-piece{ position:absolute; top:-20px; border-radius:2px; animation:fall linear forwards; }
+@keyframes fall{ to{ transform:translateY(110vh) rotate(600deg); opacity:.3; } }
+</style>
+</head>
+<body>
+<a href="../index.html" title="Volver al catálogo de recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+
+<div class="wrap">
+
+  <!-- PANTALLA: PORTADA -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <h1>📍 Cuadrículas y Coordenadas</h1>
+      <p class="subtitle">Localiza, ubica y describe trayectorias en el plano</p>
+      <p id="indicadorOnline" style="display:none; margin-top:10px; font-size:.82rem; font-weight:800; color:var(--primary);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p>
+    </div>
+    <div class="level-selector">
+      <button class="level-btn easy" onclick="irACategorias('facil')">
+        <span class="level-star">⭐</span>
+        <span class="level-name">Fácil</span>
+      </button>
+      <button class="level-btn mid" onclick="irACategorias('intermedio')">
+        <span class="level-star">⭐⭐</span>
+        <span class="level-name">Intermedio</span>
+      </button>
+      <button class="level-btn hard" onclick="irACategorias('dificil')">
+        <span class="level-star">⭐⭐⭐</span>
+        <span class="level-name">Difícil</span>
+      </button>
+      <button class="level-btn juego" onclick="irAJuegoNaval()">
+        <span class="level-star">🎮</span>
+        <span class="level-name">Juego</span>
+      </button>
+      <button class="level-btn online-btn" onclick="abrirLoginOnline()" style="grid-column:1/-1;">
+        <span class="level-star">🌐</span>
+        <span class="level-name">Desafío Online</span>
+      </button>
+    </div>
+    <p class="loading-msg" id="loadingMsg">Preparando la cuadrícula…</p>
+    <footer class="credits">Cuadrículas y Coordenadas · Material interactivo para Educación Básica y Media</footer>
+  </div>
+
+  <!-- PANTALLA: SUBMENÚ DE CATEGORÍAS -->
+  <div class="screen" id="screen-categorias">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+    </div>
+    <div class="hero" style="padding:10px 6px 6px;">
+      <h1 id="categoriasTitulo" style="font-size:1.5rem;"></h1>
+    </div>
+    <div class="level-selector">
+      <button class="level-btn cat-localizar" onclick="iniciarCategoria('localizar')">
+        <span class="level-star">📝</span>
+        <span class="level-name">Localizar</span>
+      </button>
+      <button class="level-btn cat-posicionar" onclick="iniciarCategoria('posicionar')">
+        <span class="level-star">👆</span>
+        <span class="level-name">Posicionar</span>
+      </button>
+      <button class="level-btn cat-trayectoria" onclick="iniciarCategoria('trayectoria')" style="grid-column:1/-1;">
+        <span class="level-star">🧭</span>
+        <span class="level-name">Trayectoria</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: JUEGO -->
+  <div class="screen" id="screen-game">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+      <div class="contador-pill" id="timerPill">⏱️ 1:30</div>
+      <div class="contador-pill">✓ <span id="aciertoCount">0</span></div>
+    </div>
+    <p class="hint-banner" id="hintBanner"></p>
+    <div class="card">
+      <div id="preInicioPanel" style="text-align:center; padding:14px 10px 22px;">
+        <p style="font-family:var(--font-display); font-weight:800; font-size:1.3rem; margin-bottom:8px;" id="preInicioTitulo">¿Listo?</p>
+        <p style="color:var(--text-dim); font-weight:700; margin-bottom:22px;">Tendrás 1:30 para resolver tantos desafíos como puedas.</p>
+        <button class="btn" onclick="comenzarDesafio()">▶ Comenzar</button>
+      </div>
+      <div id="contenidoDesafio" style="display:none;">
+        <div class="grilla-wrap"><svg id="grillaSvg"></svg></div>
+        <div id="areaPregunta"></div>
+        <p class="msg-feedback" id="msgFeedback"></p>
+      </div>
+      <div class="resultado-final" id="resultadoFinal"></div>
+    </div>
+  </div>
+
+  <!-- PANTALLA: JUEGO NAVAL -->
+  <div class="screen" id="screen-naval">
+    <div class="app-topbar">
+      <button class="icon-btn" onclick="goHome()">← Inicio</button>
+      <div class="contador-pill" id="navalVidasPill">❤️❤️❤️❤️</div>
+    </div>
+    <p class="hint-banner" id="navalHint">Toca 4 celdas para esconder tus corazones.</p>
+    <div class="card">
+      <div class="naval-objetivo" id="navalObjetivo" style="display:none;"></div>
+      <div class="grilla-wrap"><svg id="navalSvg"></svg></div>
+      <p class="msg-feedback" id="navalMsg"></p>
+      <div class="stats-naval" id="navalStats" style="text-align:center; font-weight:700; color:var(--text-faint); font-size:.8rem; margin-bottom:10px;"></div>
+      <button class="btn" id="navalBtnAccion" onclick="confirmarColocacionNaval()" disabled>Comenzar batalla</button>
+      <div class="resultado-final" id="navalResultado"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="celebration" class="celebration"></div>
+
+<div id="modalOnline" class="resultado-final">
+  <div class="resultado-card" style="text-align:left;">
+    <h2 style="text-align:center; margin-bottom:14px;">🌐 Unirse a la clase</h2>
+    <div class="coord-form" style="justify-content:center; margin-bottom:6px;">
+      <input type="text" id="onlineCodigo" placeholder="Código" maxlength="8" style="width:120px; text-transform:uppercase;">
+    </div>
+    <div class="coord-form" style="justify-content:center; margin-bottom:14px;">
+      <input type="text" id="onlineNombre" placeholder="Tu nombre" maxlength="24" style="width:180px;">
+    </div>
+    <p id="onlineMsg" style="text-align:center; font-weight:700; min-height:1.3em; margin-bottom:10px;"></p>
+    <button class="btn" id="btnOnlineUnirse">Unirse</button>
+    <button class="btn btn-secundario" onclick="cerrarLoginOnline()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   MOTOR (validado: generación de puntos dentro de rango en los 3
+   niveles, y generación de pares para trayectoria SIEMPRE con
+   diferencia distinta de cero en ambos ejes -- 0 fallos en 1500
+   pruebas antes de construir la interfaz)
+   ============================================================ */
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+const LETRAS = ['A','B','C','D','E','F','G','H'];
+const OBJETOS = ['🌟','🎈','🍎','🐸','🚀','🎯','🦋','🌸','⚓','🔑','🎨','🐢'];
+
+function generarPuntoFacil(){
+  const col = randInt(0,7), fila = randInt(1,8);
+  return { col, fila, letra: LETRAS[col] };
+}
+function generarPuntoIntermedio(){
+  const { xMin, xMax, yMin, yMax } = NIVEL_CONFIG.intermedio;
+  return { x: randInt(xMin,xMax), y: randInt(yMin,yMax) };
+}
+function generarPuntoDificil(){
+  const { xMin, xMax, yMin, yMax } = NIVEL_CONFIG.dificil;
+  let x,y;
+  do{ x = randInt(xMin,xMax); }while(x===0);
+  do{ y = randInt(yMin,yMax); }while(y===0);
+  return { x, y };
+}
+
+function generarParTrayectoria(nivel){
+  let a, b, intentos=0;
+  const gen = nivel==='facil' ? generarPuntoFacil : nivel==='intermedio' ? generarPuntoIntermedio : generarPuntoDificil;
+  const mismo = (p,q) => nivel==='facil' ? (p.col===q.col || p.fila===q.fila) : (p.x===q.x || p.y===q.y);
+  do { a = gen(); b = gen(); intentos++; } while(mismo(a,b) && intentos<60);
+  return { a, b };
+}
+
+/* ============================================================
+   CONFIGURACIÓN DE NIVELES
+   ============================================================ */
+const NIVEL_CONFIG = {
+  facil:      { modo:'celda', colMin:0, colMax:7, filaMin:1, filaMax:8 },
+  intermedio: { modo:'punto', xMin:0, xMax:10, yMin:0, yMax:10, cuadrantes:1 },
+  dificil:    { modo:'punto', xMin:-5, xMax:5, yMin:-5, yMax:5, cuadrantes:4 },
+};
+
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+const App = {
+  nivelActual: null,
+  categoriaActual: null,
+  cellSize: 42,
+  tiempoTotal: 90,
+  tiempoRestante: 90,
+  intervaloTimer: null,
+  desafiosCorrectos: 0,
+  desafiosIntentados: 0,
+  activo: false, // false mientras se muestra la retroalimentación entre un desafío y el siguiente
+};
+
+// Si se llega desde el login de clase (login.html), la URL trae ?codigo=...&uid=...&nombre=...
+const _params = new URLSearchParams(window.location.search);
+const Online = {
+  activo: _params.has('codigo') && _params.has('uid'),
+  codigo: _params.get('codigo'),
+  uid: _params.get('uid'),
+  nombre: _params.get('nombre'),
+};
+if(Online.activo){
+  document.getElementById('indicadorOnline').style.display = 'block';
+  document.getElementById('nombreOnline').textContent = Online.nombre || '';
+}
+
+/* ============================================================
+   RENDER DE GRILLA
+   ============================================================ */
+function renderGrillaFacil(svg){
+  const CELL = App.cellSize;
+  const margen = 30;
+  const anchoGrid = 8*CELL, altoGrid = 8*CELL;
+  svg.setAttribute('viewBox', `0 0 ${anchoGrid+margen} ${altoGrid+margen}`);
+  svg.setAttribute('width', Math.min(anchoGrid+margen, 480));
+  svg.innerHTML = '';
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform', `translate(${margen},0)`);
+
+  for(let c=0;c<8;c++) for(let f=1;f<=8;f++){
+    const x = c*CELL, y = (8-f)*CELL;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',CELL); rect.setAttribute('height',CELL);
+    rect.setAttribute('fill','none'); rect.setAttribute('stroke','rgba(255,255,255,.18)'); rect.setAttribute('stroke-width',1);
+    g.appendChild(rect);
+  }
+  // encabezados de columna (A-H)
+  for(let c=0;c<8;c++){
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', c*CELL+CELL/2); t.setAttribute('y', altoGrid+18);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','13'); t.setAttribute('font-weight','800');
+    t.textContent = LETRAS[c];
+    g.appendChild(t);
+  }
+  svg.appendChild(g);
+  // números de fila (1-8), a la izquierda de todo
+  for(let f=1;f<=8;f++){
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', margen-10); t.setAttribute('y', (8-f)*CELL+CELL/2+4);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','13'); t.setAttribute('font-weight','800');
+    t.textContent = f;
+    svg.appendChild(t);
+  }
+  return { g, CELL, margen,
+    celdaAPixel: (col,fila) => ({ x: col*CELL+CELL/2, y: (8-fila)*CELL+CELL/2 }) };
+}
+
+function renderGrillaPunto(svg, cfg){
+  const CELL = App.cellSize;
+  const extra = 22; // espacio para que la línea del eje sobresalga de la grilla
+  const topPad = extra + 6; // espacio ARRIBA para la flecha del eje Y (antes quedaba en coordenadas negativas y se recortaba)
+  const rightPad = extra + 10; // espacio a la DERECHA, con margen extra para la punta del marcador de flecha
+  const margen = cfg.cuadrantes>1 ? extra+18 : 34;
+  // El rango de DIBUJO siempre incluye el 0 (aunque los objetos solo se
+  // generen entre 1 y 10) -- así el 0 queda siempre visible en ambos ejes.
+  const dMinX = cfg.cuadrantes===1 ? 0 : cfg.xMin;
+  const dMinY = cfg.cuadrantes===1 ? 0 : cfg.yMin;
+  const dMaxX = cfg.xMax, dMaxY = cfg.yMax;
+  const nCols = dMaxX-dMinX, nFilas = dMaxY-dMinY;
+  const anchoGrid = nCols*CELL, altoGrid = nFilas*CELL;
+  svg.setAttribute('viewBox', `0 0 ${anchoGrid+margen+rightPad} ${altoGrid+topPad+margen}`);
+  svg.setAttribute('width', Math.min(anchoGrid+margen+rightPad, 480));
+  svg.innerHTML = '';
+
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  defs.innerHTML = `<marker id="flechaEje" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="var(--text-dim)"/>
+  </marker>`;
+  svg.appendChild(defs);
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform', `translate(${margen},${topPad})`);
+  const puntoAPixel = (x,y) => ({ x: (x-dMinX)*CELL, y: (dMaxY-y)*CELL });
+
+  // líneas de la grilla
+  for(let x=dMinX; x<=dMaxX; x++){
+    const p1 = puntoAPixel(x, dMaxY), p2 = puntoAPixel(x, dMinY);
+    const linea = document.createElementNS('http://www.w3.org/2000/svg','line');
+    linea.setAttribute('x1',p1.x); linea.setAttribute('y1',p1.y); linea.setAttribute('x2',p2.x); linea.setAttribute('y2',p2.y);
+    linea.setAttribute('stroke', x===0 && cfg.cuadrantes>1 ? 'transparent' : 'rgba(255,255,255,.16)');
+    linea.setAttribute('stroke-width', 1);
+    g.appendChild(linea);
+  }
+  for(let y=dMinY; y<=dMaxY; y++){
+    const p1 = puntoAPixel(dMinX, y), p2 = puntoAPixel(dMaxX, y);
+    const linea = document.createElementNS('http://www.w3.org/2000/svg','line');
+    linea.setAttribute('x1',p1.x); linea.setAttribute('y1',p1.y); linea.setAttribute('x2',p2.x); linea.setAttribute('y2',p2.y);
+    linea.setAttribute('stroke', y===0 && cfg.cuadrantes>1 ? 'transparent' : 'rgba(255,255,255,.16)');
+    linea.setAttribute('stroke-width', 1);
+    g.appendChild(linea);
+  }
+
+  const paso = (dMaxX-dMinX) > 16 ? 2 : 1;
+
+  if(cfg.cuadrantes>1){
+    // eje X real, con flecha, cruzando por y=0
+    const y0 = puntoAPixel(0,0).y;
+    const ejeX = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ejeX.setAttribute('x1', puntoAPixel(dMinX,0).x); ejeX.setAttribute('y1', y0);
+    ejeX.setAttribute('x2', puntoAPixel(dMaxX,0).x+extra); ejeX.setAttribute('y2', y0);
+    ejeX.setAttribute('stroke','var(--text-dim)'); ejeX.setAttribute('stroke-width',2);
+    ejeX.setAttribute('marker-end','url(#flechaEje)');
+    g.appendChild(ejeX);
+    // eje Y real, con flecha, cruzando por x=0
+    const x0 = puntoAPixel(0,0).x;
+    const ejeY = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ejeY.setAttribute('x1', x0); ejeY.setAttribute('y1', puntoAPixel(0,dMinY).y);
+    ejeY.setAttribute('x2', x0); ejeY.setAttribute('y2', puntoAPixel(0,dMaxY).y-extra);
+    ejeY.setAttribute('stroke','var(--text-dim)'); ejeY.setAttribute('stroke-width',2);
+    ejeY.setAttribute('marker-end','url(#flechaEje)');
+    g.appendChild(ejeY);
+
+    // números PEGADOS al eje X (justo bajo la línea y=0)
+    for(let x=dMinX; x<=dMaxX; x+=paso){
+      if(x===0) continue;
+      const p = puntoAPixel(x,0);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', p.x); t.setAttribute('y', y0+14);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','10'); t.setAttribute('font-weight','700');
+      t.textContent = x;
+      g.appendChild(t);
+    }
+    // números PEGADOS al eje Y (justo a la izquierda de la línea x=0)
+    for(let y=dMinY; y<=dMaxY; y+=paso){
+      if(y===0) continue;
+      const p = puntoAPixel(0,y);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', x0-7); t.setAttribute('y', p.y+3);
+      t.setAttribute('text-anchor','end'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','10'); t.setAttribute('font-weight','700');
+      t.textContent = y;
+      g.appendChild(t);
+    }
+    const cero = document.createElementNS('http://www.w3.org/2000/svg','text');
+    cero.setAttribute('x', x0-7); cero.setAttribute('y', y0+14);
+    cero.setAttribute('text-anchor','end'); cero.setAttribute('fill','var(--text-faint)'); cero.setAttribute('font-size','10'); cero.setAttribute('font-weight','700');
+    cero.textContent = '0';
+    g.appendChild(cero);
+    // etiquetas x, y en las puntas de flecha
+    const labelX = document.createElementNS('http://www.w3.org/2000/svg','text');
+    labelX.setAttribute('x', puntoAPixel(dMaxX,0).x+extra+4); labelX.setAttribute('y', y0+4);
+    labelX.setAttribute('fill','var(--text-dim)'); labelX.setAttribute('font-size','12'); labelX.setAttribute('font-weight','800'); labelX.setAttribute('font-style','italic');
+    labelX.textContent = 'x';
+    g.appendChild(labelX);
+    const labelY = document.createElementNS('http://www.w3.org/2000/svg','text');
+    labelY.setAttribute('x', x0-4); labelY.setAttribute('y', puntoAPixel(0,dMaxY).y-extra-2);
+    labelY.setAttribute('text-anchor','middle'); labelY.setAttribute('fill','var(--text-dim)'); labelY.setAttribute('font-size','12'); labelY.setAttribute('font-weight','800'); labelY.setAttribute('font-style','italic');
+    labelY.textContent = 'y';
+    g.appendChild(labelY);
+  } else {
+    // un solo cuadrante: los bordes inferior/izquierdo YA actúan como ejes
+    // (ahora empezando en 0, no en 1), con flecha y números junto a ellos
+    const origenPx = puntoAPixel(dMinX, dMinY);
+    const ejeX = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ejeX.setAttribute('x1', origenPx.x); ejeX.setAttribute('y1', origenPx.y);
+    ejeX.setAttribute('x2', puntoAPixel(dMaxX,dMinY).x+extra); ejeX.setAttribute('y2', origenPx.y);
+    ejeX.setAttribute('stroke','var(--text-dim)'); ejeX.setAttribute('stroke-width',2); ejeX.setAttribute('marker-end','url(#flechaEje)');
+    g.appendChild(ejeX);
+    const ejeY = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ejeY.setAttribute('x1', origenPx.x); ejeY.setAttribute('y1', origenPx.y);
+    ejeY.setAttribute('x2', origenPx.x); ejeY.setAttribute('y2', puntoAPixel(dMinX,dMaxY).y-extra);
+    ejeY.setAttribute('stroke','var(--text-dim)'); ejeY.setAttribute('stroke-width',2); ejeY.setAttribute('marker-end','url(#flechaEje)');
+    g.appendChild(ejeY);
+    for(let x=dMinX; x<=dMaxX; x+=paso){
+      const p = puntoAPixel(x, dMinY);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', p.x); t.setAttribute('y', p.y+16);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','10'); t.setAttribute('font-weight','700');
+      t.textContent = x;
+      g.appendChild(t);
+    }
+    for(let y=dMinY; y<=dMaxY; y+=paso){
+      const p = puntoAPixel(dMinX, y);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', -8); t.setAttribute('y', p.y+3);
+      t.setAttribute('text-anchor','end'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','10'); t.setAttribute('font-weight','700');
+      t.textContent = y;
+      g.appendChild(t);
+    }
+  }
+  svg.appendChild(g);
+  return { g, CELL, margen, puntoAPixel };
+}
+
+/** Al llenar el primer input de una coordenada (letra o número), el foco
+ *  salta solo al segundo -- ya sea al llegar al máximo de caracteres, o
+ *  tras una breve pausa si el usuario dejó de escribir. */
+function configurarAvanceAutomatico(inputA, inputB, maxLenA){
+  inputA.maxLength = maxLenA;
+  let temporizador = null;
+  inputA.addEventListener('input', () => {
+    if(temporizador) clearTimeout(temporizador);
+    if(inputA.value.length >= maxLenA){ inputB.focus(); return; }
+    if(inputA.value.length > 0){
+      temporizador = setTimeout(() => { if(document.activeElement===inputA) inputB.focus(); }, 550);
+    }
+  });
+}
+
+function colocarObjeto(g, x, y, emoji){
+  const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x', x); t.setAttribute('y', y);
+  t.setAttribute('class', 'objeto-emoji');
+  t.textContent = emoji;
+  g.appendChild(t);
+  return t;
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+const NOMBRES_NIVEL = { facil:'Fácil', intermedio:'Intermedio', dificil:'Difícil' };
+
+function irACategorias(nivel){
+  App.nivelActual = nivel;
+  App.cellSize = nivel==='dificil' ? 40 : nivel==='intermedio' ? 36 : 42;
+  document.getElementById('categoriasTitulo').textContent = NOMBRES_NIVEL[nivel];
+  switchScreen('screen-categorias');
+}
+
+const NOMBRES_CATEGORIA = { localizar:'Localizar', posicionar:'Posicionar', trayectoria:'Trayectoria' };
+
+function iniciarCategoria(categoria){
+  document.querySelectorAll('.level-btn').forEach(b => b.disabled = true);
+  document.getElementById('loadingMsg').classList.add('show');
+  setTimeout(() => {
+    App.categoriaActual = categoria;
+    App.tiempoRestante = App.tiempoTotal;
+    App.desafiosCorrectos = 0;
+    App.desafiosIntentados = 0;
+    App.activo = false;
+    document.getElementById('aciertoCount').textContent = '0';
+    actualizarTimerPill();
+    document.getElementById('resultadoFinal').classList.remove('mostrar');
+    document.getElementById('resultadoFinal').innerHTML = '';
+    document.getElementById('preInicioTitulo').textContent = NOMBRES_CATEGORIA[categoria] || '¿Listo?';
+    document.getElementById('preInicioPanel').style.display = 'block';
+    document.getElementById('contenidoDesafio').style.display = 'none';
+    document.getElementById('hintBanner').textContent = '';
+    if(App.intervaloTimer){ clearInterval(App.intervaloTimer); App.intervaloTimer=null; }
+    document.querySelectorAll('.level-btn').forEach(b => b.disabled = false);
+    document.getElementById('loadingMsg').classList.remove('show');
+    switchScreen('screen-game');
+  }, 30);
+}
+
+function comenzarDesafio(){
+  document.getElementById('preInicioPanel').style.display = 'none';
+  document.getElementById('contenidoDesafio').style.display = 'block';
+  App.activo = true;
+  if(App.intervaloTimer) clearInterval(App.intervaloTimer);
+  App.intervaloTimer = setInterval(tickTimer, 1000);
+  siguienteRonda();
+}
+
+function tickTimer(){
+  App.tiempoRestante--;
+  actualizarTimerPill();
+  if(App.tiempoRestante <= 0){
+    clearInterval(App.intervaloTimer);
+    App.activo = false;
+    mostrarFinalNivel();
+  }
+}
+function actualizarTimerPill(){
+  const m = Math.floor(App.tiempoRestante/60), s = App.tiempoRestante%60;
+  const pill = document.getElementById('timerPill');
+  pill.textContent = `⏱️ ${m}:${String(s).padStart(2,'0')}`;
+  pill.classList.toggle('timer-urgente', App.tiempoRestante<=15);
+}
+
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function goHome(){
+  if(App.intervaloTimer){ clearInterval(App.intervaloTimer); App.intervaloTimer=null; }
+  switchScreen('screen-home');
+}
+
+/* ============================================================
+   DESAFÍO ONLINE: unirse a una clase en vivo sin salir del recurso
+   ============================================================ */
+function abrirLoginOnline(){
+  document.getElementById('onlineCodigo').value = '';
+  document.getElementById('onlineNombre').value = '';
+  document.getElementById('onlineMsg').textContent = '';
+  document.getElementById('modalOnline').classList.add('mostrar');
+}
+function cerrarLoginOnline(){
+  document.getElementById('modalOnline').classList.remove('mostrar');
+}
+document.getElementById('btnOnlineUnirse').onclick = async () => {
+  const codigo = document.getElementById('onlineCodigo').value.trim().toUpperCase();
+  const nombre = document.getElementById('onlineNombre').value.trim();
+  const msg = document.getElementById('onlineMsg');
+  if(!codigo || !nombre){
+    msg.textContent = 'Completa ambos campos.';
+    msg.style.color = 'var(--error)';
+    return;
+  }
+  msg.textContent = 'Conectando…';
+  msg.style.color = 'var(--text-dim)';
+  const boton = document.getElementById('btnOnlineUnirse');
+  boton.disabled = true;
+
+  const resultado = await window.unirseClaseOnline(codigo, nombre);
+  boton.disabled = false;
+
+  if(!resultado.ok){
+    msg.textContent = resultado.error;
+    msg.style.color = 'var(--error)';
+    return;
+  }
+  Online.activo = true;
+  Online.codigo = codigo;
+  Online.uid = resultado.uid;
+  Online.nombre = nombre;
+  Online.nivelForzado = (resultado.nivelObjetivo && resultado.nivelObjetivo !== 'libre') ? resultado.nivelObjetivo : null;
+  document.getElementById('indicadorOnline').style.display = 'block';
+  document.getElementById('nombreOnline').textContent = nombre;
+  cerrarLoginOnline();
+  aplicarBloqueoNivel();
+  if(Online.nivelForzado){ irACategorias(Online.nivelForzado); }
+};
+
+/** Si el profesor fijó un nivel específico al generar el código, los
+ *  demás botones de la portada (los otros niveles y Juego) quedan
+ *  visualmente apagados y sin poder tocarse por el resto de la sesión. */
+function aplicarBloqueoNivel(){
+  if(!Online.nivelForzado) return;
+  const mapaBotones = { facil:'.level-btn.easy', intermedio:'.level-btn.mid', dificil:'.level-btn.hard' };
+  document.querySelectorAll('.level-btn.easy, .level-btn.mid, .level-btn.hard, .level-btn.juego').forEach(btn => {
+    const esElAsignado = btn.matches(mapaBotones[Online.nivelForzado] || '');
+    if(!esElAsignado){
+      btn.disabled = true;
+      btn.style.opacity = '.35';
+      btn.style.filter = 'grayscale(1)';
+    }
+  });
+  const aviso = document.createElement('p');
+  aviso.style.cssText = 'text-align:center; font-size:.78rem; font-weight:700; color:var(--text-faint); margin-top:10px;';
+  aviso.textContent = '🔒 Tu profesor fijó el nivel de esta clase.';
+  document.querySelector('.level-selector').insertAdjacentElement('afterend', aviso);
+}
+
+function volverACategorias(){
+  if(App.intervaloTimer){ clearInterval(App.intervaloTimer); App.intervaloTimer=null; }
+  switchScreen('screen-categorias');
+}
+
+function siguienteRonda(){
+  if(!App.activo || App.tiempoRestante<=0) return;
+  document.getElementById('msgFeedback').textContent = '';
+  document.getElementById('resultadoFinal').classList.remove('mostrar');
+  if(App.categoriaActual === 'localizar') rondaLocalizarEscribir();
+  else if(App.categoriaActual === 'posicionar') rondaLocalizarClick();
+  else if(App.categoriaActual === 'trayectoria') rondaTrayectoria();
+}
+
+/* ============================================================
+   DESAFÍO 1: localizar el objeto y escribir su coordenada
+   ============================================================ */
+function rondaLocalizarEscribir(){
+  const cfg = NIVEL_CONFIG[App.nivelActual];
+  document.getElementById('hintBanner').textContent = 'Observa dónde está el objeto y escribe su coordenada.';
+  const svg = document.getElementById('grillaSvg');
+  const emoji = OBJETOS[randInt(0,OBJETOS.length-1)];
+  let render, punto, pixel;
+
+  if(cfg.modo==='celda'){
+    punto = generarPuntoFacil();
+    render = renderGrillaFacil(svg);
+    pixel = render.celdaAPixel(punto.col, punto.fila);
+  } else {
+    punto = App.nivelActual==='intermedio' ? generarPuntoIntermedio() : generarPuntoDificil();
+    render = renderGrillaPunto(svg, cfg);
+    pixel = render.puntoAPixel(punto.x, punto.y);
+  }
+  colocarObjeto(render.g, pixel.x, pixel.y, emoji);
+
+  const pregunta = document.getElementById('areaPregunta');
+  pregunta.innerHTML = `<p style="text-align:center; font-weight:800; font-family:var(--font-display); margin-bottom:12px;">¿Cuál es la coordenada del ${emoji}?</p>`;
+  const form = document.createElement('div');
+  form.className = 'coord-form';
+  form.innerHTML = `<span>(</span>
+    <input type="text" id="coordA" maxlength="3" placeholder="${cfg.modo==='celda'?'letra':'x'}">
+    <span>,</span>
+    <input type="text" id="coordB" maxlength="3" placeholder="${cfg.modo==='celda'?'núm':'y'}">
+    <span>)</span>`;
+  pregunta.appendChild(form);
+  configurarAvanceAutomatico(document.getElementById('coordA'), document.getElementById('coordB'), cfg.modo==='celda' ? 1 : 2);
+  const btn = document.createElement('button');
+  btn.className = 'btn'; btn.style.marginTop='12px'; btn.textContent = 'Comprobar';
+  pregunta.appendChild(btn);
+
+  btn.onclick = () => {
+    const a = document.getElementById('coordA').value.trim().toUpperCase();
+    const b = document.getElementById('coordB').value.trim();
+    let correcto;
+    if(cfg.modo==='celda') correcto = a===punto.letra && parseInt(b,10)===punto.fila;
+    else correcto = parseInt(a,10)===punto.x && parseInt(b,10)===punto.y;
+    marcarResultado(correcto, cfg.modo==='celda' ? `(${punto.letra}, ${punto.fila})` : `(${punto.x}, ${punto.y})`);
+  };
+}
+
+/* ============================================================
+   DESAFÍO 2: dada la coordenada, tocar el lugar exacto
+   ============================================================ */
+function rondaLocalizarClick(){
+  const cfg = NIVEL_CONFIG[App.nivelActual];
+  document.getElementById('hintBanner').textContent = 'Toca el punto exacto de la coordenada.';
+  const svg = document.getElementById('grillaSvg');
+  const emoji = OBJETOS[randInt(0,OBJETOS.length-1)];
+  let render, punto;
+
+  if(cfg.modo==='celda'){
+    punto = generarPuntoFacil();
+    render = renderGrillaFacil(svg);
+  } else {
+    punto = App.nivelActual==='intermedio' ? generarPuntoIntermedio() : generarPuntoDificil();
+    render = renderGrillaPunto(svg, cfg);
+  }
+
+  const pregunta = document.getElementById('areaPregunta');
+  const etiqueta = cfg.modo==='celda' ? `(${punto.letra}, ${punto.fila})` : `(${punto.x}, ${punto.y})`;
+  pregunta.innerHTML = `<p style="text-align:center; font-weight:800; font-family:var(--font-display); margin-bottom:12px;">Ubica ${emoji} en <span style="color:var(--accent)">${etiqueta}</span></p>`;
+
+  let respondido = false;
+  if(cfg.modo==='celda'){
+    for(let c=0;c<8;c++) for(let f=1;f<=8;f++){
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x', c*App.cellSize); rect.setAttribute('y',(8-f)*App.cellSize);
+      rect.setAttribute('width', App.cellSize); rect.setAttribute('height', App.cellSize);
+      rect.setAttribute('class','celda-clickeable');
+      rect.onclick = () => {
+        if(respondido) return; respondido = true;
+        const correcto = c===punto.col && f===punto.fila;
+        rect.setAttribute('class', correcto ? 'celda-marcada' : 'celda-incorrecta');
+        if(!correcto){
+          // mostrar también dónde era, si falló
+          const correcta = document.createElementNS('http://www.w3.org/2000/svg','rect');
+          correcta.setAttribute('x', punto.col*App.cellSize); correcta.setAttribute('y',(8-punto.fila)*App.cellSize);
+          correcta.setAttribute('width', App.cellSize); correcta.setAttribute('height', App.cellSize);
+          correcta.setAttribute('class','celda-marcada');
+          render.g.appendChild(correcta);
+        }
+        colocarObjeto(render.g, c*App.cellSize+App.cellSize/2, (8-f)*App.cellSize+App.cellSize/2, emoji);
+        marcarResultado(correcto, etiqueta);
+      };
+      render.g.appendChild(rect);
+    }
+  } else {
+    for(let x=cfg.xMin;x<=cfg.xMax;x++) for(let y=cfg.yMin;y<=cfg.yMax;y++){
+      const p = render.puntoAPixel(x,y);
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r', App.cellSize*0.42);
+      c.setAttribute('class','punto-clickeable');
+      c.onclick = () => {
+        if(respondido) return; respondido = true;
+        const correcto = x===punto.x && y===punto.y;
+        c.setAttribute('class', correcto?'punto-marca':'celda-incorrecta');
+        if(!correcto){
+          const pc = render.puntoAPixel(punto.x, punto.y);
+          const marcaCorrecta = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          marcaCorrecta.setAttribute('cx',pc.x); marcaCorrecta.setAttribute('cy',pc.y); marcaCorrecta.setAttribute('r', App.cellSize*0.3);
+          marcaCorrecta.setAttribute('class','punto-marca');
+          render.g.appendChild(marcaCorrecta);
+        }
+        colocarObjeto(render.g, p.x, p.y, emoji);
+        marcarResultado(correcto, etiqueta);
+      };
+      render.g.appendChild(c);
+    }
+  }
+}
+
+/* ============================================================
+   DESAFÍO 3: describir la trayectoria entre dos objetos
+   ============================================================ */
+function rondaTrayectoria(){
+  const cfg = NIVEL_CONFIG[App.nivelActual];
+  document.getElementById('hintBanner').textContent = 'Describe cómo moverte desde el primer objeto hasta el segundo.';
+  const svg = document.getElementById('grillaSvg');
+  const { a, b } = generarParTrayectoria(App.nivelActual);
+  const emojiA = OBJETOS[randInt(0,OBJETOS.length-1)];
+  let emojiB; do{ emojiB = OBJETOS[randInt(0,OBJETOS.length-1)]; }while(emojiB===emojiA);
+
+  let render, pixelA, pixelB, dCol, dFila;
+  if(cfg.modo==='celda'){
+    render = renderGrillaFacil(svg);
+    pixelA = render.celdaAPixel(a.col, a.fila); pixelB = render.celdaAPixel(b.col, b.fila);
+    dCol = b.col-a.col; dFila = b.fila-a.fila;
+  } else {
+    render = renderGrillaPunto(svg, cfg);
+    pixelA = render.puntoAPixel(a.x, a.y); pixelB = render.puntoAPixel(b.x, b.y);
+    dCol = b.x-a.x; dFila = b.y-a.y;
+  }
+  colocarObjeto(render.g, pixelA.x, pixelA.y, emojiA);
+  colocarObjeto(render.g, pixelB.x, pixelB.y, emojiB);
+
+  const pregunta = document.getElementById('areaPregunta');
+  pregunta.innerHTML = `<p style="text-align:center; font-weight:800; font-family:var(--font-display); margin-bottom:14px;">Desde ${emojiA} hasta ${emojiB}, ¿cómo te mueves?</p>`;
+  crearFormularioTrayectoria(pregunta, dCol, dFila, (correcto, etiqueta) => marcarResultado(correcto, etiqueta));
+}
+
+/** Formulario de trayectoria compartido. En Difícil se pide directamente el
+ *  VECTOR (dos números, con signo) en vez de magnitud + dirección. */
+function crearFormularioTrayectoria(pregunta, dx, dy, onComprobar){
+  const esVector = App.nivelActual === 'dificil';
+  const form = document.createElement('div');
+  form.className = 'trayectoria-form';
+
+  if(esVector){
+    form.innerHTML = `
+      <div class="coord-form">
+        <span>(</span>
+        <input type="text" id="vecX" inputmode="numeric" placeholder="Δx">
+        <span>,</span>
+        <input type="text" id="vecY" inputmode="numeric" placeholder="Δy">
+        <span>)</span>
+      </div>`;
+    pregunta.appendChild(form);
+    configurarAvanceAutomatico(form.querySelector('#vecX'), form.querySelector('#vecY'), 2);
+    const btnComprobar = document.createElement('button');
+    btnComprobar.className = 'btn'; btnComprobar.style.marginTop='14px'; btnComprobar.textContent = 'Comprobar';
+    pregunta.appendChild(btnComprobar);
+    btnComprobar.onclick = () => {
+      const vx = parseInt(document.getElementById('vecX').value,10);
+      const vy = parseInt(document.getElementById('vecY').value,10);
+      if(!Number.isFinite(vx) || !Number.isFinite(vy)){
+        document.getElementById('msgFeedback').textContent = 'Escribe ambos valores del vector antes de comprobar.';
+        document.getElementById('msgFeedback').style.color = 'var(--error)';
+        return;
+      }
+      onComprobar(vx===dx && vy===dy, `(${dx}, ${dy})`);
+    };
+    return;
+  }
+
+  form.innerHTML = `
+    <div class="trayectoria-fila">
+      <input type="number" id="magH" min="0" placeholder="?">
+      <span style="font-weight:700; color:var(--text-dim); font-size:.85rem;">hacia</span>
+      <div class="direccion-toggle" id="dirH">
+        <button data-v="izq" title="Izquierda">◀</button>
+        <button data-v="der" title="Derecha">▶</button>
+      </div>
+    </div>
+    <div class="trayectoria-fila">
+      <input type="number" id="magV" min="0" placeholder="?">
+      <span style="font-weight:700; color:var(--text-dim); font-size:.85rem;">hacia</span>
+      <div class="direccion-toggle" id="dirV">
+        <button data-v="abajo" title="Abajo">▼</button>
+        <button data-v="arriba" title="Arriba">▲</button>
+      </div>
+    </div>
+  `;
+  pregunta.appendChild(form);
+  let dirHElegida = null, dirVElegida = null;
+  form.querySelectorAll('#dirH button').forEach(btn => btn.onclick = () => {
+    form.querySelectorAll('#dirH button').forEach(b=>b.classList.remove('activo'));
+    btn.classList.add('activo'); dirHElegida = btn.dataset.v;
+  });
+  form.querySelectorAll('#dirV button').forEach(btn => btn.onclick = () => {
+    form.querySelectorAll('#dirV button').forEach(b=>b.classList.remove('activo'));
+    btn.classList.add('activo'); dirVElegida = btn.dataset.v;
+  });
+
+  const btnComprobar = document.createElement('button');
+  btnComprobar.className = 'btn'; btnComprobar.style.marginTop='14px'; btnComprobar.textContent = 'Comprobar';
+  pregunta.appendChild(btnComprobar);
+
+  btnComprobar.onclick = () => {
+    const magH = parseInt(document.getElementById('magH').value,10);
+    const magV = parseInt(document.getElementById('magV').value,10);
+    if(!Number.isFinite(magH) || !Number.isFinite(magV) || !dirHElegida || !dirVElegida){
+      document.getElementById('msgFeedback').textContent = 'Completa ambos movimientos antes de comprobar.';
+      document.getElementById('msgFeedback').style.color = 'var(--error)';
+      return;
+    }
+    const dirHCorrecta = dx>0 ? 'der' : 'izq';
+    const dirVCorrecta = dy>0 ? 'arriba' : 'abajo';
+    const correcto = magH===Math.abs(dx) && magV===Math.abs(dy) && dirHElegida===dirHCorrecta && dirVElegida===dirVCorrecta;
+    const etiqueta = `${Math.abs(dx)} hacia la ${dirHCorrecta==='der'?'derecha':'izquierda'} y ${Math.abs(dy)} hacia ${dirVCorrecta==='arriba'?'arriba':'abajo'}`;
+    onComprobar(correcto, etiqueta);
+  };
+}
+
+/* ============================================================
+   VALIDACIÓN COMÚN
+   ============================================================ */
+function marcarResultado(correcto, respuestaCorrectaTexto){
+  App.desafiosIntentados++;
+  const msg = document.getElementById('msgFeedback');
+  if(correcto){
+    App.desafiosCorrectos++;
+    document.getElementById('aciertoCount').textContent = App.desafiosCorrectos;
+    msg.textContent = '¡Correcto!';
+    msg.style.color = 'var(--primary)';
+  } else {
+    msg.textContent = 'No era esa. La respuesta correcta era '+respuestaCorrectaTexto+'.';
+    msg.style.color = 'var(--error)';
+  }
+  if(Online.activo && window.reportarProgresoOnline){
+    window.reportarProgresoOnline(Online.codigo, Online.uid, App.desafiosCorrectos, App.desafiosIntentados);
+  }
+  setTimeout(() => siguienteRonda(), correcto ? 900 : 1700);
+}
+
+
+/* ============================================================
+   FINAL DE NIVEL
+   ============================================================ */
+function mostrarFinalNivel(){
+  App.activo = false;
+  const panel = document.getElementById('resultadoFinal');
+  panel.classList.add('mostrar');
+  const precision = App.desafiosIntentados>0 ? Math.round(App.desafiosCorrectos/App.desafiosIntentados*100) : 0;
+  panel.innerHTML = `
+    <div class="resultado-card">
+      <span class="star-burst">⏱️</span>
+      <h2>¡Se acabó el tiempo!</h2>
+      <p>Resolviste <b style="color:var(--primary)">${App.desafiosCorrectos}</b> de <b>${App.desafiosIntentados}</b> desafíos (${precision}% de precisión).</p>
+      <div class="win-actions-row">
+        <button class="win-btn-icon" id="btnSiguienteNivel" title="Siguiente">
+          <span class="win-btn-icon-glyph">➜</span><span>Otra vuelta</span>
+        </button>
+        <button class="win-btn-icon" id="btnCambiarCategoria" title="Cambiar">
+          <span class="win-btn-icon-glyph">🔀</span><span>Cambiar</span>
+        </button>
+        <button class="win-btn-icon" id="btnVolverInicio" title="Inicio">
+          <span class="win-btn-icon-glyph">🏠</span><span>Inicio</span>
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById('btnSiguienteNivel').onclick = () => iniciarCategoria(App.categoriaActual);
+  document.getElementById('btnCambiarCategoria').onclick = () => volverACategorias();
+  document.getElementById('btnVolverInicio').onclick = () => goHome();
+  triggerCelebration();
+}
+
+/* ============================================================
+   CELEBRACIÓN
+   ============================================================ */
+/* ============================================================
+   JUEGO NAVAL (batalla naval solitaria contra el motor)
+   ============================================================ */
+const Naval = { fase:null, corazones:[], usadas:[], vidas:4, bombasLanzadas:0, bombaActual:null, MAX_BOMBAS:23 };
+const NAVAL_CELL = 52;
+
+function irAJuegoNaval(){
+  Naval.fase = 'colocar';
+  Naval.corazones = [];
+  Naval.usadas = [];
+  Naval.vidas = 4;
+  Naval.bombasLanzadas = 0;
+  Naval.bombaActual = null;
+  document.getElementById('navalMsg').textContent = '';
+  document.getElementById('navalStats').textContent = '';
+  document.getElementById('navalResultado').style.display = 'none';
+  document.getElementById('navalResultado').innerHTML = '';
+  document.getElementById('navalObjetivo').style.display = 'none';
+  document.getElementById('navalHint').textContent = 'Toca 4 celdas para esconder tus corazones.';
+  document.getElementById('navalBtnAccion').textContent = 'Comenzar batalla';
+  document.getElementById('navalBtnAccion').disabled = true;
+  document.getElementById('navalBtnAccion').onclick = confirmarColocacionNaval;
+  actualizarVidasNaval();
+  switchScreen('screen-naval');
+  renderNavalColocacion();
+}
+
+function actualizarVidasNaval(){
+  document.getElementById('navalVidasPill').textContent = '❤️'.repeat(Naval.vidas) + '🖤'.repeat(4-Naval.vidas);
+}
+
+function renderNavalGrilla(){
+  const svg = document.getElementById('navalSvg');
+  const margen = 26;
+  svg.setAttribute('viewBox', `0 0 ${5*NAVAL_CELL+margen} ${5*NAVAL_CELL+margen}`);
+  svg.setAttribute('width', Math.min(5*NAVAL_CELL+margen, 400));
+  svg.innerHTML = '';
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform', `translate(${margen},0)`);
+  for(let c=0;c<5;c++) for(let f=1;f<=5;f++){
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',c*NAVAL_CELL); rect.setAttribute('y',(5-f)*NAVAL_CELL);
+    rect.setAttribute('width',NAVAL_CELL); rect.setAttribute('height',NAVAL_CELL);
+    rect.setAttribute('fill','none'); rect.setAttribute('stroke','rgba(255,255,255,.18)'); rect.setAttribute('stroke-width',1);
+    g.appendChild(rect);
+  }
+  for(let c=0;c<5;c++){
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', c*NAVAL_CELL+NAVAL_CELL/2); t.setAttribute('y', 5*NAVAL_CELL+18);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','13'); t.setAttribute('font-weight','800');
+    t.textContent = LETRAS[c];
+    g.appendChild(t);
+  }
+  svg.appendChild(g);
+  for(let f=1;f<=5;f++){
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', margen-10); t.setAttribute('y', (5-f)*NAVAL_CELL+NAVAL_CELL/2+4);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--text-dim)'); t.setAttribute('font-size','13'); t.setAttribute('font-weight','800');
+    t.textContent = f;
+    svg.appendChild(t);
+  }
+  return g;
+}
+
+function renderNavalColocacion(){
+  const g = renderNavalGrilla();
+  for(let c=0;c<5;c++) for(let f=1;f<=5;f++){
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',c*NAVAL_CELL); rect.setAttribute('y',(5-f)*NAVAL_CELL);
+    rect.setAttribute('width',NAVAL_CELL); rect.setAttribute('height',NAVAL_CELL);
+    rect.setAttribute('class','celda-clickeable');
+    rect.onclick = () => {
+      const idx = Naval.corazones.findIndex(h=>h.col===c&&h.fila===f);
+      if(idx>=0){ Naval.corazones.splice(idx,1); }
+      else if(Naval.corazones.length<4){ Naval.corazones.push({col:c,fila:f}); }
+      renderNavalColocacion();
+    };
+    g.appendChild(rect);
+  }
+  Naval.corazones.forEach(h => colocarObjeto(g, h.col*NAVAL_CELL+NAVAL_CELL/2, (5-h.fila)*NAVAL_CELL+NAVAL_CELL/2, '❤️'));
+  document.getElementById('navalStats').textContent = Naval.corazones.length+' / 4 corazones colocados';
+  document.getElementById('navalBtnAccion').disabled = Naval.corazones.length !== 4;
+}
+
+function confirmarColocacionNaval(){
+  Naval.fase = 'bombardeo';
+  document.getElementById('navalHint').textContent = 'El enemigo lanzará 23 bombas. Toca la coordenada exacta de cada una.';
+  document.getElementById('navalBtnAccion').style.display = 'none';
+  siguienteBombaNaval();
+}
+
+/** Dibuja el tablero completo con el estado actual: bombas ya usadas
+ *  (impacto o agua), corazones (vivos o ya alcanzados), y opcionalmente
+ *  las casillas que nunca fueron bombardeadas ("a salvo"), solo al
+ *  terminar la partida. Devuelve el grupo SVG para seguir agregando cosas. */
+function renderTableroNaval(mostrarSalvadas){
+  const g = renderNavalGrilla();
+  Naval.usadas.forEach(u => {
+    const marca = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    marca.setAttribute('x',u.col*NAVAL_CELL+2); marca.setAttribute('y',(5-u.fila)*NAVAL_CELL+2);
+    marca.setAttribute('width',NAVAL_CELL-4); marca.setAttribute('height',NAVAL_CELL-4);
+    marca.setAttribute('fill', u.impacto ? 'rgba(251,113,133,.35)' : 'rgba(255,255,255,.06)');
+    marca.setAttribute('rx',6);
+    g.appendChild(marca);
+    if(!u.impacto) colocarObjeto(g, u.col*NAVAL_CELL+NAVAL_CELL/2, (5-u.fila)*NAVAL_CELL+NAVAL_CELL/2, '💦');
+  });
+  Naval.corazones.forEach(h => {
+    const yaImpactado = Naval.usadas.some(u=>u.col===h.col&&u.fila===h.fila&&u.impacto);
+    colocarObjeto(g, h.col*NAVAL_CELL+NAVAL_CELL/2, (5-h.fila)*NAVAL_CELL+NAVAL_CELL/2, yaImpactado?'💔':'❤️');
+  });
+  if(mostrarSalvadas){
+    for(let c=0;c<5;c++) for(let f=1;f<=5;f++){
+      const fueUsada = Naval.usadas.some(u=>u.col===c&&u.fila===f);
+      const tieneCorazon = Naval.corazones.some(h=>h.col===c&&h.fila===f);
+      if(!fueUsada && !tieneCorazon){
+        const marca = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        marca.setAttribute('x',c*NAVAL_CELL+2); marca.setAttribute('y',(5-f)*NAVAL_CELL+2);
+        marca.setAttribute('width',NAVAL_CELL-4); marca.setAttribute('height',NAVAL_CELL-4);
+        marca.setAttribute('fill','rgba(52,211,153,.18)'); marca.setAttribute('stroke','rgba(52,211,153,.4)'); marca.setAttribute('stroke-width',1.5); marca.setAttribute('rx',6);
+        g.appendChild(marca);
+      }
+    }
+  }
+  return g;
+}
+function agregarClicsNaval(g){
+  for(let c=0;c<5;c++) for(let f=1;f<=5;f++){
+    if(Naval.usadas.some(u=>u.col===c&&u.fila===f)) continue;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',c*NAVAL_CELL); rect.setAttribute('y',(5-f)*NAVAL_CELL);
+    rect.setAttribute('width',NAVAL_CELL); rect.setAttribute('height',NAVAL_CELL);
+    rect.setAttribute('class','celda-clickeable');
+    rect.onclick = () => tocarCeldaNaval(c,f);
+    g.appendChild(rect);
+  }
+}
+
+function siguienteBombaNaval(){
+  // Dibujar el tablero SIEMPRE primero (con la última bomba ya marcada),
+  // antes de decidir si la partida terminó -- así el resultado de la
+  // última bomba nunca se pierde.
+  const g = renderTableroNaval(false);
+
+  if(Naval.vidas<=0){ mostrarFinalNaval(false); return; }
+  if(Naval.bombasLanzadas>=Naval.MAX_BOMBAS){ mostrarFinalNaval(true); return; }
+
+  const disponibles = [];
+  for(let c=0;c<5;c++) for(let f=1;f<=5;f++){
+    if(!Naval.usadas.some(u=>u.col===c&&u.fila===f)) disponibles.push({col:c,fila:f});
+  }
+  const objetivo = disponibles[randInt(0,disponibles.length-1)];
+  Naval.bombaActual = objetivo;
+  document.getElementById('navalMsg').textContent = '';
+  document.getElementById('navalStats').textContent = `Bomba ${Naval.bombasLanzadas+1} de ${Naval.MAX_BOMBAS}`;
+  const objDiv = document.getElementById('navalObjetivo');
+  objDiv.style.display = 'block';
+  objDiv.innerHTML = `<div class="objetivo-label">🎯 El enemigo apunta a</div><div class="objetivo-coord">(${LETRAS[objetivo.col]}, ${objetivo.fila})</div>`;
+
+  agregarClicsNaval(g);
+}
+
+function tocarCeldaNaval(c,f){
+  if(c!==Naval.bombaActual.col || f!==Naval.bombaActual.fila){
+    document.getElementById('navalMsg').textContent = 'Esa no es la coordenada pedida. Vuelve a intentar.';
+    document.getElementById('navalMsg').style.color = 'var(--error)';
+    return;
+  }
+  const impacto = Naval.corazones.some(h=>h.col===c&&h.fila===f);
+  Naval.usadas.push({col:c,fila:f,impacto});
+  Naval.bombasLanzadas++;
+  if(impacto){ Naval.vidas--; actualizarVidasNaval(); }
+  document.getElementById('navalMsg').textContent = impacto ? '💔 ¡Le diste a un corazón!' : '💦 Agua... falló.';
+  document.getElementById('navalMsg').style.color = impacto ? 'var(--error)' : 'var(--text-dim)';
+  setTimeout(() => siguienteBombaNaval(), 1000);
+}
+
+/** El resultado final reemplaza la caja de "el enemigo apunta a", arriba
+ *  de la grilla -- así la cuadrícula completa (con las casillas que se
+ *  salvaron marcadas) queda siempre visible, sin overlay ni contenido
+ *  que empuje la página hacia abajo. */
+function mostrarFinalNaval(gano){
+  renderTableroNaval(true);
+  document.getElementById('navalMsg').textContent = '';
+  document.getElementById('navalStats').textContent = '';
+  const objDiv = document.getElementById('navalObjetivo');
+  objDiv.style.display = 'block';
+  const stats = gano
+    ? `Quedaron ${Naval.vidas} corazón(es) a salvo tras ${Naval.bombasLanzadas} bombas.`
+    : `Aguantaste ${Naval.bombasLanzadas} bombas.`;
+  objDiv.innerHTML = `
+    <div class="objetivo-label">${gano?'🏆':'💥'} ${gano ? '¡Sobreviviste!' : '¡Hundieron tus corazones!'}</div>
+    <p style="color:var(--text-dim); font-weight:700; font-size:.82rem; margin:4px 0 12px;">${stats}</p>
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <button class="win-btn-icon" id="btnNavalOtra" style="flex:1; max-width:140px;"><span class="win-btn-icon-glyph">➜</span><span>Otra partida</span></button>
+      <button class="win-btn-icon" id="btnNavalInicio" style="flex:1; max-width:140px;"><span class="win-btn-icon-glyph">🏠</span><span>Inicio</span></button>
+    </div>`;
+  document.getElementById('btnNavalOtra').onclick = () => irAJuegoNaval();
+  document.getElementById('btnNavalInicio').onclick = () => goHome();
+  if(gano) triggerCelebration();
+}
+
+/* ============================================================
+   CELEBRACIÓN
+   ============================================================ */
+function triggerCelebration(){
+  const container = document.getElementById('celebration');
+  const colors = ['#34d399','#38bdf8','#fbbf24','#f472b6','#a78bfa'];
+  for(let i=0;i<28;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random()*6;
+    piece.style.width = size+'px';
+    piece.style.height = (size*0.4)+'px';
+    piece.style.left = Math.random()*100+'%';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (1.6 + Math.random()*1.2)+'s';
+    piece.style.animationDelay = (Math.random()*0.3)+'s';
+    container.appendChild(piece);
+    setTimeout(() => piece.remove(), 3200);
+  }
+}
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+// Misma configuración real del proyecto (compartida con el login y el panel del profesor).
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+// Botón "Desafío Online" de la portada: verifica el código y registra al
+// alumno, sin salir de este mismo recurso. Devuelve {ok:true, uid} o
+// {ok:false, error:'texto para mostrar'}.
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const sessionRef = doc(db, 'sessions', codigo);
+    const sessionSnap = await getDoc(sessionRef);
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+
+    const duracionMinutos = datos.duracionMinutos || 180; // 3 horas si el código es de antes de este cambio
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos){
+        return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+      }
+    }
+
+    const nivelObjetivo = datos.nivelObjetivo || 'libre';
+
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+
+    await setDoc(doc(db, 'sessions', codigo, 'students', uid), {
+      name: nombre, joinedAt: serverTimestamp(), correctas: 0, intentos: 0
+    });
+    return { ok:true, uid, nivelObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+
+// El script principal (no-módulo) llama a esta función cada vez que cambian
+// los aciertos/intentos. Si no hay sesión online activa, no hace nada.
+window.reportarProgresoOnline = async function(codigo, uid, correctas, intentos){
+  if(!codigo || !uid) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', uid), {
+      correctas, intentos, updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){
+    console.error('No se pudo reportar el progreso online:', err);
+  }
+};
+</script>
+</body>
+</html>
