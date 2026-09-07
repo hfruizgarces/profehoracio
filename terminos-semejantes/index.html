@@ -62,6 +62,30 @@
   .hero p { color: var(--muted); font-weight: 500; font-size: 1.02rem; max-width: 480px; margin: 0 auto; }
   footer.credits{ text-align:center; color: var(--muted); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
 
+  .timer-pill-fixed{
+    position:fixed; top:14px; left:14px; z-index:500; display:inline-flex; align-items:center; gap:6px;
+    background:rgba(10,4,30,.55); backdrop-filter:blur(4px); border:1px solid var(--border);
+    padding:8px 14px; border-radius:999px; font-weight:800; font-family:var(--font-display); font-size:.85rem;
+    color:var(--accent);
+  }
+  .timer-pill-fixed.contador{ top:56px; color:var(--success); }
+  .modo-opciones{ display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+  .modo-btn{
+    padding:16px 14px; border-radius:14px; border:2px solid var(--border);
+    background:var(--card-strong); color:var(--text); cursor:pointer;
+    font-family:var(--font-display); font-weight:800; font-size:1rem; line-height:1.6;
+    transition: transform .12s, border-color .15s, background .15s;
+  }
+  .modo-btn:hover{ transform:translateY(-2px); border-color:var(--accent); }
+  .modo-btn:active{ transform:scale(.97); }
+  .modo-desc{ font-size:.75rem; font-weight:600; color:var(--muted); }
+  .modal-campo{
+    width:100%; padding:12px; margin-bottom:10px; border-radius:14px; border:2px solid var(--border);
+    background:var(--card-strong); color:var(--text); font-family:var(--font-display); font-weight:700; font-size:1.05rem; text-align:center;
+  }
+  .modal-feedback{ text-align:center; min-height:1.5em; font-weight:700; font-size:.88rem; margin-bottom:8px; }
+  .modal-feedback.err{ color:var(--danger); }
+
   /* Barra superior de la pantalla de juego: volver + nuevo ejercicio */
   .app-topbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
   .icon-btn{
@@ -340,8 +364,9 @@
 </style>
 </head>
 <body>
-<a href="../index.html" title="Volver al catálogo de recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
-
+<div id="timer-pill" class="timer-pill-fixed hidden">⏱️ 7:00</div>
+<div id="contador-pill" class="timer-pill-fixed contador hidden">✓ 0</div>
+<div id="modal-root"></div>
 
 <div class="container">
 
@@ -350,19 +375,23 @@
     <div class="hero">
       <h1>Términos Semejantes</h1>
       <p>Elige un nivel para practicar, o crea tu propio ejercicio.</p>
+      <p id="indicadorOnline" class="hidden" style="text-align:center; margin-top:8px; font-size:.85rem; font-weight:800; color:var(--success);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p>
     </div>
     <div class="nivel-grid">
-      <button class="nivel-btn nivel-facil" onclick="generarEjercicio('facil')">
+      <button class="nivel-btn nivel-facil" onclick="abrirSelectorModo('facil')">
         <span class="nivel-icon">⭐</span>Fácil
       </button>
-      <button class="nivel-btn nivel-medio" onclick="generarEjercicio('medio')">
+      <button class="nivel-btn nivel-medio" onclick="abrirSelectorModo('medio')">
         <span class="nivel-icon">⭐⭐</span>Intermedio
       </button>
-      <button class="nivel-btn nivel-dificil" onclick="generarEjercicio('dificil')">
+      <button class="nivel-btn nivel-dificil" onclick="abrirSelectorModo('dificil')">
         <span class="nivel-icon">⭐⭐⭐</span>Difícil
       </button>
       <button class="nivel-btn nivel-custom" onclick="irACustom()">
         <span class="nivel-icon">✏️</span>Crea tu ejercicio
+      </button>
+      <button class="nivel-btn nivel-online" onclick="abrirLoginOnline()" style="grid-column:1/-1; background:linear-gradient(140deg,#0e7490,#22d3ee);">
+        <span class="nivel-icon">🌐</span>Desafío Online
       </button>
     </div>
   </div>
@@ -521,6 +550,7 @@ function irAJuego() {
 }
 
 function volverInicio() {
+  if (Contrarreloj.activo) detenerContrarreloj();
   reiniciarValores();
   $('screen-juego').classList.add('hidden');
   $('screen-inicio').classList.remove('hidden');
@@ -531,6 +561,131 @@ function volverInicio() {
 function regenerar() {
   if (nivelActual === 'custom') cargarEjercicioPersonalizado();
   else generarEjercicio(nivelActual);
+}
+
+/* ========================
+   MODO: PRÁCTICA LIBRE vs CONTRARRELOJ
+   Solo se cuenta como error la etapa de "colecta" (un clic discreto,
+   una vez por intento). La etapa de sumas valida en cada tecla que se
+   escribe, así que contarla ahí habría inflado el número sin sentido
+   -- se deja fuera a propósito.
+   ======================== */
+const NOMBRES_NIVEL_CR = { facil:'Fácil', medio:'Intermedio', dificil:'Difícil' };
+const DURACION_CONTRARRELOJ = 7*60; // 7 minutos, en segundos
+const Contrarreloj = { activo:false, restante:0, completados:0, errores:0, intervalo:null, nivel:null };
+
+function abrirSelectorModo(nivel){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div class="modal-overlay" id="modo-overlay">
+      <div class="modal-box">
+        <h3 style="font-size:1.2rem; margin-bottom:4px;">Nivel ${NOMBRES_NIVEL_CR[nivel]}</h3>
+        <p style="color:var(--muted); font-weight:700; font-size:.9rem; margin-bottom:16px;">¿Cómo quieres practicar?</p>
+        <div class="modo-opciones">
+          <button class="modo-btn" id="btn-modo-libre">🎯 Práctica libre<br><span class="modo-desc">sin límite de tiempo</span></button>
+          <button class="modo-btn" id="btn-modo-contrarreloj">⏱️ Contrarreloj<br><span class="modo-desc">7 minutos, resuelve los que puedas</span></button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modo-overlay').onclick = (e) => { if(e.target.id==='modo-overlay') root.innerHTML=''; };
+  document.getElementById('btn-modo-libre').onclick = () => { root.innerHTML=''; generarEjercicio(nivel); };
+  document.getElementById('btn-modo-contrarreloj').onclick = () => { root.innerHTML=''; startContrarreloj(nivel); };
+}
+
+function startContrarreloj(nivel){
+  Contrarreloj.activo = true;
+  Contrarreloj.restante = DURACION_CONTRARRELOJ;
+  Contrarreloj.completados = 0;
+  Contrarreloj.errores = 0;
+  Contrarreloj.nivel = nivel;
+  document.getElementById('timer-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').textContent = '✓ 0';
+  actualizarTimerPill();
+  if(Contrarreloj.intervalo) clearInterval(Contrarreloj.intervalo);
+  Contrarreloj.intervalo = setInterval(tickContrarreloj, 1000);
+  generarEjercicio(nivel);
+}
+function tickContrarreloj(){
+  Contrarreloj.restante--;
+  actualizarTimerPill();
+  if(Contrarreloj.restante <= 0){
+    clearInterval(Contrarreloj.intervalo);
+    Contrarreloj.intervalo = null;
+    Contrarreloj.activo = false;
+    mostrarFinContrarreloj();
+  }
+}
+function actualizarTimerPill(){
+  const m = Math.floor(Contrarreloj.restante/60), s = Contrarreloj.restante%60;
+  document.getElementById('timer-pill').textContent = `⏱️ ${m}:${String(s).padStart(2,'0')}`;
+}
+function detenerContrarreloj(){
+  if(Contrarreloj.intervalo){ clearInterval(Contrarreloj.intervalo); Contrarreloj.intervalo=null; }
+  Contrarreloj.activo = false;
+  document.getElementById('timer-pill').classList.add('hidden');
+  document.getElementById('contador-pill').classList.add('hidden');
+}
+function reportarSiCorresponde(){
+  if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.uid, Contrarreloj.completados, Contrarreloj.errores);
+}
+function mostrarFinContrarreloj(){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <h3 style="font-size:1.2rem; margin-bottom:4px;">⏱️ ¡Se acabó el tiempo!</h3>
+        <p style="color:var(--muted); font-weight:700; font-size:.9rem; margin-bottom:16px;">Completaste <b style="color:var(--success); font-size:1.3em; font-family:var(--font-display);">${Contrarreloj.completados}</b> ejercicio(s)${Contrarreloj.errores ? `, con ${Contrarreloj.errores} error(es) en el camino` : ''}.</p>
+        <div class="modo-opciones">
+          <button class="modo-btn" id="btn-cr-otra">➜ Otra ronda</button>
+          <button class="modo-btn" id="btn-cr-inicio">🏠 Inicio</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-cr-otra').onclick = () => { root.innerHTML=''; startContrarreloj(Contrarreloj.nivel); };
+  document.getElementById('btn-cr-inicio').onclick = () => { root.innerHTML=''; detenerContrarreloj(); volverInicio(); };
+}
+
+/* ========================
+   DESAFÍO ONLINE
+   ======================== */
+const Online = { activo:false, codigo:null, uid:null, nombre:null };
+
+function abrirLoginOnline(){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div class="modal-overlay" id="online-overlay">
+      <div class="modal-box">
+        <h3 style="font-size:1.2rem; margin-bottom:4px;">Desafío Online</h3>
+        <p style="color:var(--muted); font-weight:700; font-size:.9rem; margin-bottom:16px;">Únete a la clase</p>
+        <input class="modal-campo" id="online-codigo" placeholder="Código" maxlength="8" style="text-transform:uppercase;">
+        <input class="modal-campo" id="online-nombre" placeholder="Tu nombre" maxlength="24">
+        <p class="modal-feedback" id="online-msg"></p>
+        <div class="modo-opciones"><button class="modo-btn" id="btn-online-unirse">Unirse</button></div>
+      </div>
+    </div>`;
+  document.getElementById('online-overlay').onclick = (e) => { if(e.target.id==='online-overlay') root.innerHTML=''; };
+  document.getElementById('btn-online-unirse').onclick = async () => {
+    const codigo = document.getElementById('online-codigo').value.trim().toUpperCase();
+    const nombre = document.getElementById('online-nombre').value.trim();
+    const msg = document.getElementById('online-msg');
+    if(!codigo || !nombre){ msg.className='modal-feedback err'; msg.textContent='Completa ambos campos.'; return; }
+    msg.className='modal-feedback'; msg.textContent='Conectando…';
+    const boton = document.getElementById('btn-online-unirse');
+    boton.disabled = true;
+    const resultado = await window.unirseClaseOnline(codigo, nombre);
+    boton.disabled = false;
+    if(!resultado.ok){ msg.className='modal-feedback err'; msg.textContent=resultado.error; return; }
+    Online.activo = true;
+    Online.codigo = codigo;
+    Online.uid = resultado.uid;
+    Online.nombre = nombre;
+    root.innerHTML = '';
+    document.getElementById('indicadorOnline').classList.remove('hidden');
+    document.getElementById('nombreOnline').textContent = nombre;
+    if(resultado.modoObjetivo === 'contrarreloj'){ startContrarreloj(resultado.nivelObjetivo); }
+    else { generarEjercicio(resultado.nivelObjetivo); }
+  };
 }
 
 /* ========================
@@ -783,6 +938,7 @@ function handleColectaClick(chip) {
       setTimeout(avanzarGrupo, 550);
     }
   } else {
+    if (Contrarreloj.activo) { Contrarreloj.errores++; reportarSiCorresponde(); }
     shakeChip(chip);
     flashInstruccion(false);
   }
@@ -983,6 +1139,17 @@ function renderFinalBuilt() {
 function finalizarExito() {
   $('feedback-final').innerHTML = '🎉 ¡Excelente! Respuesta correcta.';
   $('feedback-final').className = 'feedback ok';
+  if (Contrarreloj.activo) {
+    Contrarreloj.completados++;
+    document.getElementById('contador-pill').textContent = '✓ '+Contrarreloj.completados;
+    reportarSiCorresponde();
+    $('success-msg').innerHTML = '<div class="success-banner">🎉 ¡Correcto! Preparando el siguiente…</div>';
+    setTimeout(() => {
+      if (!Contrarreloj.activo) return;
+      generarEjercicio(Contrarreloj.nivel);
+    }, 1200);
+    return;
+  }
   $('success-msg').innerHTML = '<div class="success-banner">🏆 ¡Ejercicio completado con éxito! Presiona "Nuevo ejercicio" para seguir practicando.</div>';
 }
 
@@ -1013,6 +1180,63 @@ function reiniciarValores() {
 }
 
 // Inicializar
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+
+    const sessionRef = doc(db, 'sessions', codigo);
+    const sessionSnap = await getDoc(sessionRef);
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+    if(datos.recurso && datos.recurso !== 'terminos-semejantes') return { ok:false, error:`Ese código es para ${datos.recurso}, no para Términos Semejantes.` };
+
+    const duracionMinutos = datos.duracionMinutos || 180;
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos) return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+    }
+
+    await setDoc(doc(db, 'sessions', codigo, 'students', uid), {
+      name: nombre, joinedAt: serverTimestamp(), completados: 0, errores: 0
+    });
+    return { ok:true, uid, nivelObjetivo: datos.nivelObjetivo, modoObjetivo: datos.modoObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+
+window.reportarProgresoOnline = async function(codigo, uid, completados, errores){
+  if(!codigo || !uid) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', uid), {
+      completados, errores, updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){
+    console.error('No se pudo reportar el progreso online:', err);
+  }
+};
 </script>
 </body>
 </html>
