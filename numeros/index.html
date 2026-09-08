@@ -733,7 +733,7 @@ document.getElementById('btn-back').addEventListener('click', ()=>{
 
 const state = { screen:null, mode:null, level:null };
 
-document.querySelectorAll('.level-btn').forEach(btn=>{
+document.querySelectorAll('.level-btn:not(.online-btn)').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     ensureAudio();
     if(btn.dataset.mode === 'desafios'){
