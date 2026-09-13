@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Panel del Profesor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-soft:rgba(255,255,255,.05);
+  --border-soft:rgba(255,255,255,.16);
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background: radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh;
+}
+h1,h2{ font-family:var(--font-display); margin:0; }
+.wrap{ max-width:640px; margin:0 auto; padding:26px 16px 60px; }
+.hero{ text-align:center; padding:10px 6px 22px; }
+.hero h1{ font-size:clamp(1.6rem,5.5vw,2.1rem); }
+.hero p{ color:var(--text-dim); font-weight:600; margin-top:6px; }
+.card{ background:var(--surface); border:1px solid var(--border-soft); backdrop-filter:blur(6px); border-radius:20px; box-shadow:0 14px 34px rgba(0,0,0,.4); padding:22px; margin-bottom:18px; }
+
+.btn{ display:block; width:100%; padding:14px; border:none; border-radius:14px; font-family:var(--font-display); font-weight:800; font-size:1.05rem; cursor:pointer; color:#062339; background:var(--blue); box-shadow:0 4px 14px rgba(56,189,248,.35); }
+.btn:hover{ filter:brightness(1.08); }
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.hidden{ display:none !important; }
+.nivel-selector{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.nivel-opt{
+  padding:12px 8px; border-radius:12px; border:2px solid var(--border-soft); background:var(--surface-soft);
+  color:var(--text-dim); font-family:var(--font-display); font-weight:700; font-size:.9rem; cursor:pointer;
+  transition:all .15s ease; line-height:1.5;
+}
+.nivel-opt .nivel-desc{ font-size:.7rem; font-weight:600; opacity:.75; }
+.nivel-opt.activo{ border-color:var(--primary); background:rgba(52,211,153,.16); color:var(--primary); }
+
+.codigo-box{ text-align:center; padding:20px 10px; }
+.codigo-box .etiqueta{ font-size:.8rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-bottom:8px; }
+.codigo-box .codigo{ font-family:var(--font-display); font-weight:800; font-size:2.6rem; letter-spacing:.1em; color:var(--accent); text-shadow:0 0 20px rgba(251,191,36,.4); }
+.codigo-box .estado{ margin-top:10px; font-size:.85rem; color:var(--text-dim); }
+
+.sesion-card{ background:var(--surface); border:1px solid var(--border-soft); backdrop-filter:blur(6px); border-radius:20px; box-shadow:0 14px 34px rgba(0,0,0,.4); padding:18px 20px; margin-bottom:14px; }
+.sesion-card .sesion-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+.sesion-card .sesion-codigo{ font-family:var(--font-display); font-weight:800; font-size:1.6rem; letter-spacing:.08em; color:var(--accent); }
+.sesion-card .sesion-terminar{ width:auto; padding:7px 14px; font-size:.75rem; background:var(--surface-soft); color:var(--text-faint); border:1px solid var(--border-soft); box-shadow:none; }
+.sesion-card .sesion-toggle-vista{ width:auto; padding:7px 14px; font-size:.75rem; background:rgba(251,191,36,.14); color:var(--accent); border:1px solid rgba(251,191,36,.4); box-shadow:none; }
+.sesion-card .sesion-meta{ font-size:.8rem; color:var(--text-dim); margin-bottom:2px; }
+.sesion-card .sesion-estado{ font-size:.78rem; color:var(--text-faint); margin-bottom:12px; }
+
+table{ width:100%; border-collapse:collapse; margin-top:6px; }
+th,td{ padding:10px 8px; text-align:left; border-bottom:1px solid var(--border-soft); font-size:.92rem; }
+th{ color:var(--text-faint); font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; font-weight:700; }
+td.nombre{ font-weight:800; font-family:var(--font-display); }
+td.num{ text-align:center; font-family:var(--font-display); font-weight:800; }
+tr:first-child td.num.aciertos{ color:var(--accent); }
+.vacio{ text-align:center; color:var(--text-faint); padding:24px 10px; font-weight:600; }
+.puesto{ display:inline-block; width:22px; text-align:center; }
+.overlay-progreso{
+  position:fixed; inset:0; background:rgba(10,4,30,.65); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; padding:18px; z-index:2000;
+}
+.modal-progreso-card{
+  background:linear-gradient(160deg, #2c1468, #4c1d95); border:1px solid var(--border-soft);
+  border-radius:22px; padding:22px; max-width:420px; width:100%; max-height:80vh; overflow-y:auto;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.modal-progreso-card h3{ font-family:var(--font-display); font-size:1.15rem; margin-bottom:2px; }
+.modal-progreso-card .sub{ color:var(--text-faint); font-size:.78rem; margin-bottom:16px; }
+.progreso-fila{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:12px; background:var(--surface-soft); border:1px solid var(--border-soft);
+  margin-bottom:8px; font-size:.85rem;
+}
+.progreso-fila .nombre-recurso{ font-weight:800; font-family:var(--font-display); }
+.progreso-fila .dato{ color:var(--primary); font-weight:700; text-align:right; font-size:.8rem; }
+.modal-progreso-cerrar{
+  width:100%; margin-top:6px; padding:10px; border-radius:999px; border:1px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:700; cursor:pointer;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>👩‍🏫 Panel del Profesor</h1>
+    <p>Genera un código, compártelo con el curso, y observa en vivo cómo avanzan.</p>
+  </div>
+
+  <div class="card" id="pantallaLogin">
+    <p style="font-weight:800; font-family:var(--font-display); margin-bottom:14px; text-align:center;">Inicia sesión para continuar</p>
+    <div style="display:flex; flex-direction:column; gap:10px; max-width:320px; margin:0 auto;">
+      <input type="email" id="loginEmail" placeholder="Tu correo" style="padding:12px; border-radius:12px; border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:700;">
+      <input type="password" id="loginPassword" placeholder="Contraseña" style="padding:12px; border-radius:12px; border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:700;">
+    </div>
+    <p id="loginMsg" style="text-align:center; font-weight:700; min-height:1.3em; margin:10px 0; color:var(--error);"></p>
+    <button class="btn" id="btnLogin">Ingresar</button>
+  </div>
+
+  <div id="panelContenido" class="hidden">
+    <div style="text-align:right; margin-bottom:10px;">
+      <button class="btn" id="btnLogout" style="width:auto; padding:8px 16px; font-size:.8rem; background:var(--surface-soft); color:var(--text-faint); border:1px solid var(--border-soft); box-shadow:none;">Cerrar sesión</button>
+    </div>
+
+  <div class="card" id="cardGenerar">
+    <p style="font-weight:800; font-family:var(--font-display); margin-bottom:10px; text-align:center;">¿Qué recurso van a usar?</p>
+    <div class="nivel-selector" id="recursoSelector" style="grid-template-columns:1fr 1fr;"></div>
+
+    <div id="nivelSelectorWrap">
+      <p style="font-weight:800; font-family:var(--font-display); margin:16px 0 10px; text-align:center;">¿A qué nivel entrarán los alumnos?</p>
+      <div class="nivel-selector" id="nivelSelector"></div>
+    </div>
+
+    <div id="modoSelectorWrap" class="hidden">
+      <p id="segundoSelectorEtiqueta" style="font-weight:800; font-family:var(--font-display); margin:16px 0 10px; text-align:center;">¿En qué modo?</p>
+      <div class="nivel-selector" id="modoSelector" style="grid-template-columns:repeat(auto-fit,minmax(90px,1fr));"></div>
+    </div>
+
+    <p style="font-weight:800; font-family:var(--font-display); margin:16px 0 10px; text-align:center;">¿Por cuánto tiempo es válido el código?</p>
+    <div class="nivel-selector" id="duracionSelector" style="grid-template-columns:repeat(3,1fr);">
+      <button class="nivel-opt" data-min="45">45 min</button>
+      <button class="nivel-opt activo" data-min="180">3 horas</button>
+      <button class="nivel-opt" data-min="1440">Todo el día</button>
+    </div>
+    <button class="btn" id="btnGenerar" style="margin-top:14px;">🎲 Generar código de sesión</button>
+  </div>
+
+  <div id="sesionesVacio" class="card" style="text-align:center; color:var(--text-faint); font-weight:600;">
+    Todavía no tienes ninguna sesión activa.
+  </div>
+  <div id="sesionesActivas"></div>
+
+  <div class="card" id="cardLimpieza">
+    <h2 style="font-size:1rem; margin-bottom:8px;">🗑️ Mantenimiento</h2>
+    <p style="font-size:.85rem; color:var(--text-dim); margin-bottom:12px;">Los códigos y resultados de sesiones antiguas quedan guardados para siempre a menos que los borres. Esto no afecta ninguna sesión de los últimos 60 días.</p>
+    <button class="btn" id="btnLimpiar" style="background:var(--surface-soft); color:var(--text); border:2px solid var(--border-soft); box-shadow:none;">Borrar sesiones de más de 60 días</button>
+    <p id="limpiezaMsg" style="text-align:center; font-weight:700; font-size:.85rem; min-height:1.3em; margin-top:10px;"></p>
+  </div>
+
+  <div class="card" id="cardRobot">
+    <h2 style="font-size:1rem; margin-bottom:8px;">👤 Cuentas de alumnos</h2>
+    <p style="font-size:.85rem; color:var(--text-dim); margin-bottom:14px;">Cada alumno necesita una cuenta para que su progreso lo siga sin importar en qué computador juegue -- sirve tanto para Robot: Misión Código como para el resto de los recursos con login. Tú eliges la contraseña -- guárdala en tu propio registro, porque el panel no la vuelve a mostrar después de creada.</p>
+    <input type="text" id="robotNombre" placeholder="Nombre del alumno (ej: Juan Pérez)" autocomplete="off" style="width:100%; padding:12px; border-radius:12px; border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:700;">
+    <input type="text" id="robotPassword" placeholder="Contraseña que tú eliges" autocomplete="off" style="width:100%; margin-top:8px; padding:12px; border-radius:12px; border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--text); font-family:var(--font-display); font-weight:700;">
+    <button class="btn" id="btnCrearAlumnoRobot" style="margin-top:10px;">➕ Crear cuenta</button>
+    <p id="robotCrearMsg" style="text-align:center; font-weight:700; font-size:.85rem; min-height:1.3em; margin-top:8px;"></p>
+
+    <button type="button" class="btn sesion-terminar" id="btnToggleListaRobot" style="width:auto; margin-top:16px;">▸ Ver cuentas creadas</button>
+    <div id="robotListaAlumnos" class="hidden" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
+  </div>
+
+  <div id="modalProgresoAlumno"></div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, serverTimestamp, query, orderBy, getDocs, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+/* ============================================================
+   LOGIN DEL PROFESOR -- el contenido del panel solo se muestra
+   con una cuenta real (correo/contraseña), nunca anónima. Esto es
+   solo la mitad visual: lo que realmente bloquea la creación de
+   sesiones son las reglas de Firestore (ver aparte).
+   ============================================================ */
+onAuthStateChanged(auth, (user) => {
+  const logueado = !!user && !user.isAnonymous;
+  document.getElementById('pantallaLogin').classList.toggle('hidden', logueado);
+  document.getElementById('panelContenido').classList.toggle('hidden', !logueado);
+  if(logueado){ intentarReconectar(); iniciarListaAlumnosRobot(); }
+});
+
+/* La función intentarReconectar() vive más abajo, junto con el resto
+   de la lógica de sesiones (soporta reconectar VARIAS a la vez). */
+document.getElementById('btnLogin').onclick = async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  if(!email || !password){ msg.textContent = 'Completa ambos campos.'; return; }
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true; btn.textContent = 'Ingresando…';
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+    msg.textContent = '';
+  } catch(err){
+    console.error(err);
+    msg.textContent = 'Correo o contraseña incorrectos.';
+  }
+  btn.disabled = false; btn.textContent = 'Ingresar';
+};
+document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+/* ============================================================
+   CONFIGURACIÓN POR RECURSO -- agregar uno nuevo es sumar una
+   entrada aquí, nada más. Los "id" de nivel deben calzar EXACTO
+   con los que usa internamente cada recurso (ej. Sumas usa
+   'avanzado', no 'dificil', para el nivel difícil).
+   ============================================================ */
+const RECURSOS = {
+  coordenadas: {
+    nombre: 'Cuadrículas y Coordenadas',
+    niveles: [
+      { id:'libre', label:'🔓 Libre<br><span class="nivel-desc">eligen ellos</span>' },
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿Qué categoría?',
+      campoFirestore: 'categoriaObjetivo',
+      opciones: [
+        { id:'libre', label:'🔓 Libre' },
+        { id:'localizar', label:'📝 Localizar' },
+        { id:'posicionar', label:'👆 Posicionar' },
+        { id:'trayectoria', label:'🧭 Trayectoria' },
+      ],
+    },
+    metricaOrden: 'correctas',
+    columnas: [
+      { campo:'correctas', etiqueta:'Aciertos' },
+      { campo:'intentos', etiqueta:'Intentos' },
+    ],
+  },
+  adicion: {
+    nombre: 'Sumas',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'avanzado', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  sustraccion: {
+    nombre: 'Restas',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'avanzado', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  'multiplicacion-arabe': {
+    nombre: 'Multiplicación Árabe',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  'division-algoritmo': {
+    nombre: 'Divisiones',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  'representacion-division': {
+    nombre: 'Representación de Divisiones',
+    niveles: [
+      { id:'easy', label:'⭐ Fácil' },
+      { id:'medium', label:'⭐⭐ Intermedio' },
+      { id:'hard', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+    ],
+  },
+  numeros: {
+    nombre: 'Números',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'medio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  inecuaciones: {
+    nombre: 'Inecuaciones',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  ecuaciones: {
+    nombre: 'Ecuaciones',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  'terminos-semejantes': {
+    nombre: 'Términos Semejantes',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'medio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+      { campo:'errores', etiqueta:'Errores' },
+    ],
+  },
+  funciones: {
+    nombre: 'Funciones',
+    niveles: [
+      { id:'facil', label:'⭐ Fácil' },
+      { id:'intermedio', label:'⭐⭐ Intermedio' },
+      { id:'dificil', label:'⭐⭐⭐ Difícil' },
+    ],
+    segundoSelector: {
+      etiqueta: '¿En qué modo?',
+      campoFirestore: 'modoObjetivo',
+      opciones: [
+        { id:'libre', label:'🎯 Libre' },
+        { id:'contrarreloj', label:'⏱️ Contrarreloj' },
+      ],
+    },
+    metricaOrden: 'completados',
+    columnas: [
+      { campo:'completados', etiqueta:'Completados' },
+    ],
+  },
+};
+
+const sesiones = new Map(); // codigo -> { recurso, nivel, modo, duracionMin, unsubscribe }
+let recursoSeleccionado = 'coordenadas';
+let nivelSeleccionado = null;
+let modoSeleccionado = null;
+let duracionSeleccionada = 180;
+
+function generarCodigo(){
+  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i=0;i<5;i++) c += letras[Math.floor(Math.random()*letras.length)];
+  return c;
+}
+
+/* ---------- construcción dinámica de los selectores ---------- */
+function renderRecursoSelector(){
+  const cont = document.getElementById('recursoSelector');
+  cont.innerHTML = '';
+  Object.entries(RECURSOS).forEach(([id, cfg]) => {
+    const btn = document.createElement('button');
+    btn.className = 'nivel-opt' + (id===recursoSeleccionado ? ' activo' : '');
+    btn.textContent = cfg.nombre;
+    btn.onclick = () => { recursoSeleccionado = id; onCambioRecurso(); };
+    cont.appendChild(btn);
+  });
+}
+function onCambioRecurso(){
+  renderRecursoSelector();
+  const cfg = RECURSOS[recursoSeleccionado];
+  nivelSeleccionado = cfg.niveles[0].id;
+  renderNivelSelector();
+  if(cfg.segundoSelector){
+    modoSeleccionado = cfg.segundoSelector.opciones[0].id;
+    document.getElementById('segundoSelectorEtiqueta').textContent = cfg.segundoSelector.etiqueta;
+    document.getElementById('modoSelectorWrap').classList.remove('hidden');
+    renderModoSelector();
+  } else {
+    modoSeleccionado = null;
+    document.getElementById('modoSelectorWrap').classList.add('hidden');
+  }
+}
+function renderNivelSelector(){
+  const cont = document.getElementById('nivelSelector');
+  cont.innerHTML = '';
+  RECURSOS[recursoSeleccionado].niveles.forEach(niv => {
+    const btn = document.createElement('button');
+    btn.className = 'nivel-opt' + (niv.id===nivelSeleccionado ? ' activo' : '');
+    btn.innerHTML = niv.label;
+    btn.onclick = () => {
+      nivelSeleccionado = niv.id;
+      cont.querySelectorAll('.nivel-opt').forEach(b=>b.classList.remove('activo'));
+      btn.classList.add('activo');
+    };
+    cont.appendChild(btn);
+  });
+}
+function renderModoSelector(){
+  const cfg = RECURSOS[recursoSeleccionado];
+  const cont = document.getElementById('modoSelector');
+  cont.innerHTML = '';
+  if(!cfg.segundoSelector) return;
+  cfg.segundoSelector.opciones.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'nivel-opt' + (m.id===modoSeleccionado ? ' activo' : '');
+    btn.innerHTML = m.label;
+    btn.onclick = () => {
+      modoSeleccionado = m.id;
+      cont.querySelectorAll('.nivel-opt').forEach(b=>b.classList.remove('activo'));
+      btn.classList.add('activo');
+    };
+    cont.appendChild(btn);
+  });
+}
+document.querySelectorAll('#duracionSelector .nivel-opt').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#duracionSelector .nivel-opt').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    duracionSeleccionada = parseInt(btn.dataset.min, 10);
+  };
+});
+
+onCambioRecurso(); // primer dibujo, con Coordenadas por defecto
+
+/* ---------- generar sesión (se puede repetir: cada una queda como
+   una tarjeta aparte, sin reemplazar a las anteriores) ---------- */
+document.getElementById('btnGenerar').onclick = async () => {
+  const btn = document.getElementById('btnGenerar');
+  btn.disabled = true; btn.textContent = 'Generando…';
+  try{
+    const codigo = generarCodigo();
+    const datos = {
+      active: true,
+      createdAt: serverTimestamp(),
+      recurso: recursoSeleccionado,
+      nivelObjetivo: nivelSeleccionado,
+      duracionMinutos: duracionSeleccionada
+    };
+    if(RECURSOS[recursoSeleccionado].segundoSelector) datos[RECURSOS[recursoSeleccionado].segundoSelector.campoFirestore] = modoSeleccionado;
+    await setDoc(doc(db, 'sessions', codigo), datos);
+    activarSesion(codigo, recursoSeleccionado, nivelSeleccionado, modoSeleccionado, duracionSeleccionada);
+    guardarSesionesLocal();
+  } catch(err){
+    console.error(err);
+    alert('No se pudo crear la sesión. Revisa tu conexión e inténtalo de nuevo.');
+  }
+  btn.disabled = false; btn.textContent = '🎲 Generar código de sesión';
+};
+
+const NOMBRES_DURACION = { 45:'45 minutos', 180:'3 horas', 1440:'todo el día' };
+
+/** Crea la tarjeta de una sesión (nueva, o al reconectar una que ya
+ *  existía) y arranca su propio listener en vivo. Cada sesión es
+ *  independiente -- se pueden tener varias corriendo a la vez. */
+function activarSesion(codigo, recurso, nivel, modo, duracionMin){
+  if(sesiones.has(codigo)) return; // ya está activa, no duplicar la tarjeta ni el listener
+  const cfg = RECURSOS[recurso];
+  if(!cfg) return;
+
+  document.getElementById('sesionesVacio').classList.add('hidden');
+
+  let textoNivel = (cfg.niveles.find(n=>n.id===nivel)?.label || nivel).replace(/<br>.*/,'');
+  if(cfg.segundoSelector){
+    const modoInfo = cfg.segundoSelector.opciones.find(m=>m.id===modo);
+    textoNivel += ' · ' + (modoInfo ? modoInfo.label.replace(/<br>.*/,'') : modo);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'sesion-card';
+  card.id = 'sesion-' + codigo;
+  card.innerHTML = `
+    <div class="sesion-top">
+      <span class="sesion-codigo">${codigo}</span>
+      <button class="btn sesion-terminar">Terminar</button>
+    </div>
+    <div class="sesion-meta">${cfg.nombre} · ${textoNivel}</div>
+    <div class="sesion-estado" data-rol="estado">Válido por ${NOMBRES_DURACION[duracionMin] || duracionMin+' min'} · Esperando alumnos…</div>
+    <div style="margin-bottom:10px;">
+      <button class="btn sesion-toggle-vista" data-rol="toggle-vista" style="width:auto;">🏆 Ver mejor por alumno</button>
+    </div>
+    <div data-rol="tabla"><p class="vacio">Todavía no se ha unido ningún alumno.</p></div>
+  `;
+  document.getElementById('sesionesActivas').appendChild(card);
+  card.querySelector('.sesion-terminar').onclick = () => terminarSesion(codigo);
+
+  // Cada sesión recuerda su modo de vista y los últimos datos recibidos,
+  // para poder alternar entre "todos los intentos" y "mejor por alumno"
+  // al instante, sin esperar una nueva actualización de Firestore.
+  const estadoVista = { resumida: false, ultimosDocs: [] };
+  const btnToggle = card.querySelector('[data-rol="toggle-vista"]');
+  btnToggle.onclick = () => {
+    estadoVista.resumida = !estadoVista.resumida;
+    btnToggle.textContent = estadoVista.resumida ? '📋 Ver todos los intentos' : '🏆 Ver mejor por alumno';
+    renderizarTablaSesion(card, cfg, estadoVista);
+  };
+
+  const q = query(collection(db, 'sessions', codigo, 'students'), orderBy(cfg.metricaOrden, 'desc'));
+  const unsub = onSnapshot(q, (snap) => {
+    card.querySelector('[data-rol="estado"]').textContent =
+      `Válido por ${NOMBRES_DURACION[duracionMin] || duracionMin+' min'} · ${snap.size} intento(s) registrado(s)`;
+    estadoVista.ultimosDocs = snap.docs.map(docSnap => ({ id: docSnap.id, data: docSnap.data() }));
+    renderizarTablaSesion(card, cfg, estadoVista);
+  }, (err) => {
+    console.error(err);
+    card.querySelector('[data-rol="estado"]').textContent = 'Error de conexión con la sesión.';
+  });
+
+  sesiones.set(codigo, { recurso, nivel, modo, duracionMin, unsubscribe: unsub });
+}
+
+/** Dibuja la tabla de una sesión, en modo "todos los intentos" (tal cual
+ *  vienen de Firestore) o "mejor por alumno" (agrupa por uid -- o por
+ *  nombre si algún documento viejo no tiene uid guardado -- y se queda
+ *  solo con el intento de mayor puntaje de cada uno). */
+function renderizarTablaSesion(card, cfg, estadoVista){
+  const wrap = card.querySelector('[data-rol="tabla"]');
+  let docs = estadoVista.ultimosDocs;
+
+  if(estadoVista.resumida){
+    const mejorPorAlumno = new Map();
+    docs.forEach(d => {
+      const clave = d.data.uid || d.data.name || d.id;
+      const actual = mejorPorAlumno.get(clave);
+      const valorNuevo = d.data[cfg.metricaOrden] ?? 0;
+      const valorActual = actual ? (actual.data[cfg.metricaOrden] ?? 0) : -Infinity;
+      if(!actual || valorNuevo > valorActual) mejorPorAlumno.set(clave, d);
+    });
+    docs = [...mejorPorAlumno.values()].sort((a,b) => (b.data[cfg.metricaOrden] ?? 0) - (a.data[cfg.metricaOrden] ?? 0));
+  }
+
+  if(docs.length === 0){
+    wrap.innerHTML = '<p class="vacio">Todavía no se ha unido ningún alumno.</p>';
+    return;
+  }
+  const encabezados = cfg.columnas.map(c=>`<th>${c.etiqueta}</th>`).join('');
+  let filas = '';
+  let i = 0;
+  docs.forEach(({data:d}) => {
+    i++;
+    const medalla = i===1 ? '🥇' : i===2 ? '🥈' : i===3 ? '🥉' : i;
+    const celdas = cfg.columnas.map((c,idx) => `<td class="num${idx===0?' aciertos':''}">${d[c.campo] ?? 0}</td>`).join('');
+    filas += `<tr>
+      <td class="num"><span class="puesto">${medalla}</span></td>
+      <td class="nombre">${escaparHtml(d.name || '(sin nombre)')}</td>
+      ${celdas}
+    </tr>`;
+  });
+  wrap.innerHTML = `<table>
+    <thead><tr><th></th><th>Alumno</th>${encabezados}</tr></thead>
+    <tbody>${filas}</tbody>
+  </table>`;
+}
+
+async function terminarSesion(codigo){
+  const s = sesiones.get(codigo);
+  if(!s) return;
+  try{ await setDoc(doc(db,'sessions',codigo), {active:false}, {merge:true}); } catch(e){}
+  if(s.unsubscribe) s.unsubscribe();
+  sesiones.delete(codigo);
+  const card = document.getElementById('sesion-'+codigo);
+  if(card) card.remove();
+  if(sesiones.size === 0) document.getElementById('sesionesVacio').classList.remove('hidden');
+  guardarSesionesLocal();
+}
+
+/* ---------- recordar TODAS las sesiones activas, no solo una,
+   para reconectarlas automáticamente si recargas o vuelves después ---------- */
+function guardarSesionesLocal(){
+  localStorage.setItem('panelSesionesActivas', JSON.stringify([...sesiones.keys()]));
+}
+async function intentarReconectar(){
+  let codigos = [];
+  try{ codigos = JSON.parse(localStorage.getItem('panelSesionesActivas') || '[]'); } catch(e){}
+  const formatoViejo = localStorage.getItem('panelSesionActiva'); // de antes de soportar varias
+  if(formatoViejo && !codigos.includes(formatoViejo)) codigos.push(formatoViejo);
+  localStorage.removeItem('panelSesionActiva');
+
+  for(const codigo of codigos){
+    if(sesiones.has(codigo)) continue;
+    try{
+      const snap = await getDoc(doc(db, 'sessions', codigo));
+      if(!snap.exists() || snap.data().active === false) continue;
+      const datos = snap.data();
+      const cfg = RECURSOS[datos.recurso];
+      if(!cfg) continue;
+      const modo = cfg.segundoSelector ? datos[cfg.segundoSelector.campoFirestore] : null;
+      activarSesion(codigo, datos.recurso, datos.nivelObjetivo, modo, datos.duracionMinutos || 180);
+    } catch(err){
+      console.error('No se pudo reconectar a la sesión', codigo, err);
+    }
+  }
+  guardarSesionesLocal();
+}
+
+/* ============================================================
+   CUENTAS DE ROBOT: MISIÓN CÓDIGO
+   Colección PERMANENTE (a diferencia de "sessions", que vence).
+   El id del documento es el nombre normalizado (sin tildes, en
+   minúsculas, espacios como guiones) -- debe coincidir EXACTO con
+   cómo Robot normaliza el usuario al iniciar sesión.
+   ============================================================ */
+function normalizarUsuarioRobot(u){
+  return u.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-');
+}
+
+document.getElementById('btnCrearAlumnoRobot').onclick = async () => {
+  const nombre = document.getElementById('robotNombre').value.trim();
+  const password = document.getElementById('robotPassword').value;
+  const msg = document.getElementById('robotCrearMsg');
+  if(!nombre || !password){ msg.style.color = 'var(--error)'; msg.textContent = 'Completa el nombre y la contraseña.'; return; }
+  const id = normalizarUsuarioRobot(nombre);
+  const btn = document.getElementById('btnCrearAlumnoRobot');
+  btn.disabled = true;
+  msg.style.color = 'var(--text-dim)';
+  msg.textContent = 'Creando…';
+  try{
+    const ref = doc(db, 'alumnosRobot', id);
+    const existente = await getDoc(ref);
+    if(existente.exists()){
+      msg.style.color = 'var(--error)';
+      msg.textContent = `Ya existe una cuenta con ese usuario ("${id}"). Si es otro alumno, agrega algo al nombre para distinguirlos (ej: "Juan Pérez B").`;
+      btn.disabled = false;
+      return;
+    }
+    await setDoc(ref, { nombre, password, stars: {}, creadoEn: serverTimestamp() });
+    msg.style.color = 'var(--primary)';
+    msg.textContent = `Cuenta creada. Usuario: "${id}" -- anota la contraseña en tu propio registro.`;
+    document.getElementById('robotNombre').value = '';
+    document.getElementById('robotPassword').value = '';
+  } catch(err){
+    console.error(err);
+    msg.style.color = 'var(--error)';
+    msg.textContent = 'No se pudo crear la cuenta. Revisa tu conexión.';
+  }
+  btn.disabled = false;
+};
+
+document.getElementById('btnToggleListaRobot').onclick = () => {
+  const lista = document.getElementById('robotListaAlumnos');
+  const btn = document.getElementById('btnToggleListaRobot');
+  const abierta = !lista.classList.contains('hidden');
+  lista.classList.toggle('hidden', abierta);
+  btn.textContent = abierta ? '▸ Ver cuentas creadas' : '▾ Ocultar cuentas';
+};
+
+// Nombres amigables para cada recurso de práctica -- se van agregando
+// acá a medida que cada uno recibe este mismo sistema de cuentas.
+// Un recurso sin datos simplemente no aparece en el modal de nadie.
+const NOMBRES_RECURSOS_PRACTICA = {
+  adicion: 'Sumas',
+  sustraccion: 'Restas',
+  'multiplicacion-arabe': 'Multiplicación Árabe',
+  'division-algoritmo': 'Divisiones',
+  'representacion-division': 'Representación de Divisiones',
+  numeros: 'Números',
+  inecuaciones: 'Inecuaciones',
+  ecuaciones: 'Ecuaciones',
+  'terminos-semejantes': 'Términos Semejantes',
+  funciones: 'Funciones',
+  'tablas-multiplicar': 'Tablas de Multiplicar',
+};
+
+const NOMBRES_MES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function formatearMes(mesKey){
+  const [anio, mes] = mesKey.split('-');
+  const nombreMes = NOMBRES_MES[parseInt(mes,10)-1] || mes;
+  return nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1) + ' ' + anio;
+}
+
+async function abrirModalProgreso(id, nombre){
+  const cont = document.getElementById('modalProgresoAlumno');
+  cont.innerHTML = `
+    <div class="overlay-progreso" id="overlayProgreso">
+      <div class="modal-progreso-card">
+        <h3>${escaparHtml(nombre)}</h3>
+        <p class="sub">usuario: ${id}</p>
+        <div id="progresoContenido">Cargando…</div>
+        <button class="modal-progreso-cerrar" id="btnCerrarProgreso">Cerrar</button>
+      </div>
+    </div>`;
+  document.getElementById('overlayProgreso').onclick = (e) => { if(e.target.id==='overlayProgreso') cont.innerHTML=''; };
+  document.getElementById('btnCerrarProgreso').onclick = () => { cont.innerHTML=''; };
+
+  try{
+    const snap = await getDoc(doc(db, 'alumnosRobot', id));
+    const destino = document.getElementById('progresoContenido');
+    if(!snap.exists()){ destino.textContent = 'No se encontró esta cuenta.'; return; }
+    const d = snap.data();
+    const TOTAL_NIVELES_ROBOT = { programador: 55, maestro: 55, experto: 59 };
+    const starsKeys = Object.keys(d.stars || {});
+    const nivelesRobot = starsKeys.length;
+    let filaRobot = `<div class="progreso-fila"><span class="nombre-recurso">🤖 Robot: Misión Código</span><span class="dato">${nivelesRobot} nivel(es) con estrellas</span></div>`;
+    if(nivelesRobot > 0){
+      // El id de cada nivel empieza con p/m/e (programador/maestro/experto) --
+      // ej. "p07", "m23", "e_showcase4" -- así que agrupamos por esa letra
+      // sin necesitar la lista completa de niveles de Robot acá en el panel.
+      const conteoPorDificultad = { programador: 0, maestro: 0, experto: 0 };
+      starsKeys.forEach(id => {
+        if(id.startsWith('p')) conteoPorDificultad.programador++;
+        else if(id.startsWith('m')) conteoPorDificultad.maestro++;
+        else if(id.startsWith('e')) conteoPorDificultad.experto++;
+      });
+      const NOMBRES_DIFICULTAD_ROBOT = { programador:'Programador', maestro:'Maestro', experto:'Experto' };
+      filaRobot = `<div class="progreso-fila" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <span class="nombre-recurso">🤖 Robot: Misión Código</span>
+        ${Object.keys(NOMBRES_DIFICULTAD_ROBOT).map(dif => {
+          const completados = conteoPorDificultad[dif];
+          if(completados === 0) return '';
+          return `<div style="display:flex; justify-content:space-between; font-size:.78rem; color:var(--text-dim);">
+            <span>${NOMBRES_DIFICULTAD_ROBOT[dif]}</span>
+            <span class="dato">${completados} / ${TOTAL_NIVELES_ROBOT[dif]} niveles</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+    let filasHtml = filaRobot;
+
+    const NOMBRES_NIVEL_TABLAS = { facil:'Fácil', intermedio:'Intermedio', dificil:'Difícil' };
+    const record = d.tablasRecord || {};
+    const nivelesConRecord = Object.keys(record).filter(n => typeof record[n] === 'number');
+    if(nivelesConRecord.length > 0){
+      filasHtml += `<div class="progreso-fila" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <span class="nombre-recurso">🎲 Tablas de Multiplicar (mejor tiempo)</span>
+        ${nivelesConRecord.map(n => {
+          const m = Math.floor(record[n]/60), s = record[n]%60;
+          return `<div style="display:flex; justify-content:space-between; font-size:.78rem; color:var(--text-dim);">
+            <span>${NOMBRES_NIVEL_TABLAS[n] || n}</span>
+            <span class="dato">${m}:${String(s).padStart(2,'0')}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    const practica = d.practica || {};
+    let hayPractica = false;
+    Object.keys(NOMBRES_RECURSOS_PRACTICA).forEach(clave => {
+      const meses = practica[clave];
+      if(!meses || typeof meses !== 'object') return;
+      const mesesConDatos = Object.keys(meses).filter(m => meses[m] && (meses[m].completados || meses[m].segundos)).sort().reverse();
+      if(mesesConDatos.length === 0) return;
+      hayPractica = true;
+      filasHtml += `<div class="progreso-fila" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <span class="nombre-recurso">${NOMBRES_RECURSOS_PRACTICA[clave]}</span>
+        ${mesesConDatos.map(mesKey => {
+          const p = meses[mesKey];
+          const mins = Math.round((p.segundos || 0) / 60);
+          return `<div style="display:flex; justify-content:space-between; font-size:.78rem; color:var(--text-dim);">
+            <span>${formatearMes(mesKey)}</span>
+            <span class="dato" style="text-align:right;">${p.completados || 0} completados · ${mins} min</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    });
+
+    if(!hayPractica && nivelesRobot === 0 && nivelesConRecord.length === 0){
+      filasHtml += `<p class="vacio">Todavía no ha practicado en ningún recurso.</p>`;
+    }
+    destino.innerHTML = filasHtml;
+  } catch(err){
+    console.error(err);
+    document.getElementById('progresoContenido').textContent = 'No se pudo cargar el progreso.';
+  }
+}
+
+function iniciarListaAlumnosRobot(){
+  const cont = document.getElementById('robotListaAlumnos');
+  onSnapshot(collection(db, 'alumnosRobot'), (snap) => {
+    if(snap.empty){ cont.innerHTML = '<p class="vacio">Todavía no has creado ninguna cuenta.</p>'; return; }
+    const filas = [];
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const nivelesConEstrellas = Object.keys(d.stars || {}).length;
+      filas.push({ id: docSnap.id, nombre: d.nombre, niveles: nivelesConEstrellas });
+    });
+    filas.sort((a,b) => a.nombre.localeCompare(b.nombre));
+    cont.innerHTML = filas.map(f => `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-soft); border:1px solid var(--border-soft); border-radius:14px; padding:10px 14px;">
+        <div>
+          <div style="font-weight:800; font-family:var(--font-display); font-size:.92rem;">${escaparHtml(f.nombre)}</div>
+          <div style="font-size:.75rem; color:var(--text-faint);">usuario: ${f.id} · ${f.niveles} nivel(es) de Robot con progreso</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="btn sesion-terminar" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}" data-rol="ver-progreso" style="width:auto;">📊</button>
+          <button class="btn sesion-terminar" data-id="${f.id}" data-rol="cambiar-password" style="width:auto;">🔑</button>
+          <button class="btn sesion-terminar" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}" data-rol="eliminar-alumno" style="width:auto;">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-rol="ver-progreso"]').forEach(btn => {
+      btn.onclick = () => abrirModalProgreso(btn.dataset.id, btn.dataset.nombre);
+    });
+    cont.querySelectorAll('[data-rol="cambiar-password"]').forEach(btn => {
+      btn.onclick = async () => {
+        const nueva = prompt('Nueva contraseña para este alumno:');
+        if(!nueva) return;
+        try{
+          await setDoc(doc(db, 'alumnosRobot', btn.dataset.id), { password: nueva }, { merge: true });
+          alert('Contraseña actualizada.');
+        } catch(err){
+          console.error(err);
+          alert('No se pudo actualizar la contraseña.');
+        }
+      };
+    });
+    cont.querySelectorAll('[data-rol="eliminar-alumno"]').forEach(btn => {
+      btn.onclick = async () => {
+        if(!confirm(`¿Eliminar la cuenta de "${btn.dataset.nombre}"? Esto borra también todo su progreso guardado, y no se puede deshacer.`)) return;
+        try{
+          await deleteDoc(doc(db, 'alumnosRobot', btn.dataset.id));
+        } catch(err){
+          console.error(err);
+          alert('No se pudo eliminar la cuenta.');
+        }
+      };
+    });
+  }, (err) => {
+    console.error(err);
+    cont.innerHTML = '<p class="vacio">No se pudo cargar la lista de cuentas.</p>';
+  });
+}
+
+/* ============================================================
+   MANTENIMIENTO -- borrar sesiones de más de 60 días, junto con
+   todos sus alumnos (Firestore no borra subcolecciones solo).
+   Requiere que las reglas de Firestore permitan "delete" para el
+   profesor autenticado (no anónimo) -- ver aparte.
+   ============================================================ */
+document.getElementById('btnLimpiar').onclick = async () => {
+  const btn = document.getElementById('btnLimpiar');
+  const msg = document.getElementById('limpiezaMsg');
+  btn.disabled = true;
+  msg.style.color = 'var(--text-dim)';
+  msg.textContent = 'Buscando sesiones antiguas…';
+  try{
+    const cutoff = new Date(Date.now() - 60*24*60*60*1000);
+    const q = query(collection(db, 'sessions'), where('createdAt', '<', cutoff));
+    const snap = await getDocs(q);
+    if(snap.empty){
+      msg.style.color = 'var(--text-dim)';
+      msg.textContent = 'No hay sesiones de más de 60 días para borrar.';
+    } else {
+      let borradas = 0;
+      for(const sesionDoc of snap.docs){
+        const alumnosSnap = await getDocs(collection(db, 'sessions', sesionDoc.id, 'students'));
+        for(const alumnoDoc of alumnosSnap.docs){
+          await deleteDoc(alumnoDoc.ref);
+        }
+        await deleteDoc(sesionDoc.ref);
+        borradas++;
+        msg.textContent = `Borrando… (${borradas}/${snap.size})`;
+      }
+      msg.style.color = 'var(--primary)';
+      msg.textContent = `Se borraron ${borradas} sesión(es) antigua(s).`;
+    }
+  } catch(err){
+    console.error(err);
+    msg.style.color = 'var(--error)';
+    msg.textContent = 'No se pudo completar la limpieza. Revisa que hayas actualizado las reglas de Firestore.';
+  }
+  btn.disabled = false;
+};
+
+function escaparHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
