@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis Notas</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.16);
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; min-height:100%; font-family:var(--font-body); color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.hidden{ display:none !important; }
+.wrap{ max-width:480px; margin:0 auto; padding:20px 20px 60px; }
+
+.login-card{
+  background:var(--surface); border:1px solid var(--border-soft);
+  border-radius:20px; padding:28px 22px; margin-top:60px;
+  backdrop-filter:blur(6px); text-align:center;
+}
+.login-card h1{ font-family:var(--font-display); font-size:1.4rem; margin:0 0 20px; }
+.login-card input{
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border-soft);
+  background:rgba(255,255,255,.06); color:var(--text); font-family:var(--font-body);
+  font-size:1rem; margin-bottom:12px;
+}
+.login-card button{
+  width:100%; padding:13px; border-radius:12px; border:none;
+  background:var(--primary); color:#0d2818; font-family:var(--font-display);
+  font-weight:800; font-size:1rem; cursor:pointer;
+}
+.login-error{ color:var(--error); font-size:.85rem; margin-top:10px; min-height:1.2em; }
+
+.topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.jugando-como{ font-family:var(--font-display); font-weight:700; font-size:.95rem; }
+.titulo-pagina{ font-family:var(--font-display); font-size:1.5rem; font-weight:800; margin:0 0 16px; text-align:center; }
+
+.tabs{ display:flex; gap:8px; margin-bottom:18px; }
+.tab-btn{
+  flex:1; padding:11px; border-radius:14px; border:1px solid var(--border-soft);
+  background:var(--surface); color:var(--text-dim); font-family:var(--font-display);
+  font-weight:700; font-size:.82rem; cursor:pointer;
+}
+.tab-btn.activo{ background:var(--primary); color:#0d2818; border-color:var(--primary); }
+
+.card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:18px; padding:18px; margin-bottom:14px; backdrop-filter:blur(6px); }
+
+.promedio-card{ text-align:center; padding:22px 18px; }
+.promedio-etiqueta{ color:var(--text-dim); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+.promedio-numero{ font-family:var(--font-display); font-weight:800; font-size:2.6rem; color:var(--primary); margin-top:4px; }
+.promedio-numero.nota-pendiente{ color:var(--accent); font-size:1.3rem; }
+.promedio-numero.nota-vacia{ color:var(--text-faint); font-size:1.1rem; }
+
+.nota-fila{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border-soft); }
+.nota-fila:last-child{ border-bottom:none; }
+.nota-label{ font-weight:700; color:var(--text-dim); font-size:.88rem; }
+.nota-valor{ font-family:var(--font-display); font-weight:800; font-size:1rem; text-align:right; flex-shrink:0; }
+.nota-pendiente{ color:var(--accent); }
+.nota-vacia{ color:var(--text-faint); font-weight:700; }
+
+.mensaje-card{ text-align:center; color:var(--text-dim); padding:30px 18px; font-size:.9rem; line-height:1.55; }
+.mensaje-card .icono{ font-size:2.2rem; display:block; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<a href="index.html" title="Volver al catálogo de recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+
+<div class="wrap">
+
+  <div id="pantallaLogin">
+    <div class="login-card">
+      <h1>📋 Mis Notas</h1>
+      <input type="text" id="inputUsuario" placeholder="Tu usuario">
+      <input type="password" id="inputPassword" placeholder="Tu contraseña">
+      <button id="btnLogin">Entrar</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <div id="pantallaPrincipal" class="hidden">
+    <div class="topbar">
+      <div class="jugando-como" id="jugandoComo"></div>
+    </div>
+    <h2 class="titulo-pagina">📋 Mis Notas</h2>
+    <div class="tabs hidden" id="tabsTrimestre"></div>
+    <div id="contenidoNotas"></div>
+  </div>
+
+</div>
+
+<script>
+const CLAVE_SESION_COMPARTIDA = 'profehoracio_alumno_actual';
+let AlumnoActual = null;
+
+// Mismo mapeo curso -> planilla que usa el Panel del Profesor. Si
+// algún día cambia el id de alguna planilla, hay que actualizarlo
+// en los dos archivos.
+const SHEETS_CURSO = {
+  '3': '1671geytpEY7Xqr_QTBfdN_M3awU2tmPJ1g_azh7jfsI',
+  '4': '1oNH5gdO-qmiNj1fpxHlZpNLKh_PYcvorziatNsLoK2Q',
+  '5': '1UdR8d0Jj_h2st0Dgc0tkXucJ2VsAlPaJLrg1enIHHMI',
+  '6': '1ff2HhI9A0bhGQHKYZ_JePsMdFO_6gA4Ocu8xHyNx1Xo',
+  '7': '167AU4m_h0rZUW_9JEvvhAx36i4_q-Et78bd-WY7TRmM',
+  '8': '17VZwrjXCmA6eWG8nZQdQUx4rfK71nCsortOwGD1QdwY',
+};
+const NOMBRES_TRIMESTRES = ['Primer Trimestre', 'Segundo Trimestre', 'Tercer Trimestre'];
+
+function parsearCSV(texto){
+  const filas = [];
+  let fila = [], campo = '', dentroComillas = false;
+  for(let i = 0; i < texto.length; i++){
+    const c = texto[i];
+    if(dentroComillas){
+      if(c === '"'){
+        if(texto[i+1] === '"'){ campo += '"'; i++; }
+        else dentroComillas = false;
+      } else campo += c;
+    } else {
+      if(c === '"') dentroComillas = true;
+      else if(c === ','){ fila.push(campo); campo = ''; }
+      else if(c === '\n'){ fila.push(campo); filas.push(fila); fila = []; campo = ''; }
+      else if(c === '\r'){ /* se ignora, \n ya cierra la fila */ }
+      else campo += c;
+    }
+  }
+  if(campo.length > 0 || fila.length > 0){ fila.push(campo); filas.push(fila); }
+  return filas;
+}
+
+// Busca, dentro de una pestaña de trimestre, la fila cuyo nombre
+// (columna A) coincide exactamente con el nombre vinculado del
+// alumno. Devuelve null si la pestaña no existe o el alumno no
+// aparece ahí todavía (por ejemplo, se integró recién otro trimestre).
+async function obtenerFilaTrimestre(sheetId, nombreHoja, nombreBuscado){
+  try{
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nombreHoja)}`;
+    const resp = await fetch(url);
+    if(!resp.ok) return null;
+    const texto = await resp.text();
+    const filas = parsearCSV(texto);
+    const encabezado = filas[0] || [];
+    const fila = filas.slice(1).find(f => (f[0] || '').trim() === nombreBuscado);
+    if(!fila) return null;
+    return { encabezado, fila };
+  } catch(err){
+    console.error(`No se pudo leer "${nombreHoja}":`, err);
+    return null;
+  }
+}
+
+function mostrarMensaje(icono, texto){
+  document.getElementById('tabsTrimestre').classList.add('hidden');
+  document.getElementById('contenidoNotas').innerHTML = `
+    <div class="card mensaje-card"><span class="icono">${icono}</span>${texto}</div>
+  `;
+}
+
+function renderizarTrimestre(datos){
+  const cont = document.getElementById('contenidoNotas');
+  if(!datos){
+    cont.innerHTML = `<div class="card mensaje-card"><span class="icono">🗒️</span>Todavía no hay registros para este trimestre.</div>`;
+    return;
+  }
+  const { encabezado, fila } = datos;
+
+  // Si en cualquier celda de la fila aparece "X", es un alumno que
+  // se retiró del establecimiento durante este trimestre.
+  const seRetiro = fila.some(v => (v || '').trim() === 'X');
+  if(seRetiro){
+    cont.innerHTML = `<div class="card mensaje-card"><span class="icono">🚪</span>Este estudiante se retiró del establecimiento durante este trimestre.</div>`;
+    return;
+  }
+
+  let promedioHtml = '';
+  let filasHtml = '';
+  for(let i = 1; i < encabezado.length; i++){
+    const etiqueta = (encabezado[i] || '').trim();
+    if(!etiqueta) continue;
+    const crudo = (fila[i] || '').trim();
+    let valor, clase = '';
+    if(crudo === ''){ valor = '—'; clase = 'nota-vacia'; }
+    else if(crudo.toUpperCase() === 'P'){ valor = 'Pendiente'; clase = 'nota-pendiente'; }
+    else if(crudo === '#DIV/0!'){ valor = 'Sin evaluaciones aún'; clase = 'nota-vacia'; }
+    else { valor = crudo; }
+
+    if(etiqueta.toLowerCase() === 'promedio'){
+      promedioHtml = `
+        <div class="card promedio-card">
+          <div class="promedio-etiqueta">Promedio</div>
+          <div class="promedio-numero ${clase}">${valor}</div>
+        </div>`;
+      continue;
+    }
+    filasHtml += `<div class="nota-fila"><span class="nota-label">${etiqueta}</span><span class="nota-valor ${clase}">${valor}</span></div>`;
+  }
+  cont.innerHTML = `${promedioHtml}<div class="card">${filasHtml}</div>`;
+}
+
+async function entrarConDatos(id, nombre){
+  AlumnoActual = { id, nombre };
+  document.getElementById('pantallaLogin').classList.add('hidden');
+  document.getElementById('pantallaPrincipal').classList.remove('hidden');
+  document.getElementById('jugandoComo').textContent = `Hola, ${nombre}`;
+  document.getElementById('contenidoNotas').innerHTML = `<div class="card mensaje-card"><span class="icono">⏳</span>Cargando tus notas…</div>`;
+
+  const curso = id.split('-').pop();
+  const sheetId = SHEETS_CURSO[curso];
+  if(!sheetId){
+    mostrarMensaje('🤔', 'Esta cuenta no está asociada a ningún curso con planilla de notas.');
+    return;
+  }
+
+  const datos = await window.obtenerDatosAlumno(id);
+  if(!datos || !datos.nombrePlanilla){
+    mostrarMensaje('🔗', 'Tu profesor todavía no vinculó esta cuenta con la planilla de notas. Pídele que lo haga desde el Panel del Profesor.');
+    return;
+  }
+
+  const resultados = {};
+  for(const hoja of NOMBRES_TRIMESTRES){
+    resultados[hoja] = await obtenerFilaTrimestre(sheetId, hoja, datos.nombrePlanilla);
+  }
+
+  const tabsCont = document.getElementById('tabsTrimestre');
+  tabsCont.classList.remove('hidden');
+  tabsCont.innerHTML = NOMBRES_TRIMESTRES.map(h =>
+    `<button class="tab-btn" data-hoja="${h}">${h.replace(' Trimestre', '')}</button>`
+  ).join('');
+  tabsCont.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+      tabsCont.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      renderizarTrimestre(resultados[btn.dataset.hoja]);
+    };
+  });
+
+  // Por defecto se muestra el último trimestre que ya tenga registros.
+  let trimestreInicial = NOMBRES_TRIMESTRES[0];
+  NOMBRES_TRIMESTRES.forEach(h => { if(resultados[h]) trimestreInicial = h; });
+  tabsCont.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('activo', b.dataset.hoja === trimestreInicial));
+  renderizarTrimestre(resultados[trimestreInicial]);
+}
+
+function intentarSesionCompartida(){
+  try{
+    const guardado = JSON.parse(sessionStorage.getItem(CLAVE_SESION_COMPARTIDA) || 'null');
+    if(!guardado || !guardado.id) return false;
+    entrarConDatos(guardado.id, guardado.nombre);
+    return true;
+  } catch(e){ return false; }
+}
+
+document.getElementById('btnLogin').onclick = async () => {
+  const usuario = document.getElementById('inputUsuario').value;
+  const password = document.getElementById('inputPassword').value;
+  const errorEl = document.getElementById('loginError');
+  errorEl.textContent = '';
+  if(!usuario || !password){ errorEl.textContent = 'Completa usuario y contraseña.'; return; }
+  const resultado = await window.verificarLoginAlumnoCompartido(usuario, password);
+  if(!resultado.ok){ errorEl.textContent = resultado.error; return; }
+  sessionStorage.setItem(CLAVE_SESION_COMPARTIDA, JSON.stringify({ id: resultado.id, nombre: resultado.nombre }));
+  entrarConDatos(resultado.id, resultado.nombre);
+};
+
+function iniciar(){
+  if(typeof window.verificarLoginAlumnoCompartido !== 'function'){
+    setTimeout(iniciar, 100);
+    return;
+  }
+  intentarSesionCompartida();
+}
+iniciar();
+</script>
+
+<script type="module" src="mathverse-core.js"></script>
+</body>
+</html>
