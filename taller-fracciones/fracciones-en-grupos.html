@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Fracciones en grupos · Taller de Fracciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+  --hb:clamp(34px,8dvh,60px);
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh; overflow-x:hidden;
+}
+body.en-juego{ overflow:hidden; height:100dvh; min-height:0; }
+button{ font-family:inherit; }
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+.hidden{ display:none !important; }
+
+.screen{ display:none; animation:fadeIn .35s ease; }
+.screen.active{ display:block; }
+.portada{ max-width:520px; margin:0 auto; padding:16px 16px 50px; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+/* ---------- Portada y login ---------- */
+.hero{ text-align:center; padding:26px 6px 10px; }
+.hero h1{ font-size:clamp(1.9rem,6vw,2.6rem); margin-bottom:10px; }
+.hero .subtitle{ color:var(--text-dim); font-weight:600; }
+.login-card{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:24px;
+  max-width:340px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter:blur(6px);
+  margin:14px auto 0; display:flex; flex-direction:column; gap:10px;
+}
+.login-card input{
+  width:100%; padding:12px; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:700; text-align:center;
+}
+.login-error{ color:var(--error); font-weight:700; font-size:.82rem; min-height:1.2em; margin:0; }
+.btn-ingresar{
+  padding:13px; border-radius:999px; border:none; cursor:pointer;
+  background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c;
+  font-family:var(--font-display); font-weight:800; font-size:1rem;
+}
+.btn-sin-login{
+  padding:10px; border-radius:999px; border:1px solid var(--border-soft); cursor:pointer;
+  background:var(--surface); color:var(--text-faint); font-family:var(--font-display); font-weight:700; font-size:.78rem;
+}
+.level-selector{ display:grid; grid-template-columns:1fr; gap:clamp(10px,2.5vw,16px); width:100%; max-width:480px; margin:20px auto 0; }
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(16px,4vw,22px) 10px; min-height:90px; border:none; border-radius:var(--radius-sm);
+  cursor:pointer; transition:var(--transition); text-align:center; width:100%;
+  color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.level-btn .level-star{ font-size:clamp(1.4rem,4vw,1.7rem); }
+.level-btn .level-name{ font-weight:800; font-size:clamp(1rem,2.6vw,1.1rem); font-family:var(--font-display); }
+.level-btn .level-desc{ font-weight:700; font-size:.78rem; opacity:.92; }
+footer.credits{ text-align:center; color:var(--text-faint); font-weight:700; font-size:.78rem; padding:24px 10px 4px; }
+
+/* ---------- Pantalla de juego (sin scroll) ---------- */
+#screen-juego{ height:100dvh; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+#screen-juego.active{ display:grid; }
+.app-topbar{
+  display:grid; align-items:center; gap:6px 8px; width:100%; max-width:1050px; margin:0 auto; padding:8px 62px 4px 14px;
+  grid-template-columns:1fr auto 1fr; grid-template-areas:"back pill der";
+}
+.icon-btn{
+  grid-area:back; justify-self:start; display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text);
+  padding:8px 14px; border-radius:999px; font-weight:700; font-size:.9rem; cursor:pointer;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.topbar-der{ grid-area:der; justify-self:end; display:flex; gap:6px; }
+.nivel-pill{
+  grid-area:pill; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4); color:var(--accent);
+  padding:6px 12px; border-radius:999px; font-family:var(--font-display); font-weight:800;
+  font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+}
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:var(--transition);
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); padding:7px 14px; border-radius:999px;
+}
+.btn:hover{ background:var(--surface-strong); }
+.btn.icono{ width:38px; height:38px; padding:0; font-size:19px; display:inline-flex; align-items:center; justify-content:center; }
+.btn.verde{ background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.siguiente{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3d1f00; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.corte{ padding:5px 11px; min-width:34px; }
+.btn.sel{ background:rgba(56,189,248,.22); border-color:var(--blue); color:var(--blue); }
+
+.juego-main{
+  width:100%; max-width:1050px; margin:0 auto; min-height:0; padding:0 14px 40px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.escenario{
+  flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:8px;
+  padding:4px 2px; overflow:hidden;
+}
+.fila{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:center; }
+.fila.fix{ flex-wrap:nowrap; }
+.fila .flex1{ flex:1; min-width:0; }
+.etq{ font-family:var(--font-display); font-weight:800; font-size:15px; min-width:78px; color:var(--text-dim); }
+.estado{ display:flex; justify-content:center; align-items:center; font-family:var(--font-display); font-weight:800; font-size:15px; color:var(--accent); }
+.sub{ margin:0; text-align:center; font-size:14px; line-height:1.3; color:var(--text-dim); font-weight:700; }
+.sub b{ color:var(--text); }
+
+.msg{ min-height:2.7em; margin:0; padding:3px 8px; text-align:center; line-height:1.3; font-size:14px; font-weight:700; color:var(--text-dim); display:block; }
+.msg.bien{ color:var(--primary); } .msg.mal{ color:var(--error); } .msg.casi{ color:var(--accent); }
+.msg b{ color:inherit; }
+
+/* Fracciones */
+.frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; font-weight:800; line-height:1.05; margin:0 3px; }
+.frac > span:first-child{ border-bottom:2.5px solid currentColor; padding:0 4px; }
+.frac .den{ border-top:3px solid currentColor; padding:0 10px; }
+.frac.grande{ font-size:clamp(1.35rem,5.5vw,1.9rem); font-family:var(--font-display); }
+.entrada{
+  width:68px; padding:6px; font-size:1.25rem; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  text-align:center; background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:800;
+  -moz-appearance:textfield; appearance:textfield;
+}
+.entrada::-webkit-outer-spin-button,.entrada::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.entrada:focus{ outline:none; border-color:var(--blue); }
+
+/* Barras */
+.barra{
+  display:flex; height:var(--hb); border:3px solid var(--text); border-radius:var(--radius-sm); overflow:hidden;
+  background:rgba(255,255,255,.06); transition:outline .2s, transform .5s, opacity .3s; touch-action:none; width:100%;
+}
+.barra.entero{ height:calc(var(--hb)*.75); background:rgba(56,189,248,.18); justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; font-family:var(--font-display); }
+.trozo{
+  flex:1; min-width:0; border-right:2px solid var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(8px,2.5vw,13px); color:var(--text-dim); user-select:none; touch-action:none; transition:background .15s;
+}
+.trozo:last-child{ border-right:none; }
+.trozo.on{ background:var(--blue); color:#0c1b3a; font-weight:800; }
+.barra.b .trozo.on{ background:var(--accent); color:#3d1f00; }
+.barra.coincide{ outline:5px solid var(--primary); }
+.sup-z{ position:relative; z-index:3; }
+.historial{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; font-size:1.15rem; font-family:var(--font-display); }
+.historial .frac{ opacity:.55; } .historial .frac.actual{ opacity:1; color:var(--accent); }
+svg text{ font-weight:800; font-family:var(--font-display); }
+.balanza{ width:100%; flex:1 1 0; min-height:70px; }
+
+@media(max-width:600px){
+  .app-topbar{ padding:6px 62px 2px 8px; }
+  .icon-btn{ padding:7px 11px; font-size:.82rem; }
+  .btn.icono{ width:34px; height:34px; font-size:17px; }
+  .juego-main{ padding:0 8px 40px; }
+  .escenario{ padding:4px 0; }
+  .etq{ min-width:60px; font-size:14px; }
+}
+@media(max-height:620px){ :root{ --hb:clamp(30px,6.6dvh,48px); } .escenario{ gap:6px; } }
+@media(max-height:480px){
+  :root{ --hb:clamp(28px,9dvh,40px); }
+  .app-topbar{ padding-top:3px; padding-bottom:2px; min-height:52px; }
+  .btn.icono{ width:30px; height:30px; }
+  .juego-main{ padding-bottom:38px; gap:3px; }
+  .escenario{ padding:2px 8px; gap:4px; }
+  .msg{ font-size:12.5px; min-height:2.4em; padding:1px; }
+  .sub{ font-size:12.5px; }
+  .btn.corte{ padding:3px 9px; } .btn.verde,.btn.siguiente,.btn.azul{ padding:5px 14px; }
+  .entrada{ padding:3px; font-size:1.05rem; width:60px; }
+  .frac.grande{ font-size:1.25rem; }
+}
+
+a.level-btn{ text-decoration:none; }
+.level-btn.soon{ opacity:.42; cursor:default; filter:grayscale(.5); pointer-events:none; }
+.level-btn.soon:hover{ transform:none; }
+.volver-sub{ text-decoration:none; display:inline-flex; margin:4px 0 0; }
+
+.trozo .frac{ margin:0; font-size:inherit; } .trozo .frac > span:first-child{ border-bottom-width:1px; padding:0 2px; }
+
+/* ---------- Fracciones en grupos ---------- */
+.tabs{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin:2px 0 0; }
+.consigna{ display:block; text-align:center; font-family:var(--font-display); font-weight:800; font-size:clamp(.95rem,3.3vw,1.2rem);
+  color:var(--text); background:var(--surface); border:1px solid var(--border-soft); border-radius:22px; padding:6px 20px; margin:2px auto 0; max-width:100%; line-height:1.2; }
+.consigna .frac, .msg .frac{ color:var(--accent); font-size:1.4em; }
+.consigna .frac span:first-child, .msg .frac span:first-child{ border-bottom-color:var(--accent); }
+.escenario.grupo{ justify-content:flex-start; gap:2px; }
+.escena{ width:100%; flex:1 1 0; min-height:0; max-height:100%; max-width:900px; margin:0 auto; display:block; touch-action:manipulation; }
+.escena .it{ cursor:pointer; } .escena .it.fijo{ cursor:default; } .escena text{ font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',var(--font-display),sans-serif; font-weight:400; user-select:none; }
+.escena .nuevo{ animation:aparece .2s ease-out; transform-box:fill-box; transform-origin:center; }
+@keyframes aparece{ from{ transform:scale(.6); opacity:.2; } to{ transform:scale(1); opacity:1; } }
+@media(prefers-reduced-motion:reduce){ .escena .nuevo{ animation:none; } }
+.herram{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; align-items:center; min-height:44px; }
+.herram .mas{ width:48px; height:44px; padding:0; font-size:1.5rem; border-radius:12px; }
+.opciones{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.op{ min-width:84px; padding:6px 16px; border-radius:var(--radius-sm); cursor:pointer; color:var(--text);
+  background:var(--surface-strong); border:2px solid var(--border-soft); font-size:clamp(1.15rem,4.4vw,1.55rem); transition:var(--transition); }
+.op:hover{ border-color:var(--blue); } .op .frac{ color:inherit; margin:0; }
+.op.mal{ border-color:var(--error); opacity:.45; pointer-events:none; } .op.bien{ border-color:var(--primary); background:rgba(52,211,153,.22); }
+.conteo{ font-family:var(--font-display); font-weight:800; font-size:.9rem; color:var(--text-dim); text-align:center; min-height:1.2em; }
+@media(max-height:480px){ .consigna{ padding:2px 14px; font-size:.95rem; } .herram{ min-height:34px; } .tabs{ margin:0; } .tabs .btn{ padding:3px 12px; font-size:13px; } .tabs .tx{ display:none; } .conteo{ display:none; } .juego-main{ gap:2px; } }
+</style>
+</head>
+<body>
+<a href="../index.html#recursos" title="Volver a los recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+<div id="monedasPill" class="hidden" style="position:fixed; bottom:12px; right:12px; z-index:99998; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(251,191,36,.4); border-radius:20px; padding:8px 14px; font-family:var(--font-display); font-weight:800; font-size:.85rem; color:var(--accent); box-shadow:0 4px 14px rgba(0,0,0,.35);">🪙 0</div>
+
+<div class="screen portada active" id="screen-login">
+  <div class="hero"><h1>🐴 Fracciones en grupos</h1></div>
+  <div class="login-card">
+    <input type="text" id="loginUsuario" placeholder="Usuario" autocomplete="off" maxlength="30">
+    <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="off" maxlength="30">
+    <p class="login-error" id="loginError"></p>
+    <button class="btn-ingresar" id="btnLoginEntrar">Ingresar</button>
+    <button type="button" class="btn-sin-login" id="btnSinLogin">Continuar sin loguearse (tu progreso solo queda en este computador)</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-juego">
+  <div class="app-topbar">
+    <button class="icon-btn" id="bVolver" type="button">← Volver</button>
+    <span class="nivel-pill" id="actPill"></span>
+    <div class="topbar-der">
+      <button class="btn icono" id="bSon" title="Sonido">🔊</button>
+      <button class="btn icono" id="bFull" title="Pantalla completa">⛶</button>
+    </div>
+  </div>
+  <main class="juego-main">
+    <div class="tabs" id="tabs">
+      <button class="btn sel" data-modo="mezcla" type="button" title="Mezcla">🎲<span class="tx"> Mezcla</span></button>
+      <button class="btn" data-modo="marcar" type="button" title="Marcar">👆<span class="tx"> Marcar</span></button>
+      <button class="btn" data-modo="leer" type="button" title="¿Qué fracción es?">🔎<span class="tx"> ¿Qué fracción es?</span></button>
+    </div>
+    <div class="consigna" id="consigna"></div>
+    <section class="escenario grupo" id="escenario">
+      <svg class="escena" id="esc" viewBox="25 25 750 420" aria-label="Escena del grupo">
+        <defs>
+          <radialGradient id="gClara" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#f4f1ff"/><stop offset=".4" stop-color="#b6aed9"/><stop offset="1" stop-color="#6d629e"/></radialGradient>
+          <radialGradient id="gPint" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#fff5bb"/><stop offset=".45" stop-color="#fbbf24"/><stop offset="1" stop-color="#b8670e"/></radialGradient>
+        </defs>
+        <g id="arte"></g>
+        <g id="items"></g>
+      </svg>
+      <div class="conteo" id="conteo"></div>
+      <div class="herram" id="herram"></div>
+    </section>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </main>
+</div>
+<script>
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rnd(0,arr.length-1)];
+const barajar = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const mcd = (a,b)=> b ? mcd(b,a%b) : Math.abs(a);
+const $ = s => document.querySelector(s);
+/* Toda fracción se escribe con el numerador sobre el denominador y con barra fraccionaria */
+const F = (n,d)=> `<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+
+let sonidoOn = true, ctx;
+function tono(f=880, dur=.15, tipo='sine'){
+  if(!sonidoOn) return;
+  try{
+    ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=tipo; o.frequency.value=f; g.gain.setValueAtTime(.15,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+const tintineo = ()=>{ tono(988,.12); setTimeout(()=>tono(1319,.2),110); };
+const errorSnd = ()=> tono(220,.25,'triangle');
+$('#bSon').onclick = e => { sonidoOn=!sonidoOn; e.currentTarget.textContent = sonidoOn?'🔊':'🔇'; };
+$('#bFull').onclick = ()=> document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+function aviso(html, tipo=''){ const m=$('#msg'); m.className='msg '+tipo; m.innerHTML=html; }
+
+let AlumnoActual = null;
+function registrarCompletado(){
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){
+    window.reportarProgresoPractica(AlumnoActual.id, 'taller-fracciones', 1, 0, 2);
+  }
+}
+const marcarActividad = () => document.dispatchEvent(new Event('click'));
+function reportar(ok){ try{ if(window.TallerOnline && window.TallerOnline.activo) window.TallerOnline.resultado(ok); }catch(e){} }
+
+/* =========================================================
+   LOS CONTENEDORES (cada uno con su dibujo, su zona interior y su objeto)
+   Los objetos siempre se dibujan DENTRO de la zona interior del contenedor.
+   ========================================================= */
+const arteEstablo = ()=>`
+  <polygon points="50,170 400,38 750,170" fill="#7c2d12"/><polygon points="95,170 400,62 705,170" fill="#9a3412"/>
+  <rect x="90" y="165" width="620" height="255" rx="8" fill="#b45345"/>
+  ${Array.from({length:11},(_,i)=>`<line x1="${142+i*52}" y1="165" x2="${142+i*52}" y2="420" stroke="#7f2f26" stroke-width="3" opacity=".45"/>`).join('')}
+  <rect x="140" y="190" width="520" height="215" rx="10" fill="#2a1608" opacity=".9"/>
+  <rect x="140" y="380" width="520" height="25" rx="6" fill="#ca8a04" opacity=".7"/>
+  <circle cx="400" cy="120" r="17" fill="#2a1608" opacity=".85"/><rect x="30" y="420" width="740" height="14" rx="7" fill="#166534" opacity=".8"/>`;
+const arteEstuche = ()=>`
+  <rect x="60" y="110" width="680" height="270" rx="44" fill="#2563eb"/><rect x="60" y="110" width="680" height="270" rx="44" fill="none" stroke="#93c5fd" stroke-width="4"/>
+  <rect x="100" y="148" width="600" height="194" rx="20" fill="#1e3a8a" opacity=".92"/>
+  <path d="M92 128 H708" stroke="#fbbf24" stroke-width="6" stroke-dasharray="10 6" stroke-linecap="round"/><circle cx="712" cy="128" r="12" fill="#fbbf24"/>`;
+const arteEstante = ()=>`
+  <rect x="60" y="60" width="680" height="350" rx="12" fill="#92400e"/><rect x="90" y="90" width="620" height="290" fill="#431407"/>
+  <rect x="90" y="340" width="620" height="40" fill="#b45309"/><rect x="60" y="400" width="680" height="14" rx="6" fill="#78350f"/>`;
+const artePecera = ()=>`
+  <rect x="70" y="60" width="660" height="350" rx="26" fill="#0ea5e9" opacity=".3"/><rect x="70" y="60" width="660" height="350" rx="26" fill="none" stroke="#bae6fd" stroke-width="5"/>
+  <rect x="76" y="352" width="648" height="52" rx="20" fill="#f59e0b" opacity=".55"/>
+  <path d="M120 352 q-22-70 0-125 q18 55 28 125z" fill="#22c55e" opacity=".85"/><path d="M690 352 q22-70 0-125 q-18 55-28 125z" fill="#16a34a" opacity=".85"/>
+  <circle cx="680" cy="120" r="9" fill="#e0f2fe" opacity=".5"/><circle cx="700" cy="150" r="6" fill="#e0f2fe" opacity=".5"/><circle cx="105" cy="110" r="7" fill="#e0f2fe" opacity=".5"/>`;
+const arteCanasto = ()=>`
+  <path d="M170 198 Q400 -50 630 198" fill="none" stroke="#92400e" stroke-width="16" stroke-linecap="round"/>
+  <path d="M110 198 H690 L645 418 H155 Z" fill="#b7791f"/>
+  ${Array.from({length:9},(_,i)=>`<line x1="${150+i*62}" y1="198" x2="${170+i*58}" y2="418" stroke="#8a5a14" stroke-width="4" opacity=".55"/>`).join('')}
+  <path d="M120 270 H680 M130 340 H670" stroke="#8a5a14" stroke-width="4" opacity=".55"/>
+  <rect x="100" y="186" width="600" height="26" rx="12" fill="#92400e"/>`;
+const arteBolso = ()=>`
+  <path d="M260 150 Q400 10 540 150" fill="none" stroke="#14532d" stroke-width="18" stroke-linecap="round"/>
+  <rect x="60" y="130" width="680" height="300" rx="70" fill="#16a34a"/>
+  <rect x="110" y="165" width="580" height="205" rx="30" fill="#052e16" opacity=".9"/>
+  <rect x="60" y="388" width="680" height="12" fill="#ffffff" opacity=".5"/><rect x="60" y="404" width="680" height="8" fill="#ffffff" opacity=".3"/>`;
+const arteEstac = ()=>`
+  <rect x="40" y="60" width="720" height="350" rx="18" fill="#374151"/>
+  ${Array.from({length:8},(_,i)=>`<rect x="${70+i*88}" y="100" width="5" height="270" fill="#e5e7eb" opacity=".55"/>`).join('')}
+  <rect x="52" y="70" width="34" height="34" rx="6" fill="#2563eb"/><text x="69" y="96" text-anchor="middle" font-size="26" fill="#fff" style="font-family:var(--font-display);font-weight:800">P</text>`;
+const arteHuevos = ()=>`
+  <rect x="60" y="100" width="680" height="300" rx="30" fill="#d6c3a1"/><rect x="90" y="130" width="620" height="240" rx="20" fill="#b89b6a"/>`;
+const arteBolsa = ()=>`
+  <g transform="translate(205,10) scale(.85)">
+    <path d="M151 20Q230 55 309 20L280 101C310 144 406 196 409 337Q419 474 340 490Q230 515 120 490Q41 474 51 337C54 196 150 144 180 101Z" fill="#ffffff14" stroke="#afa4e5" stroke-width="4"/>
+    <path d="M169 104Q230 118 291 104M224 111Q169 86 159 117Q169 146 225 112Q280 86 293 118Q276 144 225 112" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"/>
+  </g>`;
+
+const TEMAS = [
+  { id:'caballos',   sg:'caballo',  pl:'caballos',  g:'m', cont:'el establo',        arte:arteEstablo, r:{x:150,y:196,w:500,h:178}, emo:()=>'🐴' },
+  { id:'lapices',    sg:'lápiz',    pl:'lápices',   g:'m', cont:'el estuche',        arte:arteEstuche, r:{x:110,y:156,w:580,h:178}, emo:()=>'✏️' },
+  { id:'peces',      sg:'pez',      pl:'peces',     g:'m', cont:'la pecera',         arte:artePecera,  r:{x:120,y:100,w:560,h:240}, emo:()=>'🐟' },
+  { id:'manzanas',   sg:'manzana',  pl:'manzanas',  g:'f', cont:'el canasto',        arte:arteCanasto, r:{x:175,y:218,w:450,h:180}, emo:()=>'🍎' },
+  { id:'libros',     sg:'libro',    pl:'libros',    g:'m', cont:'el estante',        arte:arteEstante, r:{x:100,y:100,w:600,h:236}, emo:i=>['📕','📗','📘','📙'][i%4] },
+  { id:'balones',    sg:'balón',    pl:'balones',   g:'m', cont:'el bolso',          arte:arteBolso,   r:{x:118,y:172,w:564,h:190}, emo:()=>'⚽' },
+  { id:'autos',      sg:'auto',     pl:'autos',     g:'m', cont:'el estacionamiento',arte:arteEstac,   r:{x:70,y:100,w:660,h:270},  emo:()=>'🚗' },
+  { id:'huevos',     sg:'huevo',    pl:'huevos',    g:'m', cont:'la caja',           arte:arteHuevos,  r:{x:100,y:138,w:600,h:224}, emo:()=>'🥚' },
+  { id:'bolitas',    sg:'bolita',   pl:'bolitas',   g:'f', cont:'la bolsa',          arte:arteBolsa,   r:{x:292,y:226,w:218,h:180}, emo:null }
+];
+const art  = t => t.g==='f' ? 'las' : 'los';
+const marc = t => t.g==='f' ? 'marcadas' : 'marcados';
+const enCont = t => 'en '+t.cont;
+
+/* =========================================================
+   GENERADOR DE EJERCICIOS
+   Dos tipos:
+     marcar    → hay T objetos (T = d·k); marca n/d de ellos (cada parte tiene k objetos)
+     leer      → un grupo con k de T marcados; elegir qué fracción es
+   La dificultad sube sola (nivel 1 a 3) con aciertos al primer intento.
+   ========================================================= */
+const MAXOBJ = 20;
+const DEN_NIV = [[2,3,4,5],[2,3,4,5,6,8],[2,3,4,5,6,8,10,12]];
+const K_NIV   = [[1,2],[1,2,3],[1,2,3,4]];
+function poolMarcar(nv){
+  const pool=[];
+  DEN_NIV[nv].forEach(d=>K_NIV[nv].forEach(k=>{ if(d*k<=MAXOBJ && d*k>=3) for(let n=1;n<d;n++) pool.push({tipo:'marcar',n,d,k,T:d*k}); }));
+  return pool;
+}
+function poolLeer(nv){
+  const [a,b]=[[4,10],[6,15],[8,20]][nv], pool=[];
+  for(let T=a;T<=b;T++) for(let k=1;k<T;k++) pool.push({tipo:'leer',k,T,n:k,d:T});
+  return pool;
+}
+const reciente=[];
+const valor = e => { if(e.tipo==='leer'){ const g=mcd(e.k,e.T); return e.tipo+(e.k/g)+'-'+(e.T/g)+'-'+e.T; }
+                     const g=mcd(e.n,e.d); return e.tipo+(e.n/g)+'-'+(e.d/g)+'-'+e.T; };
+function sortear(tipo){
+  const pool = tipo==='marcar' ? poolMarcar(nivelAuto) : poolLeer(nivelAuto);
+  const ult = reciente.slice(-8);
+  let cand = pool.filter(e=>!ult.includes(valor(e)));
+  if(!cand.length) cand = pool.filter(e=>!reciente.slice(-2).includes(valor(e)));
+  if(!cand.length) cand = pool;
+  const e = {...pick(cand)};
+  reciente.push(valor(e)); while(reciente.length>20) reciente.shift();
+  return e;
+}
+function opcionesLeer(e){
+  const {k,T}=e, vistos=[k/T], malas=[];
+  barajar([[T-k,T],[k,T-k],[k+1,T],[k-1,T],[k,T+1],[k+2,T],[k-2,T]]).forEach(([a,b])=>{
+    if(a<=0||b<=1||a>=b) return;
+    const v=a/b; if(vistos.some(x=>Math.abs(x-v)<1e-9)) return; vistos.push(v); malas.push([a,b]);
+  });
+  return barajar([[k,T],...malas.slice(0,3)]);
+}
+
+/* =========================================================
+   ESTADO Y ESCENA
+   ========================================================= */
+let modo='mezcla', tipoFijoOnline=null, nivelAuto=0, racha=0, rachaMal=0;
+let ej=null, tema=null, items=[], fase='', errores=0, primero=true, pista=false, nuevoIdx=-1, token=0, tsig;
+let bolsaTemas=[], ultimoTipo=[], tipoActual='';
+
+function siguienteTema(){
+  if(!bolsaTemas.length) bolsaTemas = barajar(TEMAS).filter(t=>!tema || t.id!==tema.id || TEMAS.length===1);
+  return bolsaTemas.pop();
+}
+function elegirTipo(){
+  if(tipoFijoOnline) return tipoFijoOnline;
+  if(modo!=='mezcla') return modo;
+  const todos=['marcar','leer'];
+  const ok=todos.filter(t=>!(ultimoTipo.length>=2 && ultimoTipo.slice(-2).every(x=>x===t)));
+  return pick(ok);
+}
+
+/* Cuadrícula dentro de la zona interior del contenedor */
+function layout(n, r, fija){
+  // Con "fija" la cuadrícula es la de la capacidad máxima (así el espacio no delata cuántos faltan)
+  const base = fija ? MAXOBJ : n;
+  let mejor=-1, cols=1;
+  for(let c=1;c<=base;c++){ const rw=Math.ceil(base/c), cs=Math.min(r.w/c,r.h/rw); if(cs>mejor+1e-9){ mejor=cs; cols=c; } }
+  const rows=Math.ceil(base/cols), cs=Math.min(r.w/cols, r.h/rows), pos=[];
+  const oy=r.y+(r.h-rows*cs)/2;
+  for(let i=0;i<n;i++){
+    const fila=Math.floor(i/cols), col=i%cols;
+    const enFila = fija ? cols : Math.min(cols, n-fila*cols);
+    const ox = r.x+(r.w-enFila*cs)/2;
+    pos.push({x:ox+col*cs+cs/2, y:oy+fila*cs+cs/2});
+  }
+  return {pos, s:Math.min(cs*.86,78)};
+}
+function itemSVG(i,x,y,s,marcado,anillo){
+  const t=tema; let g=`<g class="it${i===nuevoIdx?' nuevo':''}${(fase==='jugar'&&puedeTocar(i))?'':' fijo'}" data-i="${i}">`;
+  g+=`<circle cx="${x}" cy="${y}" r="${s*.62}" fill="#ffffff" fill-opacity=".001"/>`;
+  if(t.emo){
+    if(marcado) g+=`<circle cx="${x}" cy="${y}" r="${s*.6}" fill="#fbbf24" fill-opacity=".92"/>`;
+    g+=`<text x="${x}" y="${y+s*.34}" font-size="${s*.9}" text-anchor="middle">${t.emo(i)}</text>`;
+  } else {
+    g+=`<circle cx="${x}" cy="${y}" r="${s*.46}" fill="url(#${marcado?'gPint':'gClara'})" stroke="${marcado?'#fff5bb':'#f4f1ff'}" stroke-width="1.5"/>`;
+  }
+  if(anillo) g+=`<circle cx="${x}" cy="${y}" r="${s*.62}" fill="none" stroke="${anillo}" stroke-width="4" stroke-dasharray="${anillo==='#38bdf8'?'0':'7 5'}"/>`;
+  if(marcado) g+=`<circle cx="${x+s*.38}" cy="${y-s*.38}" r="${s*.2}" fill="#34d399"/><text x="${x+s*.38}" y="${y-s*.38+s*.09}" font-size="${s*.26}" fill="#04281c" text-anchor="middle" style="font-weight:800">✓</text>`;
+  return g+'</g>';
+}
+const puedeTocar = i => ej && ej.tipo==='marcar' && fase==='jugar';
+
+function pintar(){
+  $('#arte').innerHTML = tema.arte();
+  const fija = false;
+  const {pos,s}=layout(items.length, tema.r, fija);
+  let h='';
+  items.forEach((m,i)=>{
+    let anillo=null;
+    if(pista || fase==='hecho'){
+      if(ej.tipo==='marcar') anillo = Math.floor(i/ej.k)%2 ? '#f472b6' : '#38bdf8';
+    }
+    h+=itemSVG(i,pos[i].x,pos[i].y,s,m,anillo);
+  });
+  $('#items').innerHTML=h; nuevoIdx=-1;
+  const marcados=items.filter(Boolean).length;
+  const cap = w => w[0].toUpperCase()+w.slice(1);
+  $('#conteo').textContent = ej.tipo==='marcar' ? `${cap(marc(tema))}: ${marcados}` : '';
+}
+
+/* ---------- Un ejercicio nuevo ---------- */
+function nuevo(){
+  clearTimeout(tsig); token++;
+  tipoActual=elegirTipo(); ultimoTipo.push(tipoActual); if(ultimoTipo.length>4) ultimoTipo.shift();
+  tema=siguienteTema(); ej=sortear(tipoActual);
+  fase='jugar'; errores=0; primero=true; pista=false;
+  const H=$('#herram'); H.innerHTML=''; const t=tema, A=art(t);
+  if(ej.tipo==='marcar'){
+    items=Array(ej.T).fill(false);
+    $('#consigna').innerHTML=`Hay <b>${ej.T}</b> ${t.pl} ${enCont(t)}. Marca ${F(ej.n,ej.d)} de ${t.g==='f'?'ellas':'ellos'}.`;
+    aviso('Toca los objetos que quieres marcar y luego pulsa <b>Comprobar</b>.');
+    H.innerHTML=`<button class="btn verde" id="bComp" type="button">✔ Comprobar</button>`;
+    $('#bComp').onclick=comprobar;
+  } else {
+    const idx=barajar([...Array(ej.T).keys()]).slice(0,ej.k); items=Array(ej.T).fill(false); idx.forEach(i=>items[i]=true);
+    $('#consigna').innerHTML=`¿Qué fracción de ${A} ${t.pl} son ${A} ${marc(t)}?`;
+    aviso('Elige la fracción correcta. Mira cuántos hay en total y cuántos están marcados.');
+    const ops=opcionesLeer(ej);
+    H.innerHTML=`<div class="opciones">`+ops.map(([a,b],i)=>`<button class="op" data-i="${i}" type="button">${F(a,b)}</button>`).join('')+`</div>`;
+    H.querySelectorAll('.op').forEach((bt,i)=> bt.onclick=()=>responderLeer(bt,ops[i]));
+  }
+  $('#actPill').textContent=`🐴 Nivel ${nivelAuto+1}`;
+  pintar();
+}
+
+/* ---------- Comprobación ---------- */
+function fin(html){
+  fase='hecho'; pista=false; pintar();
+  if(primero){ reportar(true); racha++; rachaMal=0; } else { racha=0; }
+  registrarCompletado(); tintineo();
+  let extra='';
+  if(primero && racha>=3 && nivelAuto<2){ nivelAuto++; racha=0; extra=` 🚀 ¡Subes al nivel ${nivelAuto+1}!`; $('#actPill').textContent=`🐴 Nivel ${nivelAuto+1}`; }
+  aviso(html+extra,'bien');
+  $('#herram').innerHTML=`<button class="btn siguiente" id="bSig" type="button">Siguiente ➜</button>`;
+  $('#bSig').onclick=nuevo;
+  const t=token; tsig=setTimeout(()=>{ if(t===token) nuevo(); },4200);
+}
+function falla(html){
+  errorSnd();
+  if(primero){ primero=false; reportar(false); racha=0; rachaMal++; if(rachaMal>=2 && nivelAuto>0){ nivelAuto--; rachaMal=0; $('#actPill').textContent=`🐴 Nivel ${nivelAuto+1}`; } }
+  errores++; if(errores>=2) pista=true;
+  pintar(); aviso(html,'mal');
+}
+function comprobar(){
+  if(fase!=='jugar') return;
+  const t=tema, {n,d}=ej;
+  if(ej.tipo==='marcar'){
+    const m=items.filter(Boolean).length, objetivo=ej.k*n;
+    if(m===objetivo){
+      fin(`¡Exacto! ${F(n,d)} de ${ej.T} son <b>${objetivo}</b>: cada parte tiene ${ej.k} ${ej.k===1?t.sg:t.pl}.`);
+    } else {
+      let txt = m<objetivo ? 'Todavía faltan por marcar.' : 'Marcaste de más.';
+      if(errores>=1) txt += ` Pista: el grupo se reparte en <b>${d}</b> partes iguales, de <b>${ej.k}</b> ${ej.k===1?t.sg:t.pl} cada una. Marca <b>${n}</b> ${n===1?'parte':'partes'}.`;
+      falla(txt);
+    }
+  }
+}
+function responderLeer(bt,op){
+  if(fase!=='jugar') return;
+  if(op[0]===ej.k && op[1]===ej.T){
+    bt.classList.add('bien');
+    fin(`¡Correcto! Hay ${ej.T} en total y ${ej.k} ${ej.k===1?'está':'están'} ${marc(tema).replace(/s$/,ej.k===1?'':'s')}: ${F(ej.k,ej.T)}.`);
+  } else {
+    bt.classList.add('mal');
+    falla('Todavía no. El denominador es el <b>total</b> de objetos del grupo y el numerador es cuántos están <b>marcados</b>.'+(errores>=1?` Cuenta: ${ej.T} en total, ${ej.k} marcados.`:''));
+  }
+}
+
+/* ---------- Toques sobre la escena ---------- */
+$('#esc').addEventListener('pointerdown',e=>{
+  const g=e.target.closest('[data-i]'); if(!g||!ej) return; marcarActividad();
+  if(fase==='jugar' && ej.tipo==='marcar'){
+    const i=+g.dataset.i; items[i]=!items[i]; tono(items[i]?560:440,.06); pintar(); aviso('');
+  }
+});
+
+/* ---------- Modos (pestañas) ---------- */
+document.querySelectorAll('#tabs [data-modo]').forEach(b=> b.onclick=()=>{
+  modo=b.dataset.modo; ultimoTipo=[];
+  document.querySelectorAll('#tabs [data-modo]').forEach(x=>x.classList.toggle('sel',x===b));
+  nuevo();
+});
+document.getElementById('bVolver').onclick = () => { token++; clearTimeout(tsig); location.href='representacion.html'; };
+
+function mostrarAlumno(nombre){
+  const ind = document.getElementById('indicadorAlumno'); if(!ind) return;
+  ind.textContent = `👤 ${nombre}`; ind.style.display = 'block';
+}
+function sesionGuardada(){
+  try{ const g = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null'); if(g && g.id && g.nombre) return g; }catch(e){}
+  return null;
+}
+function esInvitado(){ try{ return sessionStorage.getItem('profehoracio_invitado')==='1'; }catch(e){ return false; } }
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('en-juego', id === 'screen-juego');
+  window.scrollTo(0, 0);
+}
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse === 'function'){
+    window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'taller-fracciones');
+  } else { setTimeout(iniciarHeartbeatTiempo, 100); }
+}
+function configurarLogin(alEntrar){
+  document.getElementById('btnLoginEntrar').onclick = async () => {
+    const usuario = document.getElementById('loginUsuario').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    if(!usuario || !password){ errEl.textContent = 'Escribe tu usuario y tu contraseña.'; return; }
+    const btn = document.getElementById('btnLoginEntrar');
+    btn.disabled = true; btn.textContent = 'Entrando…'; errEl.textContent = '';
+    try{
+      const resultado = await window.verificarLoginAlumnoCompartido(usuario, password);
+      if(!resultado.ok){ errEl.textContent = resultado.error; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
+      AlumnoActual = { id: resultado.id, nombre: resultado.nombre };
+      try{ sessionStorage.setItem('profehoracio_alumno_actual', JSON.stringify(AlumnoActual)); sessionStorage.removeItem('profehoracio_invitado'); }catch(e){}
+      alEntrar(); iniciarHeartbeatTiempo();
+    } catch(err){ console.error(err); errEl.textContent = 'Error de conexión. Intenta de nuevo.'; }
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  };
+  document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnLoginEntrar').click(); });
+  document.getElementById('btnSinLogin').onclick = () => { try{ sessionStorage.setItem('profehoracio_invitado','1'); }catch(e){} alEntrar(); };
+}
+function arrancar(alEntrar){
+  configurarLogin(alEntrar);
+  const g = sesionGuardada();
+  if(g){ AlumnoActual = g; alEntrar(); iniciarHeartbeatTiempo(); }
+  else if(esInvitado()){ alEntrar(); }
+}
+
+arrancar(() => { switchScreen('screen-juego'); nuevo(); });
+// Desafío Online: el profesor puede fijar el tipo de ejercicio (marcar | leer) o dejar la mezcla.
+window.TallerOnlineListo = function(O){
+  O.nivelFijo=true;
+  document.getElementById('bVolver').style.visibility='hidden';
+  document.getElementById('tabs').classList.add('hidden');
+  tipoFijoOnline = ['marcar','leer'].includes(O.sub) ? O.sub : null;
+  switchScreen('screen-juego'); nuevo(); O.iniciar();
+};
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script>window.TALLER_ACTIVIDAD='grupos';</script>
+<script type="module" src="online-taller.js"></script>
+</body>
+</html>
