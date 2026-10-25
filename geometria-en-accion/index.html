@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Geometría en acción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12); --surface-soft:rgba(255,255,255,.05);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{
+  margin:0; height:100%; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; overflow:hidden;
+}
+button{ font-family:inherit; }
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+.screen{ display:none; height:100dvh; width:100%; max-width:720px; margin:0 auto; padding:14px 14px 12px; flex-direction:column; animation:fadeIn .35s ease; }
+.screen.active{ display:flex; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:var(--transition);
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); padding:7px 14px; border-radius:999px;
+}
+.btn:hover:not(:disabled){ background:var(--surface-strong); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+.btn.verde{ background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.siguiente{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3d1f00; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.corte{ padding:5px 11px; min-width:34px; }
+.btn.sel, .btn.activo{ background:rgba(56,189,248,.22); border-color:var(--blue); color:var(--blue); }
+
+/* Login */
+#screen-login{ justify-content:center; align-items:center; gap:18px; }
+.hero{ text-align:center; }
+.hero h1{ font-size:clamp(1.6rem,7vw,2.2rem); font-weight:800; }
+.hero p{ margin:4px 0 0; color:var(--text-dim); font-weight:700; font-size:.95rem; }
+.login-card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:22px; width:100%; max-width:340px; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter:blur(6px); display:flex; flex-direction:column; gap:12px; }
+.login-card input{ width:100%; padding:12px; border-radius:var(--radius-sm); border:2px solid var(--border-soft); background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:700; font-size:1rem; text-align:center; outline:none; }
+.login-card input:focus{ border-color:var(--blue); }
+#loginError{ color:var(--error); font-weight:700; font-size:.82rem; min-height:1.2em; margin:0; text-align:center; }
+.login-card .btn{ width:100%; padding:11px; font-size:15px; }
+.login-card .btn.ghost{ color:var(--text-faint); font-size:13px; }
+#indicadorAlumno{ position:fixed; top:8px; right:12px; font-size:.78rem; color:var(--text-dim); font-weight:800; display:none; z-index:5; }
+
+/* Inicio: módulos */
+#screen-home{ gap:12px; justify-content:center; }
+.modulos{ display:flex; flex-direction:column; gap:9px; }
+.mod-card{ display:flex; align-items:center; gap:13px; height:78px; padding:0 16px; border-radius:var(--radius); text-align:left; width:100%;
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); box-shadow:var(--shadow); backdrop-filter:blur(6px); transition:var(--transition); }
+button.mod-card{ cursor:pointer; }
+button.mod-card:hover{ background:var(--surface-strong); transform:translateY(-2px); }
+.mod-card.pronto{ opacity:.5; box-shadow:none; }
+.mod-card .ico{ font-size:1.8rem; width:42px; text-align:center; flex:none; }
+.mod-card .tx{ flex:1; min-width:0; }
+.mod-card .letra{ font-size:.68rem; font-weight:800; color:var(--text-faint); letter-spacing:.8px; text-transform:uppercase; }
+.mod-card h3{ font-size:1.08rem; font-weight:800; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mod-card p{ margin:2px 0 0; font-size:.76rem; color:var(--text-dim); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mod-card .prog{ flex:none; text-align:right; font-family:var(--font-display); font-weight:800; font-size:.82rem; color:var(--accent); }
+.mod-card .barra{ width:64px; height:6px; border-radius:99px; background:rgba(255,255,255,.14); margin-top:4px; margin-left:auto; overflow:hidden; }
+.mod-card .barra i{ display:block; height:100%; background:var(--primary); border-radius:99px; }
+.mod-card .tag{ font-family:var(--font-display); font-weight:800; font-size:.74rem; color:var(--text-faint); border:1px dashed var(--border-soft); border-radius:999px; padding:3px 10px; }
+
+/* Módulo B */
+#screen-cuerpos, #screen-planas, #screen-mundo, #screen-taller{ gap:6px; }
+.topbar{ display:flex; align-items:center; gap:8px; flex:none; }
+.topbar .chip{ white-space:nowrap; font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--accent); background:var(--surface); border:1px solid var(--border-soft); border-radius:999px; padding:5px 12px; }
+.topbar .sp{ flex:1; }
+#stage3d, #stage2d, #stageC, #stageD, #stageE{ position:relative; flex:1 1 0; min-height:140px; border-radius:var(--radius); overflow:hidden;
+  background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.10), rgba(255,255,255,.02) 70%); border:1px solid var(--border-soft); }
+#cv{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; }
+#cv:active{ cursor:grabbing; }
+#cargando, #cargandoD{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:var(--font-display); font-weight:700; color:var(--text-dim); pointer-events:none; }
+#cargando.error, #cargandoD.error{ color:var(--error); }
+.pista{ transition:opacity .4s; position:absolute; left:0; right:0; bottom:6px; text-align:center; font-size:.72rem; color:var(--text-faint); font-weight:700; pointer-events:none; }
+.pregunta{ flex:none; text-align:center; font-family:var(--font-display); font-weight:800; line-height:1.1; padding:4px 8px 6px; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-sm); }
+.pregunta .q{ font-size:1.15rem; color:var(--text-dim); }
+.pregunta .kw{ font-size:2rem; letter-spacing:.8px; text-shadow:0 2px 14px rgba(255,255,255,.18); }
+.fr{ font-family:var(--font-display); font-weight:800; font-size:1rem; color:var(--text); white-space:nowrap; }
+.contador{ text-align:center; font-family:var(--font-display); font-weight:800; font-size:1.45rem; color:var(--text); line-height:1; }
+.contador small{ font-size:.85rem; color:var(--text-dim); margin-right:6px; font-weight:700; }
+.contador[data-k="caras"] .n, .kw.k-caras{ color:#4ade80; } .contador[data-k="aristas"] .n, .kw.k-aristas{ color:#60a5fa; } .contador[data-k="vertices"] .n, .kw.k-vertices{ color:#f87171; }
+#badge{ position:absolute; top:8px; left:8px; font-family:var(--font-display); font-weight:800; font-size:.85rem; background:rgba(30,17,71,.8); border:1px solid var(--border-soft); border-radius:999px; padding:3px 11px; color:var(--text); display:none; }
+#badge.on{ display:block; }
+.selector{ display:flex; align-items:center; gap:8px; flex:none; }
+.selector .nombre{ flex:1; text-align:center; font-family:var(--font-display); font-weight:800; font-size:1.1rem; line-height:1.1; }
+.selector .nombre small{ display:block; font-size:.7rem; color:var(--text-faint); font-weight:700; }
+.capas{ display:grid; gap:6px; flex:none; }
+.capa{ display:flex; flex-direction:column; align-items:center; gap:0; padding:5px 3px; border-radius:16px; cursor:pointer; background:var(--surface); border:2px solid var(--border-soft); color:var(--text); transition:var(--transition); font-family:var(--font-display); min-width:0; }
+.capa .t{ font-weight:800; font-size:.9rem; white-space:nowrap; }
+.capa .t b{ font-size:1rem; margin-right:3px; }
+.capa .n{ font-weight:700; font-size:.76rem; color:var(--text-dim); white-space:nowrap; }
+.capa .n em{ font-style:normal; color:var(--text); font-weight:800; }
+.capa[data-c="s"] b{ color:var(--accent); } .capa[data-c="a"] b{ color:var(--primary); } .capa[data-c="v"] b{ color:var(--pink); }
+.capa.act[data-c="s"]{ border-color:var(--accent); background:rgba(251,191,36,.14); }
+.capa.act[data-c="a"]{ border-color:var(--primary); background:rgba(52,211,153,.14); }
+.capa.act[data-c="v"]{ border-color:var(--pink); background:rgba(244,114,182,.14); }
+.capa.hecha .n{ color:var(--primary); }
+.panel-m{ flex:none; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:8px 10px; backdrop-filter:blur(6px); display:flex; flex-direction:column; gap:7px; }
+.msg{ min-height:2.5em; text-align:center; font-weight:700; font-size:.84rem; color:var(--text-dim); line-height:1.25; display:flex; align-items:center; justify-content:center; }
+.msg b{ color:var(--text); }
+.msg.mal{ color:var(--error); } .msg.bien{ color:var(--primary); } .msg.bien b{ color:var(--primary); }
+.guess{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.guess input{ width:52px; padding:6px 0; text-align:center; border-radius:var(--radius-sm); border:2px solid var(--border-soft); background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:800; font-size:1.2rem; outline:none; }
+.guess input:focus{ border-color:var(--blue); }
+.guess input:disabled{ opacity:.45; }
+.guess .btn{ white-space:nowrap; flex:none; padding:6px 10px; font-size:12.5px; }
+.guess .btn.corte{ min-width:30px; padding:5px 8px; }
+.guess .btn.verde, .guess .btn.siguiente{ padding:7px 12px; font-size:13.5px; }
+@media (max-width:400px){ .guess{ gap:4px; } .guess input{ width:42px; font-size:1.1rem; } .guess .btn.verde{ padding:7px 9px; font-size:13px; } }
+.guess.fin > :not(#btnOtra){ display:none; }
+.guess .btn.azul{ padding:8px 18px; }
+.info{ flex:none; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:8px 12px; backdrop-filter:blur(6px); display:flex; flex-direction:column; gap:3px; }
+.info .l1{ font-size:.86rem; color:var(--text); font-weight:700; line-height:1.25; }
+.info .l1 b{ color:var(--accent); }
+.info .l2 b{ color:var(--text); }
+.info .l3{ font-size:.72rem; color:var(--text-faint); font-weight:700; line-height:1.25; }
+.acciones-fila{ display:flex; gap:8px; justify-content:center; flex:none; }
+@media (max-height:660px){
+  .msg{ font-size:.78rem; min-height:2.3em; }
+  .info .l1{ font-size:.78rem; }
+  .panel-m{ padding:6px 8px; gap:5px; }
+  .screen{ padding:8px 12px 8px; }
+  .info .l3{ display:none; }
+  .mod-card{ height:66px; }
+  .capa{ padding:4px; }
+  .pista{ display:none; }
+}
+.msg.pista{ color:#fbbf24; }
+#stageE{ display:flex; flex-direction:column; gap:8px; padding:8px; }
+#preguntaE .kw{ font-size:1.5rem; }
+#stageE .evis{ flex:1 1 0; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; overflow:hidden; }
+#stageE .eobj{ width:100%; height:100%; min-height:0; } #stageE .eobj svg{ width:100%; height:100%; display:block; }
+.eclues{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:430px; }
+.eclue{ display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:7px 12px; font-weight:800; font-size:.95rem; }
+.eclue i{ font-style:normal; font-family:var(--font-display); background:var(--accent); color:#3d1f00; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; flex:none; }
+.ebig{ font-family:var(--font-display); font-weight:800; font-size:1.8rem; color:var(--accent); text-align:center; }
+.eopc{ flex:none; width:100%; gap:6px; } .eopc.g2{ display:grid; grid-template-columns:1fr 1fr; } .eopc.g1{ display:grid; grid-template-columns:1fr; } .eopc.fila{ display:flex; }
+.eop{ font-family:var(--font-display); color:var(--text); background:var(--surface-strong); border:2px solid var(--border-soft); border-radius:12px; padding:9px 6px; font-weight:800; font-size:.95rem; line-height:1.15; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:var(--transition); }
+.eopc.fila .eop{ flex:1 1 0; min-width:0; } .eopc.g1 .eop{ font-size:.86rem; padding:8px 10px; text-align:left; font-weight:700; align-items:flex-start; }
+.eop.tile svg{ width:100%; height:auto; aspect-ratio:1; max-height:72px; } .eop.tile span{ font-size:.66rem; font-weight:700; color:var(--text-dim); }
+.eop.sel{ border-color:#fbbf24; background:rgba(251,191,36,.18); } .eop.ok{ background:#16a34a; border-color:#4ade80; color:#fff; } .eop.no{ background:#be123c; border-color:#fb7185; color:#fff; } .eop:disabled{ cursor:default; opacity:1; }
+.eop.tile.ok{ background:rgba(22,163,74,.55); } .eop.tile.no{ background:rgba(190,18,60,.55); } .eop.tile.ok span,.eop.tile.no span{ color:#fff; }
+@media (max-height:660px){ .eop{ padding:6px 4px; font-size:.86rem; } .eop.tile svg{ max-height:54px; } .ebig{ font-size:1.4rem; } .eclue{ padding:5px 10px; font-size:.86rem; } #preguntaE .kw{ font-size:1.25rem; } }
+.kw.k-nombre{ color:#fbbf24; } .opciones{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.opciones .opc{ padding:9px 6px; font-size:14px; white-space:nowrap; }
+.opciones .opc.ok{ background:#16a34a; border-color:#4ade80; color:#fff; } .opciones .opc.no{ background:#be123c; border-color:#fb7185; color:#fff; } .opciones .opc:disabled{ opacity:1; cursor:default; }
+#svgC{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:block; border-radius:14px; overflow:hidden; }
+#cvD{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; }
+.plegar{ display:flex; align-items:center; gap:10px; }
+.plegar input{ flex:1; accent-color:#38bdf8; min-width:0; }
+.opciones.largas .opc{ white-space:normal; line-height:1.15; font-size:13px; padding:7px 6px; }
+.opciones .opc.sel{ border-color:#fbbf24; background:rgba(251,191,36,.18); }
+.kw.k-lados{ color:#60a5fa; } .contador[data-k="lados"] .n{ color:#60a5fa; }
+#svg2d{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; }
+#svg2d:active{ cursor:grabbing; }
+#stage2d .pista{ right:96px; text-align:left; padding-left:12px; }
+.zbtns{ position:absolute; right:8px; bottom:8px; display:flex; gap:6px; z-index:2; }
+.zbtns .btn{ min-width:38px; padding:5px 10px; font-size:16px; }
+.fin-card{ margin:auto; max-width:380px; width:100%; background:#2a1566; border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px; text-align:center; box-shadow:var(--shadow); }
+.fin-card h2{ font-size:1.4rem; } .fin-card .gran{ font-family:var(--font-display); font-weight:800; font-size:2.6rem; color:var(--accent); line-height:1.1; }
+.fin-ref{ margin:8px 0 2px; font-size:.86rem; color:var(--text-dim); } .fin-btns{ display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+.overlay{ position:fixed; inset:0; z-index:100000; background:rgba(10,4,30,.7); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px; }
+body.online-fijo #btnInicio, body.online-fijo #btnInicioA, body.online-fijo #btnInicioC, body.online-fijo #btnInicioD, body.online-fijo #btnInicioE{ display:none; }
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; }
+</style>
+</head>
+<body>
+<div id="indicadorAlumno"></div>
+
+<!-- LOGIN -->
+<div class="screen active" id="screen-login">
+  <div class="hero"><h1>🔷 Geometría en acción</h1><p>Explora, construye y descubre</p></div>
+  <div class="login-card">
+    <input type="text" id="loginUsuario" placeholder="Usuario" autocomplete="off" maxlength="30">
+    <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="off" maxlength="30">
+    <p id="loginError"></p>
+    <button class="btn verde" id="btnLoginEntrar">Ingresar</button>
+    <button class="btn ghost" type="button" id="btnSinLogin">Entrar sin cuenta</button>
+  </div>
+</div>
+
+<!-- INICIO -->
+<div class="screen" id="screen-home">
+  <div class="hero"><h1>🔷 Geometría en acción</h1><p>Explora, construye y descubre</p><p id="indicadorOnline" style="display:none; margin-top:8px; font-size:.82rem; font-weight:800; color:var(--primary);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p></div>
+  <div class="modulos" id="listaModulos"></div>
+</div>
+
+<!-- MÓDULO B: CUERPOS -->
+<div class="screen" id="screen-cuerpos">
+  <div class="topbar">
+    <button class="btn corte" id="btnInicio">← Módulos</button>
+    <span class="chip" id="chipPreg">Pregunta 1</span>
+    <span class="chip" id="chipHip" title="Hipótesis acertadas a la primera">💡 0</span>
+    <span class="sp"></span>
+    <button class="btn corte" id="btnVista" title="Volver a la vista inicial">↺ Vista</button>
+  </div>
+  <div class="pregunta" id="pregunta"></div>
+  <div id="stage3d">
+    <canvas id="cv" aria-label="Modelo 3D: arrastra para girar"></canvas>
+    <div id="cargando">Cargando modelo 3D…</div>
+    <div class="pista">Arrastra para girar · pellizca o usa la rueda para acercar</div>
+  </div>
+  <div class="panel-m">
+    <div class="msg" id="msg"></div>
+    <div class="guess" id="fila1">
+      <span class="fr" id="txtCreo">Creo que tiene</span>
+      <button class="btn corte" id="btnMenos" aria-label="Menos">−</button>
+      <input id="inpGuess" type="text" inputmode="numeric" maxlength="2" placeholder="?" aria-label="Tu hipótesis">
+      <button class="btn corte" id="btnMas" aria-label="Más">+</button>
+      <span class="fr" id="txtElem">vértices.</span>
+    </div>
+    <div class="contador" id="fila2"></div>
+    <div class="guess" id="filaB">
+      <button class="btn azul" id="btnPrincipal">Esa es mi hipótesis ▶</button>
+      <button class="btn corte" id="btnLimpiar" title="Quitar todas las marcas">Limpiar</button>
+      <button class="btn" id="btnNoMas">Ya no hay más</button>
+      <button class="btn siguiente" id="btnOtra" style="display:none">Jugar otra vez ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- MÓDULO A: FIGURAS PLANAS -->
+<div class="screen" id="screen-planas">
+  <div class="topbar">
+    <button class="btn corte" id="btnInicioA">← Módulos</button>
+    <span class="chip" id="chipPregA">Pregunta 1</span>
+    <span class="chip" id="chipHipA" title="Hipótesis acertadas a la primera">💡 0</span>
+    <span class="sp"></span>
+    <button class="btn corte" id="btnVistaA" title="Volver a la vista inicial">↺ Vista</button>
+  </div>
+  <div class="pregunta" id="preguntaA"></div>
+  <div id="stage2d">
+    <svg id="svg2d" aria-label="Figura plana: arrastra para girar"></svg>
+    <div class="zbtns"><button class="btn corte" id="btnZMenos" aria-label="Más pequeña">−</button><button class="btn corte" id="btnZMas" aria-label="Más grande">+</button></div>
+    <div class="pista">Arrastra para girar la figura</div>
+  </div>
+  <div class="panel-m">
+    <div class="msg" id="msgA"></div>
+    <div class="guess" id="fila1A">
+      <span class="fr">Creo que tiene</span>
+      <button class="btn corte" id="btnMenosA" aria-label="Menos">−</button>
+      <input id="inpGuessA" type="text" inputmode="numeric" maxlength="2" placeholder="?" aria-label="Tu hipótesis">
+      <button class="btn corte" id="btnMasA" aria-label="Más">+</button>
+      <span class="fr" id="txtElemA">lados.</span>
+    </div>
+    <div class="opciones" id="opcionesA" style="display:none"></div>
+    <div class="contador" id="fila2A"></div>
+    <div class="guess" id="filaBA">
+      <button class="btn azul" id="btnPrincipalA">Esa es mi hipótesis ▶</button>
+      <button class="btn corte" id="btnLimpiarA" title="Quitar todas las marcas">Limpiar</button>
+      <button class="btn" id="btnNoMasA">Ya no hay más</button>
+    </div>
+  </div>
+</div>
+
+<!-- MÓDULO C: GEOMETRÍA EN EL MUNDO -->
+<div class="screen" id="screen-mundo">
+  <div class="topbar">
+    <button class="btn corte" id="btnInicioC">← Módulos</button>
+    <span class="chip" id="chipPregC">Pregunta 1</span>
+    <span class="chip" id="chipHipC" title="Aciertos a la primera">💡 0</span>
+  </div>
+  <div class="pregunta" id="preguntaC"></div>
+  <div id="stageC">
+    <svg id="svgC" viewBox="0 0 320 220" aria-label="Ilustración"></svg>
+  </div>
+  <div class="panel-m">
+    <div class="msg" id="msgC"></div>
+    <div class="guess" id="fila1C">
+      <span class="fr">Creo que hay</span>
+      <button class="btn corte" id="btnMenosC" aria-label="Menos">−</button>
+      <input id="inpGuessC" type="text" inputmode="numeric" maxlength="2" placeholder="?" aria-label="Tu hipótesis">
+      <button class="btn corte" id="btnMasC" aria-label="Más">+</button>
+      <span class="fr" id="txtElemC">círculos.</span>
+    </div>
+    <div class="opciones" id="opcionesC" style="display:none"></div>
+    <div class="contador" id="fila2C"></div>
+    <div class="guess">
+      <button class="btn azul" id="btnPrincipalC">Esa es mi hipótesis ▶</button>
+      <button class="btn corte" id="btnLimpiarC" title="Quitar todas las marcas">Limpiar</button>
+      <button class="btn" id="btnNoMasC">Ya no hay más</button>
+    </div>
+  </div>
+</div>
+
+<!-- MÓDULO D: TALLER DE DESARROLLOS -->
+<div class="screen" id="screen-taller">
+  <div class="topbar">
+    <button class="btn corte" id="btnInicioD">← Módulos</button>
+    <span class="chip" id="chipPregD">Pregunta 1</span>
+    <span class="chip" id="chipHipD" title="Aciertos a la primera">💡 0</span>
+    <span class="sp"></span>
+    <button class="btn corte" id="btnVistaD" title="Volver a la vista inicial">↺ Vista</button>
+  </div>
+  <div class="pregunta" id="preguntaD"></div>
+  <div id="stageD">
+    <canvas id="cvD" aria-label="Desarrollo plano y cuerpo en 3D"></canvas>
+    <div id="cargandoD">Cargando modelo 3D…</div>
+  </div>
+  <div class="panel-m">
+    <div class="msg" id="msgD"></div>
+    <div class="opciones" id="opcionesD"></div>
+    <div class="plegar" id="filaPlegarD">
+      <input type="range" id="sliderD" min="0" max="100" value="0" aria-label="Plegar o desplegar">
+      <button class="btn azul" id="btnPlegarD">Plegar ▶</button>
+    </div>
+    <div class="guess" id="filaConfD" style="display:none"><button class="btn azul" id="btnConfirmarD">Esa es mi respuesta ▶</button></div>
+    <div class="guess" id="filaSigD" style="display:none"><button class="btn siguiente" id="btnPrincipalD">Siguiente ▶</button></div>
+  </div>
+</div>
+
+<!-- MÓDULO E: MISIONES -->
+<div class="screen" id="screen-misiones">
+  <div class="topbar">
+    <button class="btn corte" id="btnInicioE">← Módulos</button>
+    <span class="chip" id="chipMisionE">Misión 1</span>
+    <span class="chip" id="chipHipE" title="Pasos acertados a la primera">💡 0</span>
+  </div>
+  <div class="pregunta" id="preguntaE"></div>
+  <div id="stageE"></div>
+  <div class="panel-m">
+    <div class="msg" id="msgE"></div>
+    <div class="guess" id="filaListoE" style="display:none"><button class="btn azul" id="btnListoE">Listo ▶</button></div>
+    <div class="guess" id="filaSigE" style="display:none"><button class="btn siguiente" id="btnSigE">Siguiente ▶</button></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   1. DATOS GEOMÉTRICOS
+   Cada cuerpo se define SOLO con vértices y caras (listas de índices).
+   Aristas, conteos, tipos de cara, etc. se DERIVAN en la sección 2.
+   ===================================================================== */
+const META = {
+  caras:   { sim:'▱', nom:'Caras',    cls:'s', uno:'cara',    varias:'caras' },
+  aristas: { sim:'／', nom:'Aristas',  cls:'a', uno:'arista',  varias:'aristas' },
+  vertices:{ sim:'●', nom:'Vértices', cls:'v', uno:'vértice', varias:'vértices' },
+};
+const PLURAL = { 'triángulo':'triángulos','cuadrado':'cuadrados','rectángulo':'rectángulos','cuadrilátero':'cuadriláteros','pentágono':'pentágonos','hexágono':'hexágonos' };
+
+function cajaDef(w, h, d){
+  const x = w/2, y = h/2, z = d/2;
+  return { verts:[[-x,-y,-z],[x,-y,-z],[x,y,-z],[-x,y,-z],[-x,-y,z],[x,-y,z],[x,y,z],[-x,y,z]],
+           faces:[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[0,4,7,3],[1,2,6,5]] };
+}
+function poligono(n, r, y){
+  return Array.from({length:n}, (_, i) => { const a = Math.PI/2 + 2*Math.PI*i/n; return [r*Math.cos(a), y, r*Math.sin(a)]; });
+}
+function prismaDef(n, r, h){
+  const verts = poligono(n, r, -h/2).concat(poligono(n, r, h/2));
+  const faces = [Array.from({length:n}, (_, i) => i), Array.from({length:n}, (_, i) => n + i)];
+  for(let i = 0; i < n; i++) faces.push([i, (i+1)%n, n + (i+1)%n, n + i]);
+  return { verts, faces };
+}
+function piramideDef(n, r, h){
+  const verts = poligono(n, r, -h/2).concat([[0, h/2, 0]]);
+  const faces = [Array.from({length:n}, (_, i) => i)];
+  for(let i = 0; i < n; i++) faces.push([i, (i+1)%n, n]);
+  return { verts, faces };
+}
+const CUERPOS = [
+  { id:'cubo', art:'el',          nombre:'Cubo',                           clase:'poliedro', familia:'prisma',   n:4, def:() => cajaDef(1.6, 1.6, 1.6),
+    nota:'Todas sus caras son cuadrados iguales.' },
+  { id:'ortoedro', art:'el', clase:'poliedro',      nombre:'Paralelepípedo (ortoedro)',      familia:'prisma',   n:4, def:() => cajaDef(2.0, 1.0, 1.3),
+    nota:'Sus caras son rectángulos; las opuestas son iguales.' },
+  { id:'prisma-tri', art:'el', clase:'poliedro',    nombre:'Prisma triangular',              familia:'prisma',   n:3, def:() => prismaDef(3, 1.2, 1.8),
+    nota:'Dos bases triangulares iguales y paralelas, unidas por rectángulos.' },
+  { id:'prisma-pent', art:'el', clase:'poliedro',   nombre:'Prisma pentagonal',              familia:'prisma',   n:5, def:() => prismaDef(5, 1.1, 1.7),
+    nota:'Dos bases pentagonales iguales y paralelas, unidas por rectángulos.' },
+  { id:'prisma-hex', art:'el', clase:'poliedro',    nombre:'Prisma hexagonal',               familia:'prisma',   n:6, def:() => prismaDef(6, 1.1, 1.6),
+    nota:'Dos bases hexagonales iguales y paralelas, unidas por rectángulos.' },
+  { id:'piramide-cuad', art:'la', clase:'poliedro', nombre:'Pirámide de base cuadrada',      familia:'pirámide', n:4, def:() => piramideDef(4, 1.15, 1.8),
+    nota:'Una base cuadrada y 4 triángulos que se juntan en la punta.' },
+  { id:'piramide-tri', art:'la', clase:'poliedro',  nombre:'Pirámide triangular',            familia:'pirámide', n:3, def:() => piramideDef(3, 1.25, 1.8),
+    nota:'Una base triangular y 3 triángulos que se juntan en la punta.' },
+  { id:'piramide-pent', art:'la', clase:'poliedro', nombre:'Pirámide pentagonal',            familia:'pirámide', n:5, def:() => piramideDef(5, 1.15, 1.8),
+    nota:'Una base pentagonal y 5 triángulos que se juntan en la punta.' },
+  /* Cuerpos redondos: NO son poliedros. Convención del profe: cara = cualquier superficie (plana o curva);
+     arista = línea donde se juntan dos caras (aquí, una circunferencia); vértice = punta. */
+  { id:'esfera',   art:'la', nombre:'Esfera',   clase:'curvo', nota:'Toda su superficie es redonda.',
+    piezas:[ { k:'caras', tipo:'curva', forma:'esfera', r:1.3 } ] },
+  { id:'cono',     art:'el', nombre:'Cono',     clase:'curvo', nota:'Una base plana redonda y una superficie curva que termina en una punta.',
+    piezas:[ { k:'caras', tipo:'plana', forma:'disco', y:-.95, r:1.1, dir:-1 }, { k:'caras', tipo:'curva', forma:'cono', r:1.1, h:1.9 },
+             { k:'aristas', forma:'circulo', y:-.95, r:1.1 }, { k:'vertices', forma:'punto', p:[0, .95, 0] } ] },
+  { id:'cilindro', art:'el', nombre:'Cilindro', clase:'curvo', nota:'Dos bases planas redondas unidas por una superficie curva.',
+    piezas:[ { k:'caras', tipo:'plana', forma:'disco', y:.9, r:1, dir:1 }, { k:'caras', tipo:'plana', forma:'disco', y:-.9, r:1, dir:-1 }, { k:'caras', tipo:'curva', forma:'lateral', r:1, h:1.8 },
+             { k:'aristas', forma:'circulo', y:.9, r:1 }, { k:'aristas', forma:'circulo', y:-.9, r:1 } ] },
+];
+
+/* =====================================================================
+   2. LÓGICA DE CONTEO Y VALIDACIÓN (todo sale de vértices + caras)
+   ===================================================================== */
+const v3 = {
+  sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  len:a=>Math.hypot(a[0],a[1],a[2]), media:l=>{ const s=[0,0,0]; l.forEach(p=>{s[0]+=p[0];s[1]+=p[1];s[2]+=p[2];}); return s.map(x=>x/l.length); },
+};
+function nombrePoligono(n){ return ({3:'triángulo',4:'cuadrilátero',5:'pentágono',6:'hexágono'})[n] || (n + '-ágono'); }
+
+/* Normaliza (centra y escala) y analiza. Devuelve el modelo con todo derivado. */
+function analizarCuerpo(cuerpo){
+  const raw = cuerpo.def();
+  const c0 = v3.media(raw.verts);
+  let verts = raw.verts.map(p => v3.sub(p, c0));
+  const R = Math.max(...verts.map(v3.len));
+  verts = verts.map(p => p.map(x => x * 1.55 / R));
+  const cent = v3.media(verts);
+
+  const caras = raw.faces.map(idx => {
+    let lazo = idx.slice();
+    const nrm = [0,0,0];
+    for(let i = 0; i < lazo.length; i++){
+      const p = verts[lazo[i]], q = verts[lazo[(i+1)%lazo.length]];
+      nrm[0] += (p[1]-q[1])*(p[2]+q[2]); nrm[1] += (p[2]-q[2])*(p[0]+q[0]); nrm[2] += (p[0]-q[0])*(p[1]+q[1]);
+    }
+    let L = v3.len(nrm); let normal = nrm.map(x => x / L);
+    const centro = v3.media(lazo.map(i => verts[i]));
+    if(v3.dot(normal, v3.sub(centro, cent)) < 0){ lazo.reverse(); normal = normal.map(x => -x); }
+    const pts = lazo.map(i => verts[i]);
+    const lados = pts.map((p, i) => v3.len(v3.sub(pts[(i+1)%pts.length], p)));
+    const rectos = pts.every((p, i) => {
+      const a = v3.sub(pts[(i+1)%pts.length], p), b = v3.sub(pts[(i+pts.length-1)%pts.length], p);
+      return Math.abs(v3.dot(a, b)) < 1e-6 * (v3.len(a) * v3.len(b) + 1);
+    });
+    const iguales = lados.every(l => Math.abs(l - lados[0]) < 1e-6);
+    let tipo = nombrePoligono(lazo.length);
+    if(lazo.length === 4) tipo = rectos ? (iguales ? 'cuadrado' : 'rectángulo') : 'cuadrilátero';
+    const planitud = Math.max(...pts.map(p => Math.abs(v3.dot(normal, v3.sub(p, centro)))));
+    return { lazo, normal, centro, lados:lazo.length, tipo, planitud };
+  });
+
+  const mapa = new Map(), aristas = [];
+  caras.forEach((cara, fi) => {
+    cara.lazo.forEach((a, i) => {
+      const b = cara.lazo[(i+1)%cara.lazo.length], k = Math.min(a,b) + '-' + Math.max(a,b);
+      if(!mapa.has(k)){ const e = { a:Math.min(a,b), b:Math.max(a,b), caras:[] }; mapa.set(k, e); aristas.push(e); }
+      mapa.get(k).caras.push(fi);
+    });
+  });
+  const gradoV = verts.map((_, vi) => aristas.filter(e => e.a === vi || e.b === vi).length);
+  const carasDeV = verts.map((_, vi) => caras.filter(f => f.lazo.includes(vi)).length);
+  const V = verts.length, E = aristas.length, F = caras.length;
+  const validez = {
+    euler: V - E + F === 2,
+    cadaAristaDosCaras: aristas.every(e => e.caras.length === 2),
+    carasPlanas: caras.every(f => f.planitud < 1e-6),
+    verticesUsados: verts.every((_, i) => carasDeV[i] >= 3),
+  };
+  const resumen = {};
+  caras.forEach(f => resumen[f.tipo] = (resumen[f.tipo] || 0) + 1);
+  const misiones = [ { ...META.caras, k:'caras', total:F }, { ...META.aristas, k:'aristas', total:E }, { ...META.vertices, k:'vertices', total:V } ];
+  return { cuerpo, clase:'poliedro', misiones, verts, caras, aristas, gradoV, carasDeV, V, E, F, resumen, validez, ok:Object.values(validez).every(Boolean) };
+}
+/* Cuerpos redondos: los totales salen de contar las piezas definidas (no de números escritos aparte) */
+function analizarCurvo(cuerpo){
+  const orden = ['caras','aristas','vertices'];
+  const misiones = orden.map(k => ({ ...META[k], k, total:cuerpo.piezas.filter(p => p.k === k).length }));
+  const planas = cuerpo.piezas.filter(p => p.k === 'caras' && p.tipo === 'plana').length;
+  const curvas = cuerpo.piezas.filter(p => p.k === 'caras' && p.tipo === 'curva').length;
+  return { cuerpo, clase:'curvo', misiones, piezas:cuerpo.piezas, planas, curvas, ok:cuerpo.piezas.every(p => orden.includes(p.k)) };
+}
+function textoComposicion(m){
+  if(m.clase === 'curvo'){
+    const t = [];
+    if(m.planas) t.push(`${m.planas} plana${m.planas === 1 ? '' : 's'}`);
+    if(m.curvas) t.push(`${m.curvas} curva${m.curvas === 1 ? '' : 's'}`);
+    return t.join(' + ');
+  }
+  return Object.entries(m.resumen).map(([t, k]) => `${k} ${k === 1 ? t : (PLURAL[t] || t + 's')}`).join(' + ');
+}
+function formulaFamilia(m){
+  const { familia, n } = m.cuerpo;
+  if(familia === 'prisma') return { caras:`n + 2 = ${n} + 2 = ${n+2}`, aristas:`3n = 3·${n} = ${3*n}`, vertices:`2n = 2·${n} = ${2*n}`, esperado:[n+2, 3*n, 2*n] };
+  return { caras:`n + 1 = ${n} + 1 = ${n+1}`, aristas:`2n = 2·${n} = ${2*n}`, vertices:`n + 1 = ${n} + 1 = ${n+1}`, esperado:[n+1, 2*n, n+1] };
+}
+
+/* =====================================================================
+   3. ESCENA 3D (Three.js) E INTERACCIÓN CON LOS MODELOS
+   ===================================================================== */
+let THREE = null;
+const Esc = {
+  listo:false, renderer:null, escena:null, camara:null, grupo:null,
+  modelo:null, malla:{}, golpe:{}, zoom:1, base:5, pendiente:false, anim:null,
+};
+/* Marcas: caras verdes, aristas azules, vértices rojos. Las caras sin marcar son gris-lila para que las tres se vean bien. */
+const COL = { cara:0xa9a3d6, caraSel:0x22c55e, arista:0xe8e2ff, aristaSel:0x3b82f6, vert:0xf6f3ff, vertSel:0xef4444 };
+const VISTA0 = [.5, -.7, 0];
+
+async function iniciar3D(){
+  if(Esc.listo) return true;
+  const cargando = document.getElementById('cargando');
+  try{
+    THREE = await import('three');
+    const cv = document.getElementById('cv');
+    const gl = cv.getContext('webgl2') || cv.getContext('webgl');
+    if(!gl) throw new Error('Este dispositivo no permite gráficos 3D (WebGL).');
+    Esc.renderer = new THREE.WebGLRenderer({ canvas:cv, antialias:true, alpha:true });
+    Esc.renderer.setClearColor(0x000000, 0);
+    Esc.escena = new THREE.Scene();
+    Esc.camara = new THREE.PerspectiveCamera(40, 1, 0.1, 50);
+    Esc.escena.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const luz = new THREE.DirectionalLight(0xffffff, 1.5); luz.position.set(3, 5, 4); Esc.escena.add(luz);
+    const luz2 = new THREE.DirectionalLight(0xb8a8ff, 0.5); luz2.position.set(-4, -2, -3); Esc.escena.add(luz2);
+    Esc.grupo = new THREE.Group(); Esc.escena.add(Esc.grupo);
+    Esc.raycaster = new THREE.Raycaster();
+    new ResizeObserver(ajustarTamano).observe(document.getElementById('stage3d'));
+    conectarPunteros(cv);
+    Esc.listo = true; cargando.style.display = 'none';
+    ajustarTamano();
+    return true;
+  }catch(err){
+    console.error(err);
+    cargando.classList.add('error');
+    cargando.textContent = 'No se pudo cargar el modelo 3D. Revisa tu conexión e inténtalo de nuevo.';
+    return false;
+  }
+}
+function ajustarTamano(){
+  if(!Esc.listo) return;
+  const st = document.getElementById('stage3d'), w = st.clientWidth, h = st.clientHeight;
+  if(!w || !h) return;
+  Esc.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  Esc.renderer.setSize(w, h, false);
+  Esc.camara.aspect = w / h;
+  Esc.base = Math.max(4.7, 5.0 / Esc.camara.aspect);
+  actualizarCamara();
+}
+function actualizarCamara(){
+  Esc.camara.position.set(0, 0, Esc.base * Esc.zoom);
+  Esc.camara.lookAt(0, 0, 0); Esc.camara.updateProjectionMatrix();
+  /* las zonas táctiles crecen al alejar la vista, para que el dedo siempre alcance */
+  const f = Math.max(1, Esc.zoom);
+  for(const k in Esc.golpe) Esc.golpe[k].forEach(o => {
+    if(o.userData.escala === 'cil'){ o.scale.x = o.scale.z = o.userData.rBase * f; }
+    else if(o.userData.escala === 'esf'){ o.scale.setScalar(o.userData.rBase * f); }
+  });
+  pedirRender();
+}
+function pedirRender(){
+  if(Esc.pendiente || !Esc.listo) return;
+  Esc.pendiente = true;
+  requestAnimationFrame(() => { Esc.pendiente = false; Esc.renderer.render(Esc.escena, Esc.camara); });
+}
+
+/* ---------- Construcción de las mallas ---------- */
+function limpiarGrupo(){
+  while(Esc.grupo.children.length){
+    const o = Esc.grupo.children.pop();
+    o.traverse(h => { if(h.geometry) h.geometry.dispose(); if(h.material){ h.material.map = null; h.material.dispose(); } });
+  }
+  Esc.malla = {}; Esc.golpe = {};
+  for(const mi of Esc.modelo.misiones){ Esc.malla[mi.k] = []; Esc.golpe[mi.k] = []; }
+}
+/* Manchas suaves pintadas sobre la superficie: giran junto con el cuerpo y dejan notar el movimiento
+   (sin ellas, una esfera lisa parece no girar). No son líneas, así que no se confunden con aristas. */
+let _tex = null;
+function texturaGiro(){
+  if(_tex) return _tex;
+  const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'); g.fillStyle = '#d6d6de'; g.fillRect(0, 0, W, H);
+  let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for(let i = 0; i < 46; i++){          // manchas solo en la franja central: los polos quedan lisos (sin deformarse)
+    const x = rnd() * W, y = H * (.2 + rnd() * .6), r = 22 + rnd() * 34, oscuro = i % 2 === 0;
+    for(const dx of [-W, 0, W]){
+      const gr = g.createRadialGradient(x + dx, y, 0, x + dx, y, r);
+      gr.addColorStop(0, oscuro ? 'rgba(45,30,120,.42)' : 'rgba(255,255,255,1)'); gr.addColorStop(1, oscuro ? 'rgba(45,30,120,0)' : 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(x + dx - r, y - r, 2 * r, 2 * r);
+    }
+  }
+  _tex = new THREE.CanvasTexture(c); _tex.wrapS = THREE.RepeatWrapping; if(THREE.SRGBColorSpace) _tex.colorSpace = THREE.SRGBColorSpace;
+  return _tex;
+}
+function matSuperficie(){
+  return new THREE.MeshStandardMaterial({ color:COL.cara, roughness:.55, metalness:.05, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+}
+const matInvisible = () => new THREE.MeshBasicMaterial({ visible:false });
+function añadirVertice(k, idx, p){
+  const vis = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshStandardMaterial({ color:COL.vert, roughness:.3 }));
+  vis.scale.setScalar(.075); vis.position.set(...p); vis.userData = { k, idx };
+  const hit = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), matInvisible());
+  hit.scale.setScalar(.15); hit.position.set(...p); hit.userData = { k, idx, escala:'esf', rBase:.15 };
+  Esc.grupo.add(vis, hit); Esc.malla[k][idx] = vis; Esc.golpe[k][idx] = hit;
+}
+function construirPoliedro(m){
+  const V3 = p => new THREE.Vector3(p[0], p[1], p[2]);
+  m.caras.forEach((c, fi) => {
+    const pos = [];
+    for(let i = 1; i < c.lazo.length - 1; i++) [c.lazo[0], c.lazo[i], c.lazo[i+1]].forEach(k => pos.push(...m.verts[k]));
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+    const mat = matSuperficie(); mat.side = THREE.FrontSide;
+    const mesh = new THREE.Mesh(g, mat); mesh.userData = { k:'caras', idx:fi };
+    Esc.grupo.add(mesh); Esc.malla.caras[fi] = mesh; Esc.golpe.caras[fi] = mesh;
+  });
+  const eje = new THREE.Vector3(0, 1, 0);
+  m.aristas.forEach((e, ei) => {
+    const a = V3(m.verts[e.a]), b = V3(m.verts[e.b]), dir = b.clone().sub(a), largo = dir.length();
+    const q = new THREE.Quaternion().setFromUnitVectors(eje, dir.clone().normalize()), mid = a.clone().add(b).multiplyScalar(.5);
+    const vis = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 10), new THREE.MeshStandardMaterial({ color:COL.arista, roughness:.4 }));
+    vis.scale.set(.032, largo, .032); vis.position.copy(mid); vis.quaternion.copy(q); vis.userData = { k:'aristas', idx:ei, escala:'cil' };
+    const hit = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8), matInvisible());
+    hit.scale.set(.085, largo, .085); hit.position.copy(mid); hit.quaternion.copy(q); hit.userData = { k:'aristas', idx:ei, escala:'cil', rBase:.085 };
+    Esc.grupo.add(vis, hit); Esc.malla.aristas[ei] = vis; Esc.golpe.aristas[ei] = hit;
+  });
+  m.verts.forEach((p, vi) => añadirVertice('vertices', vi, p));
+}
+function construirCurvo(m){
+  const cuenta = {};
+  m.piezas.forEach(pz => {
+    const k = pz.k, idx = cuenta[k] = (cuenta[k] === undefined ? 0 : cuenta[k] + 1);
+    if(pz.forma === 'punto'){ añadirVertice(k, idx, pz.p); return; }
+    if(pz.forma === 'circulo'){
+      const vis = new THREE.Mesh(new THREE.TorusGeometry(pz.r, .032, 8, 72), new THREE.MeshStandardMaterial({ color:COL.arista, roughness:.4 }));
+      vis.rotation.x = Math.PI / 2; vis.position.y = pz.y; vis.userData = { k, idx };
+      const gruesa = new THREE.Mesh(new THREE.TorusGeometry(pz.r, .075, 8, 72), new THREE.MeshStandardMaterial({ color:COL.aristaSel, emissive:0x1d3fa8, roughness:.4 }));
+      gruesa.rotation.x = Math.PI / 2; gruesa.position.y = pz.y; gruesa.visible = false; vis.userData.gruesa = gruesa;
+      const hit = new THREE.Mesh(new THREE.TorusGeometry(pz.r, .11, 8, 48), matInvisible());
+      hit.rotation.x = Math.PI / 2; hit.position.y = pz.y; hit.userData = { k, idx };
+      Esc.grupo.add(vis, gruesa, hit); Esc.malla[k][idx] = vis; Esc.golpe[k][idx] = hit; return;
+    }
+    let g;
+    if(pz.forma === 'disco') g = new THREE.CircleGeometry(pz.r, 64);
+    else if(pz.forma === 'lateral') g = new THREE.CylinderGeometry(pz.r, pz.r, pz.h, 64, 1, true);
+    else if(pz.forma === 'cono') g = new THREE.ConeGeometry(pz.r, pz.h, 64, 1, true);
+    else g = new THREE.SphereGeometry(pz.r, 56, 36);
+    const mat = matSuperficie(); mat.map = texturaGiro();
+    const mesh = new THREE.Mesh(g, mat); mesh.userData = { k, idx };
+    if(pz.forma === 'disco'){ mesh.rotation.x = pz.dir > 0 ? -Math.PI / 2 : Math.PI / 2; mesh.position.y = pz.y; }
+    Esc.grupo.add(mesh); Esc.malla[k][idx] = mesh; Esc.golpe[k][idx] = mesh;
+  });
+}
+function construirModelo(m){
+  limpiarGrupo();
+  if(m.clase === 'poliedro') construirPoliedro(m); else construirCurvo(m);
+  Esc.grupo.rotation.set(...VISTA0);
+  pintarSeleccion();
+}
+/* Solo se pintan las marcas de la pregunta actual; las caras son siempre opacas */
+function pintarSeleccion(){
+  const q = preg(); if(!q) return;
+  for(const mi of Esc.modelo.misiones){
+    const k = mi.k, marcas = k === q.k ? Sesion.marcas : new Set();
+    Esc.malla[k].forEach((o, i) => {
+      const s = marcas.has(i);
+      if(mi.cls === 's'){ o.material.color.setHex(s ? COL.caraSel : COL.cara); o.material.emissive.setHex(s ? 0x0b4d22 : 0); }
+      else if(mi.cls === 'a'){
+        if(o.userData.gruesa){ o.userData.gruesa.visible = s; }
+        else { o.material.color.setHex(s ? COL.aristaSel : COL.arista); o.material.emissive.setHex(s ? 0x1d3fa8 : 0); o.scale.x = o.scale.z = s ? .075 : .032; }
+      } else { o.material.color.setHex(s ? COL.vertSel : COL.vert); o.material.emissive.setHex(s ? 0x7a1111 : 0); o.scale.setScalar(s ? .13 : .075); }
+    });
+  }
+  pedirRender();
+}
+
+/* Devuelve el elemento tocado (de cualquier tipo) que realmente se ve: las caras opacas tapan lo de atrás.
+   Cerca de una punta gana el vértice; cerca de una línea, la arista; si no, la cara. */
+function elegirEn(clientX, clientY){
+  const q = preg(); if(!q || Sesion.fase !== 2 || Sesion.bloqueado || Sesion.terminada) return null;
+  const cv = document.getElementById('cv'), r = cv.getBoundingClientRect();
+  Esc.grupo.updateMatrixWorld(true); Esc.camara.updateMatrixWorld(true);
+  Esc.raycaster.setFromCamera({ x:((clientX - r.left) / r.width) * 2 - 1, y:-((clientY - r.top) / r.height) * 2 + 1 }, Esc.camara);
+  // al pedir caras, las zonas de aristas y vértices se achican para no robarle el toque a la cara
+  const zoom = Math.max(1, Esc.zoom), mult = { caras:{ aristas:.55, vertices:.55 }, aristas:{ aristas:1, vertices:.8 }, vertices:{ aristas:1, vertices:1 } }[q.k];
+  for(const k of ['aristas', 'vertices']) Esc.golpe[k].forEach(o => {
+    const b = o.userData.rBase * zoom * mult[k];
+    if(o.userData.escala === 'cil'){ o.scale.x = o.scale.z = b; } else if(o.userData.escala === 'esf'){ o.scale.setScalar(b); }
+  });
+  const hits = Esc.raycaster.intersectObjects([...Esc.golpe.caras, ...Esc.golpe.aristas, ...Esc.golpe.vertices], false);
+  if(!hits.length) return null;
+  const cara = hits.find(h => h.object.userData.k === 'caras');
+  const visible = (h, margen) => !cara || h.distance <= cara.distance + margen;
+  const v = hits.find(h => h.object.userData.k === 'vertices' && visible(h, .17)); if(v) return { k:'vertices', idx:v.object.userData.idx };
+  const a = hits.find(h => h.object.userData.k === 'aristas' && visible(h, .1)); if(a) return { k:'aristas', idx:a.object.userData.idx };
+  return cara ? { k:'caras', idx:cara.object.userData.idx } : null;
+}
+const ART_K = { caras:'una cara', aristas:'una arista', vertices:'un vértice' }, LOS_K = { caras:'las caras', aristas:'las aristas', vertices:'los vértices' };
+/* Toque sobre el cuerpo: marca si es lo que se pide; si no, avisa qué es lo que tocó */
+function procesarToque(x, y){
+  const q = preg(), r = elegirEn(x, y); if(!r) return null;
+  if(r.k === q.k){ alternarMarca(r.k, r.idx); return 'marca'; }
+  Sesion.tipoMsg = 'mal'; Sesion.mensaje = `Eso es ${ART_K[r.k]}, no ${ART_K[q.k]}. Busca ${LOS_K[q.k]}.`; refrescarUI();
+  return 'otro';
+}
+function alternarMarca(k, idx){
+  const q = preg(); if(!q || q.k !== k || Sesion.fase !== 2 || Sesion.bloqueado) return;
+  if(Sesion.marcas.has(idx)) Sesion.marcas.delete(idx); else Sesion.marcas.add(idx);
+  pintarSeleccion(); evaluarMarcas();
+}
+
+/* Punteros: arrastrar = girar, pellizcar/rueda = zoom, toque corto = marcar */
+function conectarPunteros(cv){
+  const pts = new Map(); let inicio = null, movido = false, dPinch = 0;
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  cv.addEventListener('pointerdown', e => {
+    document.querySelector('.pista').style.opacity = 0;
+    cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    if(pts.size === 1){ inicio = { x:e.clientX, y:e.clientY }; movido = false; }
+    else if(pts.size === 2){ movido = true; dPinch = dist(); }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = pts.get(e.pointerId); if(!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if(pts.size === 1){
+      if(!movido && Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y) > 6) movido = true;
+      if(movido) girar(dx, dy);
+    } else if(pts.size === 2){
+      const d = dist(); if(dPinch > 0) cambiarZoom(dPinch / d); dPinch = d;
+    }
+  });
+  const fin = e => {
+    if(!pts.has(e.pointerId)) return;
+    const eraUno = pts.size === 1; pts.delete(e.pointerId);
+    if(e.type === 'pointerup' && eraUno && !movido) procesarToque(e.clientX, e.clientY);
+  };
+  cv.addEventListener('pointerup', fin); cv.addEventListener('pointercancel', fin);
+  cv.addEventListener('wheel', e => { e.preventDefault(); cambiarZoom(e.deltaY > 0 ? 1.08 : 1 / 1.08); }, { passive:false });
+}
+function girar(dx, dy){
+  if(Esc.anim){ cancelAnimationFrame(Esc.anim); Esc.anim = null; }
+  const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx * .011);
+  const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy * .011);
+  Esc.grupo.quaternion.premultiply(qy).premultiply(qx).normalize();
+  pedirRender();
+}
+function cambiarZoom(f){ Esc.zoom = Math.max(.6, Math.min(1.7, Esc.zoom * f)); actualizarCamara(); }
+function restablecerVista(){
+  if(!Esc.listo) return;
+  const q0 = Esc.grupo.quaternion.clone(), q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(...VISTA0)), z0 = Esc.zoom, t0 = performance.now();
+  if(Esc.anim) cancelAnimationFrame(Esc.anim);
+  const paso = t => {
+    const k = Math.min(1, (t - t0) / 450), e = 1 - Math.pow(1 - k, 3);
+    Esc.grupo.quaternion.slerpQuaternions(q0, q1, e); Esc.zoom = z0 + (1 - z0) * e; actualizarCamara();
+    Esc.anim = k < 1 ? requestAnimationFrame(paso) : null;
+  };
+  Esc.anim = requestAnimationFrame(paso);
+}
+
+/* =====================================================================
+   4. SESIÓN DE PREGUNTAS
+   11 cuerpos × 3 elementos = 33 preguntas, en orden aleatorio y sin repetirse.
+   Cada pregunta: (1) observar y dar una HIPÓTESIS, (2) marcar para verificar,
+   (3) responder de nuevo: ¿sigues pensando lo mismo?
+   ===================================================================== */
+const MODELOS = CUERPOS.map(c => c.clase === 'poliedro' ? analizarCuerpo(c) : analizarCurvo(c));
+const Sesion = { cola:[], i:0, n:1, fase:1, resuelto:null, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, terminada:false, aciertosHip:0, token:0 };
+const preg = () => Sesion.cola[Sesion.i];
+
+function barajar(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function nuevaCola(ultima){
+  let c = [];
+  MODELOS.forEach((m, ci) => m.misiones.forEach(mi => c.push({ ci, k:mi.k })));
+  const ordenar = () => {
+    barajar(c);
+    for(let i = 1; i < c.length; i++){            // evita dos preguntas seguidas del mismo cuerpo, si se puede
+      if(c[i].ci === c[i-1].ci){ const j = c.findIndex((x, n) => n > i && x.ci !== c[i-1].ci); if(j > 0) [c[i], c[j]] = [c[j], c[i]]; }
+    }
+  };
+  ordenar();
+  for(let t = 0; t < 30 && ultima && c[0].ci === ultima.ci; t++) ordenar();   // al empalmar rondas tampoco se repite el cuerpo
+  return c;
+}
+async function iniciarSesion(){
+  Sesion.cola = nuevaCola(); Sesion.i = 0; Sesion.n = 1; Sesion.aciertosHip = 0; Sesion.terminada = false;
+  await cargarPregunta();
+}
+async function cargarPregunta(){
+  if(!(await iniciar3D())) return;
+  const q = preg();
+  Object.assign(Sesion, { fase:1, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, resuelto:null });
+  Esc.modelo = MODELOS[q.ci];
+  construirModelo(Esc.modelo);
+  Esc.grupo.rotation.set(.35 + Math.random() * .5, Math.random() * Math.PI * 2, 0);   // cada vez se ve desde un lado distinto
+  Esc.zoom = 1; actualizarCamara(); pintarSeleccion(); refrescarUI();
+}
+/* La sesión nunca termina: al agotar las 33 preguntas de una ronda se baraja otra ronda completa y sigue. */
+function siguiente(){
+  const ultima = preg();
+  Sesion.i++; Sesion.n++;
+  if(Sesion.i >= Sesion.cola.length){ Sesion.cola = nuevaCola(ultima); Sesion.i = 0; }
+  return cargarPregunta();
+}
+
+const NOM_K = { caras:'caras', aristas:'aristas', vertices:'vértices' };
+function recuerda(m, k){
+  if(k === 'caras') return m.clase === 'curvo' ? 'Recuerda que las caras son las superficies del cuerpo, planas o curvas.' : 'Recuerda que las caras son las superficies planas del cuerpo.';
+  if(k === 'aristas') return m.clase === 'curvo' ? 'Recuerda que las aristas son las líneas donde se juntan dos caras (en los cuerpos redondos pueden ser circunferencias).' : 'Recuerda que las aristas son las líneas rectas donde se juntan dos caras.';
+  return 'Recuerda que los vértices son las puntas donde se juntan las aristas.';
+}
+const nombreCuerpo = (m, may) => `${m.cuerpo.art === 'el' ? (may ? 'El' : 'el') : (may ? 'La' : 'la')} ${m.cuerpo.nombre.toLowerCase()}`;
+
+function refrescarUI(){
+  const q = preg(); if(!q) return;
+  const m = MODELOS[q.ci], mi = m.misiones.find(x => x.k === q.k), $ = id => document.getElementById(id);
+  const f2 = Sesion.fase === 2, fin = Sesion.terminada, res = Sesion.resuelto, n = Sesion.marcas.size;
+  $('chipPreg').textContent = `Pregunta ${Sesion.n}`;
+  $('chipHip').textContent = `💡 ${Sesion.aciertosHip}`;
+  $('pregunta').innerHTML = `<span class="q">¿${q.k === 'vertices' ? 'Cuántos' : 'Cuántas'}</span> <span class="kw k-${q.k}">${NOM_K[q.k].toUpperCase()}</span> <span class="q">tiene?</span>`;
+  let msg = Sesion.mensaje;
+  if(!msg){
+    if(!f2) msg = `Gira y acerca ${nombreCuerpo(m)} para observarlo.`;
+    else msg = `Toca ${q.k === 'vertices' ? 'cada vértice' : q.k === 'aristas' ? 'cada arista' : 'cada cara'} para marcar${q.k === 'vertices' ? 'lo' : 'la'}. Gira el cuerpo para ver ${q.k === 'vertices' ? 'los' : 'las'} de atrás.`;
+  }
+  $('msg').className = 'msg' + (Sesion.tipoMsg ? ' ' + Sesion.tipoMsg : '');
+  $('msg').innerHTML = '<span>' + msg + '</span>';
+  // fase 1: "Creo que tiene [ ? ] vértices."
+  $('fila1').style.display = (!f2 && !fin) ? '' : 'none';
+  $('txtElem').textContent = NOM_K[q.k] + '.';
+  const inp = $('inpGuess'); inp.value = Sesion.guess === null ? '' : Sesion.guess;
+  // fase 2: contador marcados / hipótesis
+  const c = $('fila2'); c.style.display = (f2 && !fin) ? '' : 'none';
+  c.className = 'contador'; c.dataset.k = q.k;
+  c.innerHTML = `<small>Marcados</small><span class="n">${n}</span> / ${Sesion.hip}`;
+  // botones
+  const bP = $('btnPrincipal'), bL = $('btnLimpiar'), bN = $('btnNoMas'), bO = $('btnOtra');
+  bP.style.display = (!f2 && !fin) || res ? '' : 'none';
+  bP.textContent = res ? 'Siguiente ▶' : 'Esa es mi hipótesis ▶';
+  bP.className = 'btn ' + (res ? 'siguiente' : 'azul'); bP.disabled = res ? false : (Sesion.guess === null);
+  bL.style.display = bN.style.display = (f2 && !fin && !res) ? '' : 'none';
+  bL.disabled = n === 0;
+  bO.style.display = fin ? '' : 'none';
+}
+function fijarGuess(v){
+  if(Sesion.bloqueado || Sesion.fase !== 1) return;
+  Sesion.guess = (v === null || isNaN(v)) ? null : Math.max(0, Math.min(40, v)); refrescarUI();
+}
+function principal(){ if(Sesion.resuelto) siguiente(); else if(Sesion.fase === 1) confirmarHipotesis(); }
+function confirmarHipotesis(){
+  if(Sesion.fase !== 1 || Sesion.guess === null || Sesion.bloqueado) return;
+  Sesion.hip = Sesion.guess; Sesion.guess = null; Sesion.fase = 2; Sesion.mensaje = null; Sesion.tipoMsg = null;
+  restablecerVista(); pintarSeleccion(); refrescarUI();
+}
+/* Se evalúa en cada marca: llegar al total real cierra la pregunta; pasarse de la hipótesis avisa al instante */
+function evaluarMarcas(){
+  const q = preg(), m = MODELOS[q.ci], mi = m.misiones.find(x => x.k === q.k), n = Sesion.marcas.size;
+  Sesion.mensaje = null; Sesion.tipoMsg = null;
+  if(n === mi.total){ resolver(); return; }      // el veredicto llega solo al marcar TODOS los que hay
+  refrescarUI();
+}
+function noHayMas(){
+  const q = preg(), m = MODELOS[q.ci], mi = m.misiones.find(x => x.k === q.k);
+  if(Sesion.fase !== 2 || Sesion.bloqueado) return;
+  if(Sesion.marcas.size === mi.total){ resolver(); return; }
+  Sesion.tipoMsg = 'mal'; Sesion.mensaje = `Todavía quedan ${mi.varias} sin marcar. Gira el cuerpo y sigue buscando.`; refrescarUI();
+}
+function resolver(){
+  const q = preg(), m = MODELOS[q.ci], mi = m.misiones.find(x => x.k === q.k), total = mi.total;
+  const acerto = Sesion.hip === total;
+  Sesion.bloqueado = true; Sesion.resuelto = acerto ? 'ok' : 'mal'; Sesion.tipoMsg = acerto ? 'bien' : 'mal';
+  const cuerpo = nombreCuerpo(m, acerto);
+  const dato = total === 0 ? `${cuerpo} no tiene ${mi.varias}.` : `${cuerpo} tiene <b>${total}</b> ${total === 1 ? mi.uno : mi.varias}` + (q.k === 'caras' ? ` (${textoComposicion(m)}).` : '.');
+  if(acerto){ Sesion.aciertosHip++; Sesion.mensaje = '¡Hipótesis correcta! ' + dato; }
+  else Sesion.mensaje = `Tu hipótesis fue incorrecta: ${dato} ${recuerda(m, q.k)}`;
+  const clave = m.cuerpo.id + ':' + q.k;
+  Prog.resp[clave] = true; Prog.n++; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 2); }catch(e){} }
+  repOnline('B', acerto);
+  refrescarUI();
+}
+function limpiarMarcas(){
+  if(Sesion.bloqueado) return;
+  Sesion.marcas.clear(); Sesion.mensaje = null; Sesion.tipoMsg = null; pintarSeleccion(); refrescarUI();
+}
+
+/* =====================================================================
+   6. MÓDULO A: FIGURAS PLANAS (2D, SVG)
+   8 figuras × 2 elementos (lados, vértices) = 16 preguntas, sesión infinita.
+   Cada figura se define solo con sus puntos; los conteos se DERIVAN.
+   Convención: los círculos y óvalos tienen borde curvo → 0 lados rectos y 0 vértices.
+   ===================================================================== */
+const POLI = (n, r) => Array.from({length:n}, (_, i) => { const a = -Math.PI/2 + 2*Math.PI*i/n; return [r*Math.cos(a), r*Math.sin(a)]; });
+function centrar(p){
+  const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  const mx = (Math.min(...xs) + Math.max(...xs)) / 2, my = (Math.min(...ys) + Math.max(...ys)) / 2;
+  return p.map(q => [q[0] - mx, q[1] - my]);
+}
+const TRIS = [
+  [[0,-.85],[.95,.6],[-.95,.6]],          // isósceles
+  [[0,-.95],[.6,.65],[-.6,.65]],          // alto y angosto
+  [[-.8,.65],[.8,.65],[-.8,-.7]],         // con ángulo recto
+  [[-.9,.6],[.7,.6],[.2,-.8]],            // escaleno
+  [[-.95,.55],[.95,.55],[.45,-.75]],      // escaleno
+  [[-.95,.5],[.95,.5],[0,-.8]],           // achatado
+];
+const pickA = a => a[Math.floor(Math.random() * a.length)];
+const rnd = (a, b) => a + Math.random() * (b - a);
+const ESTRELLA = Array.from({length:10}, (_, i) => { const a = -Math.PI/2 + Math.PI*i/5, r = i % 2 ? .45 : 1; return [r*Math.cos(a), r*Math.sin(a)]; });
+/* nombrable:true → participa en la pregunta "¿Qué figura es?" (las más conocidas) */
+const FIGURAS = [
+  { id:'triangulo',  nombre:'Triángulo',  art:'el', nombrable:true, gen:() => centrar(pickA(TRIS)) },
+  { id:'cuadrado',   nombre:'Cuadrado',   art:'el', nombrable:true, gen:() => [[-.7,-.7],[.7,-.7],[.7,.7],[-.7,.7]] },
+  { id:'rectangulo', nombre:'Rectángulo', art:'el', nombrable:true, gen:() => { const w = .95, h = w / (1.5 + Math.random() * .8); return [[-w,-h],[w,-h],[w,h],[-w,h]]; } },
+  { id:'circulo',    nombre:'Círculo',    art:'el', nombrable:true, curva:true, gen:() => ({ rx:.8, ry:.8 }) },
+  { id:'ovalo',      nombre:'Óvalo',      art:'el', nombrable:true, curva:true, gen:() => ({ rx:1, ry:.55 + Math.random() * .15 }) },
+  { id:'pentagono',  nombre:'Pentágono',  art:'el', nombrable:true, gen:() => centrar(POLI(5, .95)) },
+  { id:'hexagono',   nombre:'Hexágono',   art:'el', nombrable:true, gen:() => POLI(6, .95) },
+  { id:'octagono',   nombre:'Octágono',   art:'el', nombrable:true, gen:() => POLI(8, .95) },
+  { id:'estrella',   nombre:'Estrella',   art:'la', nombrable:true, gen:() => ESTRELLA.map(p => [p[0] * .95, p[1] * .95]) },
+  { id:'rombo',      nombre:'Rombo',      art:'el', gen:() => { const a = rnd(.5, .8); return [[0,-1],[a,0],[0,1],[-a,0]]; } },
+  { id:'trapecio',   nombre:'Trapecio',   art:'el', gen:() => { const t = rnd(.3, .65); return [[-.95,.5],[.95,.5],[t,-.5],[-t,-.5]]; } },
+  { id:'paralelogramo', nombre:'Paralelogramo', art:'el', gen:() => { const s = rnd(.3, .6); return centrar([[-.95,.5],[.55,.5],[.55+s,-.5],[-.95+s,-.5]]); } },
+  { id:'cuadrilatero', nombre:'Cuadrilátero', art:'el', gen:() => centrar(pickA([ [[-.9,.4],[.8,.7],[.6,-.6],[-.5,-.8]], [[-.8,.7],[.9,.3],[.5,-.7],[-.9,-.4]], [[-.9,.6],[.5,.8],[.9,-.5],[-.3,-.7]] ])) },
+  { id:'heptagono',  nombre:'Heptágono',  art:'el', gen:() => centrar(POLI(7, .95)) },
+  { id:'decagono',   nombre:'Decágono',   art:'el', gen:() => POLI(10, .95) },
+  { id:'figura-l',   nombre:'Figura en L', nl:'figura en L', art:'la', gen:() => centrar([[-.7,-.9],[-.05,-.9],[-.05,.2],[.8,.2],[.8,.9],[-.7,.9]]) },
+  { id:'cruz',       nombre:'Cruz',       art:'la', gen:() => [[-.3,-.9],[.3,-.9],[.3,-.3],[.9,-.3],[.9,.3],[.3,.3],[.3,.9],[-.3,.9],[-.3,.3],[-.9,.3],[-.9,-.3],[-.3,-.3]] },
+  { id:'flecha',     nombre:'Flecha',     art:'la', gen:() => centrar([[-.9,-.25],[.1,-.25],[.1,-.7],[.9,0],[.1,.7],[.1,.25],[-.9,.25]]) },
+];
+FIGURAS.forEach(f => { f.nl = f.nl || f.nombre.toLowerCase(); });
+const artNom = (f, may) => { const a = f.art === 'el' ? 'el' : 'la', t = a + ' ' + f.nl; return may ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
+const META_A = { nombre:{ nom:'figura' }, lados:{ uno:'lado', varias:'lados', nom:'lados' }, vertices:{ uno:'vértice', varias:'vértices', nom:'vértices' } };
+const SesA = { cola:[], i:0, n:1, fase:1, resuelto:null, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, aciertosHip:0, token:0 };
+const FigA = { def:null, pts:null, rx:0, ry:0, curva:false, lados:0, vertices:0 };
+const VA = { theta:0, theta0:0, zoom:1, zoom0:1, w:0, h:0 };
+const pregA = () => SesA.cola[SesA.i];
+const $a = id => document.getElementById(id);
+const ZMIN_A = .55, ZMAX_A = 1.5;
+
+function nuevaColaA(ultima){
+  const c = [];
+  FIGURAS.forEach((f, fi) => { ['lados', 'vertices'].forEach(k => c.push({ fi, k })); if(f.nombrable) c.push({ fi, k:'nombre' }); });
+  const ordenar = () => {
+    barajar(c);
+    for(let i = 1; i < c.length; i++){
+      if(c[i].fi === c[i-1].fi){ const j = c.findIndex((x, n) => n > i && x.fi !== c[i-1].fi); if(j > 0) [c[i], c[j]] = [c[j], c[i]]; }
+    }
+  };
+  ordenar();
+  for(let t = 0; t < 30 && ultima && c[0].fi === ultima.fi; t++) ordenar();
+  return c;
+}
+function medirA(){
+  const st = $a('stage2d'), r = st.getBoundingClientRect();
+  VA.w = Math.round(r.width); VA.h = Math.round(r.height);
+  const sv = $a('svg2d'); sv.setAttribute('viewBox', `0 0 ${VA.w} ${VA.h}`);
+  dibujarA();
+}
+const geomA = () => ({ cx:VA.w / 2, cy:VA.h / 2, u:Math.min(VA.w, VA.h) * .34 * VA.zoom });
+function aPantallaA(p){
+  const { cx, cy, u } = geomA(), c = Math.cos(VA.theta), s = Math.sin(VA.theta);
+  return [cx + u * (p[0] * c - p[1] * s), cy + u * (p[0] * s + p[1] * c)];
+}
+function dibujarA(){
+  const sv = $a('svg2d'); if(!sv || !FigA.def || !VA.w) return;
+  const q = pregA(), k = q && q.k !== 'nombre' ? q.k : 'nombre', f2 = SesA.fase === 2;
+  const { cx, cy, u } = geomA();
+  let h = '';
+  if(FigA.curva){
+    h += `<ellipse cx="${cx}" cy="${cy}" rx="${FigA.rx * u}" ry="${FigA.ry * u}" transform="rotate(${VA.theta * 180 / Math.PI} ${cx} ${cy})" fill="#a9a3d6" fill-opacity=".5" stroke="#e8e2ff" stroke-width="5"/>`;
+  } else {
+    const P = FigA.pts.map(aPantallaA), n = P.length;
+    h += `<polygon points="${P.map(p => p.join(',')).join(' ')}" fill="#a9a3d6" fill-opacity=".5"/>`;
+    const sel = i => k === 'lados' && SesA.marcas.has(i);
+    const selV = i => k === 'vertices' && SesA.marcas.has(i);
+    for(let i = 0; i < n; i++){ if(sel(i)) continue; const a = P[i], b = P[(i+1)%n]; h += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#e8e2ff" stroke-width="5" stroke-linecap="round"/>`; }
+    for(let i = 0; i < n; i++){ if(!sel(i)) continue; const a = P[i], b = P[(i+1)%n]; h += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#3b82f6" stroke-width="9" stroke-linecap="round"/>`; }
+    for(let i = 0; i < n; i++){
+      const big = k === 'vertices';
+      if(selV(i)) h += `<circle cx="${P[i][0]}" cy="${P[i][1]}" r="11" fill="#ef4444" stroke="#fff" stroke-width="2"/>`;
+      else h += `<circle cx="${P[i][0]}" cy="${P[i][1]}" r="${big ? 7 : 4}" fill="#f6f3ff" fill-opacity="${big ? 1 : .7}"/>`;
+    }
+    // números en el orden en que se marcan; la posición se desplaza hacia FUERA de la figura (también en formas cóncavas)
+    let area = 0; for(let i = 0; i < n; i++){ const a = P[i], b = P[(i+1)%n]; area += a[0] * b[1] - b[0] * a[1]; }
+    const normal = i => { const a = P[i], b = P[(i+1)%n], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return area > 0 ? [dy / l, -dx / l] : [-dy / l, dx / l]; };
+    let orden = 0;
+    SesA.marcas.forEach(i => {
+      orden++;
+      let x, y, nx, ny, off;
+      if(k === 'lados'){ const a = P[i], b = P[(i+1)%n]; x = (a[0] + b[0]) / 2; y = (a[1] + b[1]) / 2; [nx, ny] = normal(i); off = 17; }
+      else { x = P[i][0]; y = P[i][1]; const n1 = normal((i + n - 1) % n), n2 = normal(i); nx = n1[0] + n2[0]; ny = n1[1] + n2[1]; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l; off = 21; }
+      h += `<text x="${x + nx * off}" y="${y + ny * off}" text-anchor="middle" dominant-baseline="central" font-family="Baloo 2, Nunito, sans-serif" font-weight="800" font-size="15" fill="#fff" stroke="#1e1147" stroke-width="3.5" paint-order="stroke">${orden}</text>`;
+    });
+  }
+  sv.innerHTML = h;
+}
+function golpeA(px, py){
+  const q = pregA(); if(!q || !FigA.def) return null;
+  const { cx, cy, u } = geomA();
+  if(FigA.curva){
+    const c = Math.cos(-VA.theta), s = Math.sin(-VA.theta), dx = px - cx, dy = py - cy;
+    const lx = (dx * c - dy * s) / u, ly = (dx * s + dy * c) / u;
+    const rho = Math.hypot(lx / FigA.rx, ly / FigA.ry);
+    return Math.abs(rho - 1) * Math.min(FigA.rx, FigA.ry) * u <= 16 ? { t:'curva' } : null;
+  }
+  const P = FigA.pts.map(aPantallaA), n = P.length;
+  let minLado = Infinity;
+  for(let i = 0; i < n; i++) minLado = Math.min(minLado, Math.hypot(P[i][0] - P[(i+1)%n][0], P[i][1] - P[(i+1)%n][1]));
+  let rv = Math.max(10, Math.min(22, minLado * .33)), re = Math.max(8, Math.min(15, minLado * .2));
+  if(q.k === 'lados') rv *= .6; else re *= .6;
+  let bi = -1, bd = 1e9;
+  for(let i = 0; i < n; i++){ const d = Math.hypot(px - P[i][0], py - P[i][1]); if(d <= rv && d < bd){ bd = d; bi = i; } }
+  if(bi >= 0) return { t:'vertice', i:bi };
+  bd = 1e9;
+  for(let i = 0; i < n; i++){
+    const a = P[i], b = P[(i+1)%n], vx = b[0] - a[0], vy = b[1] - a[1];
+    const tt = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / (vx * vx + vy * vy)));
+    const d = Math.hypot(px - (a[0] + tt * vx), py - (a[1] + tt * vy));
+    if(d <= re && d < bd){ bd = d; bi = i; }
+  }
+  return bi >= 0 ? { t:'lado', i:bi } : null;
+}
+function procesarToqueA(px, py){
+  if(SesA.fase !== 2 || SesA.bloqueado || pregA().k === 'nombre') return;
+  const h = golpeA(px, py); if(!h) return;
+  const k = pregA().k, esp = k === 'lados' ? 'un lado' : 'un vértice';
+  let aviso = null;
+  if(h.t === 'curva') aviso = `Eso es el borde curvo, no ${esp} recto. Sigue buscando ${META_A[k].varias}.`.replace(' recto.', '.').replace('no un vértice recto', 'no un vértice');
+  else if(h.t === 'vertice' && k === 'lados') aviso = 'Eso es un vértice, no un lado. Busca los lados.';
+  else if(h.t === 'lado' && k === 'vertices') aviso = 'Eso es un lado, no un vértice. Busca los vértices.';
+  if(aviso){ SesA.tipoMsg = 'mal'; SesA.mensaje = aviso; refrescarUIA(); return; }
+  if(SesA.marcas.has(h.i)) SesA.marcas.delete(h.i); else SesA.marcas.add(h.i);
+  evaluarMarcasA();
+}
+function evaluarMarcasA(){
+  SesA.mensaje = null; SesA.tipoMsg = null;
+  if(SesA.marcas.size === FigA[pregA().k]){ resolverA(); return; }
+  refrescarUIA();
+}
+function noHayMasA(){
+  if(SesA.fase !== 2 || SesA.bloqueado) return;
+  const k = pregA().k;
+  if(SesA.marcas.size === FigA[k]){ resolverA(); return; }
+  SesA.tipoMsg = 'mal'; SesA.mensaje = `Todavía quedan ${META_A[k].varias} sin marcar. Gira la figura y sigue buscando.`; refrescarUIA();
+}
+function recuerdaA(k){
+  if(FigA.curva) return k === 'lados' ? 'Recuerda que los lados son segmentos rectos; el borde de esta figura es una línea curva.' : 'Recuerda que los vértices son las puntas donde se juntan dos lados rectos; un borde curvo no tiene puntas.';
+  return k === 'lados' ? 'Recuerda que los lados son los segmentos rectos que forman el borde de la figura.' : 'Recuerda que los vértices son las puntas donde se juntan dos lados.';
+}
+function resolverA(){
+  const q = pregA(), k = q.k, total = FigA[k], m = META_A[k], acerto = SesA.hip === total;
+  SesA.bloqueado = true; SesA.resuelto = acerto ? 'ok' : 'mal'; SesA.tipoMsg = acerto ? 'bien' : 'mal';
+  const nomC = artNom(FigA.def, true);
+  const dato = FigA.curva ? `${nomC} no tiene lados ni vértices: su borde es una línea curva.`
+    : `${nomC} tiene <b>${total}</b> ${total === 1 ? m.uno : m.varias}.`;
+  if(acerto){ SesA.aciertosHip++; SesA.mensaje = '¡Hipótesis correcta! ' + dato; }
+  else SesA.mensaje = `Tu hipótesis fue incorrecta: ${dato} ${recuerdaA(k)}`;
+  Prog.respA[FigA.def.id + ':' + k] = true; Prog.nA++; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 2); }catch(e){} }
+  repOnline('A', acerto);
+  refrescarUIA();
+}
+function opcionesNombre(fi){
+  const ids = FIGURAS.filter(f => f.nombrable).map(f => f.id);
+  const grupos = [['cuadrado','rectangulo'], ['circulo','ovalo'], ['pentagono','hexagono','octagono'], ['triangulo','estrella']];
+  const id = FIGURAS[fi].id; let ops = [id];
+  const g = grupos.find(x => x.includes(id)); if(g) barajar(g.filter(x => x !== id).slice()).forEach(x => ops.length < 4 && ops.push(x));
+  barajar(ids.filter(x => !ops.includes(x)).slice()).forEach(x => ops.length < 4 && ops.push(x));
+  return barajar(ops);
+}
+function responderNombre(id){
+  if(SesA.bloqueado || pregA().k !== 'nombre') return;
+  const acerto = id === FigA.def.id, f = FigA.def;
+  SesA.elegida = id; SesA.bloqueado = true; SesA.resuelto = acerto ? 'ok' : 'mal'; SesA.tipoMsg = acerto ? 'bien' : 'mal';
+  const dato = f.curva ? 'su borde es curvo: no tiene lados ni vértices.' : `tiene ${FigA.lados} lados y ${FigA.vertices} vértices.`;
+  if(acerto){ SesA.aciertosHip++; SesA.mensaje = `¡Correcto! Es ${artNom(f)}.`; }
+  else SesA.mensaje = `No era esa. Es ${artNom(f)}: ${dato}`;
+  Prog.respA[f.id + ':nombre'] = true; Prog.nA++; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 1); }catch(e){} }
+  repOnline('A', acerto);
+  refrescarUIA();
+}
+function refrescarUIA(){
+  const q = pregA(); if(!q) return;
+  const f2 = SesA.fase === 2, res = SesA.resuelto, n = SesA.marcas.size, k = q.k, esN = k === 'nombre';
+  $a('chipPregA').textContent = `Pregunta ${SesA.n}`;
+  $a('chipHipA').textContent = `💡 ${SesA.aciertosHip}`;
+  $a('preguntaA').innerHTML = esN ? `<span class="q">¿Qué</span> <span class="kw k-nombre">FIGURA</span> <span class="q">es?</span>`
+    : `<span class="q">¿Cuántos</span> <span class="kw k-${k}">${META_A[k].nom.toUpperCase()}</span> <span class="q">tiene?</span>`;
+  let msg = SesA.mensaje;
+  if(!msg) msg = esN ? 'Gira la figura y cambia su tamaño. ¿Cómo se llama?' : !f2 ? `Gira la figura y cambia su tamaño para observarla.` : `Toca cada ${META_A[k].uno} para marcarlo.`;
+  $a('msgA').className = 'msg' + (SesA.tipoMsg ? ' ' + SesA.tipoMsg : '');
+  $a('msgA').innerHTML = '<span>' + msg + '</span>';
+  $a('fila1A').style.display = (!f2 && !esN) ? '' : 'none';
+  if(!esN) $a('txtElemA').textContent = META_A[k].nom + '.';
+  const oc = $a('opcionesA'); oc.style.display = esN ? '' : 'none';
+  if(esN){ oc.innerHTML = SesA.opciones.map(id => { const f = FIGURAS.find(x => x.id === id); const cl = SesA.elegida ? (id === FigA.def.id ? ' ok' : id === SesA.elegida ? ' no' : '') : ''; return `<button class="btn opc${cl}" data-id="${id}"${SesA.elegida ? ' disabled' : ''}>${f.nombre}</button>`; }).join(''); oc.querySelectorAll('button').forEach(b => b.onclick = () => responderNombre(b.dataset.id)); }
+  $a('inpGuessA').value = SesA.guess === null ? '' : SesA.guess;
+  const c = $a('fila2A'); c.style.display = (f2 && !esN) ? '' : 'none'; c.className = 'contador'; c.dataset.k = k;
+  c.innerHTML = `<small>Marcados</small><span class="n">${n}</span> / ${SesA.hip}`;
+  const bP = $a('btnPrincipalA'), bL = $a('btnLimpiarA'), bN = $a('btnNoMasA');
+  bP.style.display = esN ? (res ? '' : 'none') : (!f2 || res ? '' : 'none');
+  bP.textContent = res ? 'Siguiente ▶' : 'Esa es mi hipótesis ▶';
+  bP.className = 'btn ' + (res ? 'siguiente' : 'azul'); bP.disabled = res ? false : (SesA.guess === null);
+  bL.style.display = bN.style.display = (f2 && !res && !esN) ? '' : 'none';
+  bL.disabled = n === 0;
+  dibujarA();
+}
+function fijarGuessA(v){
+  if(SesA.bloqueado || SesA.fase !== 1) return;
+  SesA.guess = (v === null || isNaN(v)) ? null : Math.max(0, Math.min(40, v)); refrescarUIA();
+}
+function principalA(){ if(SesA.resuelto) siguienteA(); else if(SesA.fase === 1 && pregA().k !== 'nombre') confirmarHipotesisA(); }
+function confirmarHipotesisA(){
+  if(SesA.fase !== 1 || SesA.guess === null || SesA.bloqueado) return;
+  SesA.hip = SesA.guess; SesA.guess = null; SesA.fase = 2; SesA.mensaje = null; SesA.tipoMsg = null;
+  refrescarUIA();
+}
+function limpiarMarcasA(){ if(SesA.bloqueado) return; SesA.marcas.clear(); SesA.mensaje = null; SesA.tipoMsg = null; refrescarUIA(); }
+function iniciarSesionA(){
+  SesA.cola = nuevaColaA(); SesA.i = 0; SesA.n = 1; SesA.aciertosHip = 0;
+  cargarPreguntaA();
+}
+function cargarPreguntaA(){
+  const q = pregA(), def = FIGURAS[q.fi], g = def.gen();
+  FigA.def = def; FigA.curva = !!def.curva;
+  if(def.curva){ FigA.pts = null; FigA.rx = g.rx; FigA.ry = g.ry; FigA.lados = 0; FigA.vertices = 0; }
+  else { FigA.pts = g; FigA.lados = g.length; FigA.vertices = g.length; }
+  Object.assign(SesA, { fase:1, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, resuelto:null, elegida:null, opciones:q.k === 'nombre' ? opcionesNombre(q.fi) : [] });
+  VA.theta = VA.theta0 = Math.random() * Math.PI * 2; VA.zoom = VA.zoom0 = .8 + Math.random() * .4;
+  medirA(); refrescarUIA();
+}
+function siguienteA(){
+  const ultima = pregA();
+  SesA.i++; SesA.n++;
+  if(SesA.i >= SesA.cola.length){ SesA.cola = nuevaColaA(ultima); SesA.i = 0; }
+  cargarPreguntaA();
+}
+let animA = 0;
+function animarVistaA(th, z){
+  const t0 = performance.now(), th1 = VA.theta, z1 = VA.zoom, tok = ++animA;
+  let dth = th === null ? 0 : (th - th1) % (2 * Math.PI); if(dth > Math.PI) dth -= 2 * Math.PI; if(dth < -Math.PI) dth += 2 * Math.PI;
+  const paso = now => {
+    if(tok !== animA) return;
+    const t = Math.min(1, (now - t0) / 280), e = t * t * (3 - 2 * t);
+    VA.theta = th1 + dth * e; VA.zoom = z1 + (z - z1) * e; dibujarA();
+    if(t < 1) requestAnimationFrame(paso);
+  };
+  requestAnimationFrame(paso);
+}
+function zoomA(f){ animA++; VA.zoom = Math.max(ZMIN_A, Math.min(ZMAX_A, VA.zoom * f)); dibujarA(); }
+(function eventosA(){
+  const sv = $a('svg2d'), ptr = new Map();
+  let t0 = 0, inicio = null, movido = false, dist0 = 0, zoom0 = 1, angPrev = 0;
+  const pos = e => { const r = sv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const ang = p => Math.atan2(p[1] - VA.h / 2, p[0] - VA.w / 2);
+  sv.addEventListener('pointerdown', e => {
+    sv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, pos(e)); animA++;
+    if(ptr.size === 1){ inicio = pos(e); movido = false; t0 = performance.now(); angPrev = ang(inicio); }
+    else if(ptr.size === 2){ const [a, b] = [...ptr.values()]; dist0 = Math.hypot(a[0] - b[0], a[1] - b[1]); zoom0 = VA.zoom; movido = true; }
+  });
+  sv.addEventListener('pointermove', e => {
+    if(!ptr.has(e.pointerId)) return;
+    const p = pos(e); ptr.set(e.pointerId, p);
+    if(ptr.size >= 2){
+      const [a, b] = [...ptr.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      if(dist0 > 0){ VA.zoom = Math.max(ZMIN_A, Math.min(ZMAX_A, zoom0 * d / dist0)); dibujarA(); }
+      return;
+    }
+    if(!movido && Math.hypot(p[0] - inicio[0], p[1] - inicio[1]) > 6){ movido = true; angPrev = ang(p); }
+    if(movido){
+      const a = ang(p); let d = a - angPrev; if(d > Math.PI) d -= 2 * Math.PI; if(d < -Math.PI) d += 2 * Math.PI;
+      VA.theta += d; angPrev = a; dibujarA();
+    }
+  });
+  const fin = e => {
+    if(!ptr.has(e.pointerId)) return;
+    const p = pos(e), eraToque = ptr.size === 1 && !movido && e.type === 'pointerup' && performance.now() - t0 < 700;
+    ptr.delete(e.pointerId);
+    if(ptr.size === 1){ const r = [...ptr.values()][0]; angPrev = ang(r); inicio = r; movido = true; }
+    if(eraToque) procesarToqueA(p[0], p[1]);
+  };
+  sv.addEventListener('pointerup', fin); sv.addEventListener('pointercancel', fin);
+  sv.addEventListener('wheel', e => { e.preventDefault(); zoomA(e.deltaY < 0 ? 1.1 : 1 / 1.1); }, { passive:false });
+  new ResizeObserver(() => { if($a('screen-planas').classList.contains('active')) medirA(); }).observe($a('stage2d'));
+})();
+async function abrirPlanas(){
+  mostrar('screen-planas');
+  await new Promise(r => requestAnimationFrame(r));
+  if(!SesA.cola.length) iniciarSesionA(); else { medirA(); refrescarUIA(); }
+}
+$a('btnInicioA').onclick = () => { renderHome(); mostrar('screen-home'); };
+$a('btnVistaA').onclick = () => animarVistaA(VA.theta0, VA.zoom0);
+$a('btnZMas').onclick = () => zoomA(1.2);
+$a('btnZMenos').onclick = () => zoomA(1 / 1.2);
+$a('btnLimpiarA').onclick = limpiarMarcasA;
+$a('btnMenosA').onclick = () => fijarGuessA(SesA.guess === null ? 0 : SesA.guess - 1);
+$a('btnMasA').onclick = () => fijarGuessA(SesA.guess === null ? 1 : SesA.guess + 1);
+$a('inpGuessA').oninput = e => { const t = e.target.value.replace(/\D/g, ''); fijarGuessA(t === '' ? null : parseInt(t, 10)); };
+$a('inpGuessA').onkeydown = e => { if(e.key === 'Enter') principalA(); };
+$a('btnPrincipalA').onclick = principalA;
+$a('btnNoMasA').onclick = noHayMasA;
+
+/* =====================================================================
+   7. MÓDULO C: GEOMETRÍA EN EL MUNDO (ilustraciones SVG)
+   Desafío 1: un objeto cotidiano → ¿a qué cuerpo geométrico se parece? (aproximación, no igualdad)
+   Desafío 2: una escena → adivina y marca cuántas formas planas de un tipo hay.
+   ===================================================================== */
+const polyPts = (n, cx, cy, r, rot = -Math.PI/2) => Array.from({length:n}, (_, i) => { const a = rot + 2*Math.PI*i/n; return [cx + r*Math.cos(a), cy + r*Math.sin(a)]; });
+const P2S = pts => pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+const hsl = (h, s, l) => `hsl(${h} ${s}% ${Math.max(0, Math.min(100, l))}%)`;
+let gradN = 0;
+const LINEA = 'stroke="rgba(30,17,71,.4)" stroke-width="1.2" stroke-linejoin="round"';
+/* Prisma/caja en perspectiva oblicua: cara frontal + caras laterales visibles al desplazar hacia atrás por v */
+function extruir(pts, v, h, s, l, frente){
+  const n = pts.length; let area = 0, out = '';
+  for(let i = 0; i < n; i++){ const a = pts[i], b = pts[(i+1)%n]; area += a[0]*b[1] - b[0]*a[1]; }
+  for(let i = 0; i < n; i++){
+    const a = pts[i], b = pts[(i+1)%n], ex = b[0]-a[0], ey = b[1]-a[1], L = Math.hypot(ex, ey) || 1;
+    const nx = (area > 0 ? ey : -ey) / L, ny = (area > 0 ? -ex : ex) / L;
+    if(nx*v[0] + ny*v[1] > 0.01){
+      const lum = l + 17 * (-ny) - 13 * nx;
+      out += `<polygon points="${P2S([a, b, [b[0]+v[0], b[1]+v[1]], [a[0]+v[0], a[1]+v[1]]])}" fill="${hsl(h, s, lum)}" ${LINEA}/>`;
+    }
+  }
+  return out + `<polygon points="${P2S(pts)}" fill="${frente || hsl(h, s, l + 9)}" ${LINEA}/>`;
+}
+const rectPts = (x, y, w, h) => [[x, y], [x+w, y], [x+w, y+h], [x, y+h]];
+function esfera(cx, cy, r, h, s, l){
+  const id = 'gs' + (++gradN);
+  return `<defs><radialGradient id="${id}" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="${hsl(h, s, l+30)}"/><stop offset=".55" stop-color="${hsl(h, s, l)}"/><stop offset="1" stop-color="${hsl(h, s, l-24)}"/></radialGradient></defs><circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})" ${LINEA}/>`;
+}
+function gradLin(h, s, l){ const id = 'gl' + (++gradN); return [id, `<defs><linearGradient id="${id}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="${hsl(h, s, l+8)}"/><stop offset=".3" stop-color="${hsl(h, s, l+20)}"/><stop offset=".7" stop-color="${hsl(h, s, l)}"/><stop offset="1" stop-color="${hsl(h, s, l-20)}"/></linearGradient></defs>`]; }
+function cilindro(cx, ty, h, rx, ry, hh, s, l, tapa){
+  const [id, defs] = gradLin(hh, s, l);
+  return defs + `<path d="M${cx-rx},${ty} V${ty+h} A${rx},${ry} 0 0 0 ${cx+rx},${ty+h} V${ty} Z" fill="url(#${id})" ${LINEA}/>` +
+    `<ellipse cx="${cx}" cy="${ty}" rx="${rx}" ry="${ry}" fill="${tapa || hsl(hh, s, l+22)}" ${LINEA}/>`;
+}
+function cono(cx, ty, by, r, ry, hh, s, l, ancho0 = 0){
+  const [id, defs] = gradLin(hh, s, l);
+  return defs + `<path d="M${cx-ancho0},${ty} L${cx-r},${by} A${r},${ry} 0 0 0 ${cx+r},${by} L${cx+ancho0},${ty} Z" fill="url(#${id})" ${LINEA}/>`;
+}
+const punto = (O, u, v, a, b, r = .085) => `<circle transform="matrix(${u[0]} ${u[1]} ${v[0]} ${v[1]} ${O[0]} ${O[1]})" cx="${a}" cy="${b}" r="${r}" fill="#1e1147"/>`;
+
+const CUERPO_UN = { cubo:'un cubo', ortoedro:'un paralelepípedo', 'prisma-tri':'un prisma triangular', 'prisma-hex':'un prisma hexagonal', 'piramide-cuad':'una pirámide de base cuadrada', esfera:'una esfera', cono:'un cono', cilindro:'un cilindro' };
+const CUERPO_NOM = { cubo:'Cubo', ortoedro:'Paralelepípedo', 'prisma-tri':'Prisma triangular', 'prisma-pent':'Prisma pentagonal', 'prisma-hex':'Prisma hexagonal', 'piramide-cuad':'Pirámide cuadrada', 'piramide-tri':'Pirámide triangular', 'piramide-pent':'Pirámide pentagonal', esfera:'Esfera', cono:'Cono', cilindro:'Cilindro' };
+const CUERPO_GRUPOS = [['cubo','ortoedro'], ['prisma-tri','piramide-cuad','piramide-tri'], ['cilindro','cono'], ['prisma-hex','prisma-pent','cilindro'], ['esfera','cono']];
+
+const OBJETOS = [
+  { id:'dado', nombre:'un dado', cuerpo:'cubo', porque:'tiene 6 caras cuadradas iguales.',
+    svg:() => { const x = 95, y = 88, w = 84, dx = 38, dy = 34;
+      return extruir(rectPts(x, y, w, w), [dx, -dy], 0, 0, 78) +
+        [[.25,.25],[.5,.5],[.75,.75]].map(p => punto([x, y], [w, 0], [0, w], p[0], p[1])).join('') +
+        [[.3,.3],[.7,.7]].map(p => punto([x, y], [w, 0], [dx, -dy], p[0], p[1])).join('') +
+        [[.25,.25],[.75,.25],[.25,.75],[.75,.75]].map(p => punto([x+w, y], [dx, -dy], [0, w], p[0], p[1])).join(''); } },
+  { id:'zapatos', nombre:'una caja de zapatos', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.', nota:'La tapa y las esquinas reales no son perfectas.',
+    svg:() => { const x = 65, y = 105, w = 140, h = 62, dx = 56, dy = 34;
+      return extruir(rectPts(x, y, w, h), [dx, -dy], 25, 55, 42) +
+        `<line x1="${x}" y1="${y+16}" x2="${x+w}" y2="${y+16}" ${LINEA}/><line x1="${x+w}" y1="${y+16}" x2="${x+w+dx}" y2="${y+16-dy}" ${LINEA}/>` +
+        `<rect x="${x+44}" y="${y+28}" width="52" height="24" rx="4" fill="#fef3c7"/><rect x="${x+52}" y="${y+36}" width="36" height="4" rx="2" fill="#92400e"/><rect x="${x+52}" y="${y+44}" width="24" height="4" rx="2" fill="#b45309"/>`; } },
+  { id:'lata', nombre:'una lata de conservas', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.',
+    svg:() => { const cx = 160, ty = 62, h = 108, rx = 50, ry = 15;
+      return cilindro(cx, ty, h, rx, ry, 210, 12, 70) +
+        `<path d="M${cx-rx},${ty+26} A${rx},${ry} 0 0 0 ${cx+rx},${ty+26} V${ty+84} A${rx},${ry} 0 0 1 ${cx-rx},${ty+84} Z" fill="#dc2626" opacity=".92"/>` +
+        `<circle cx="${cx}" cy="${ty+56}" r="12" fill="#fde68a"/>`; } },
+  { id:'pelota', nombre:'una pelota de fútbol', cuerpo:'esfera', porque:'toda su superficie es redonda.', nota:'Una pelota real no es una esfera perfecta, pero se le parece mucho.',
+    svg:() => { const cx = 160, cy = 112, r = 70, id = 'pc' + (++gradN), pent = polyPts(5, cx, cy, 20);
+      let s = esfera(cx, cy, r, 0, 0, 82) + `<clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#${id})" fill="#1e1147" stroke="#1e1147">`;
+      s += `<polygon points="${P2S(pent)}"/>`;
+      pent.forEach((p, i) => { const a = -Math.PI/2 + 2*Math.PI*i/5; s += `<line x1="${p[0]}" y1="${p[1]}" x2="${cx + 78*Math.cos(a)}" y2="${cy + 78*Math.sin(a)}" stroke-width="2"/>`; s += `<polygon points="${P2S(polyPts(5, cx + 76*Math.cos(a+Math.PI/5*0), cy + 76*Math.sin(a), 20, a))}"/>`; });
+      return s + '</g>'; } },
+  { id:'cono-transito', nombre:'un cono de tránsito', cuerpo:'cono', porque:'tiene una base y una cara curva que termina en una punta.', nota:'Es solo parecido: la punta está cortada y su base es cuadrada.',
+    svg:() => { const cx = 168, ty = 40, by = 150, r = 42, ry = 12, a0 = 7;
+      const banda = (t1, t2) => { const w = t => a0 + (r - a0) * t, y = t => ty + (by - ty) * t, sag = t => ry * (w(t) / r) * 2;
+        return `<path d="M${cx-w(t1)},${y(t1)} Q${cx},${y(t1)+sag(t1)} ${cx+w(t1)},${y(t1)} L${cx+w(t2)},${y(t2)} Q${cx},${y(t2)+sag(t2)} ${cx-w(t2)},${y(t2)} Z" fill="#f8fafc"/>`; };
+      return extruir(rectPts(100, 158, 120, 16), [22, -10], 220, 8, 28) + cono(cx, ty, by, r, ry, 22, 95, 52, a0) + banda(.3, .46) + banda(.58, .76) +
+        `<ellipse cx="${cx}" cy="${ty}" rx="${a0}" ry="2.4" fill="${hsl(22, 95, 40)}"/>`; } },
+  { id:'carpa', nombre:'una carpa de camping', cuerpo:'prisma-tri', porque:'tiene dos caras triangulares iguales y 3 caras rectangulares.', nota:'Es una tela estirada: se parece a un prisma, pero no es perfecto.',
+    svg:() => `<path d="M0,190 Q80,176 160,190 T320,186 V220 H0Z" fill="#65a30d" opacity=".8"/>` + extruir([[75,168],[175,168],[125,78]], [95, -26], 150, 60, 42) +
+      `<polygon points="112,168 138,168 125,118" fill="#0f172a" opacity=".85"/>` },
+  { id:'piramide', nombre:'una pirámide de Egipto', cuerpo:'piramide-cuad', porque:'tiene una base cuadrada y 4 caras triangulares que se juntan en la punta.', nota:'Con los años la piedra se desgasta: se parece a una pirámide, pero no es perfecta.',
+    svg:() => { const A = [150,48], L = [48,162], F = [160,190], R = [272,158]; let s = `<path d="M0,184 Q80,168 160,186 T320,178 V220 H0Z" fill="#fcd34d" opacity=".75"/>`;
+      s += `<polygon points="${P2S([A, L, F])}" fill="${hsl(40, 70, 66)}" ${LINEA}/><polygon points="${P2S([A, F, R])}" fill="${hsl(38, 65, 44)}" ${LINEA}/>`;
+      [.3, .55, .78].forEach(t => { const lp = (P, Q) => [A[0] + (P[0]-A[0])*t, A[1] + (P[1]-A[1])*t]; s += `<line x1="${lp(L)[0]}" y1="${lp(L)[1]}" x2="${lp(F)[0]}" y2="${lp(F)[1]}" stroke="rgba(30,17,71,.28)" stroke-width="1.5"/><line x1="${lp(F)[0]}" y1="${lp(F)[1]}" x2="${lp(R)[0]}" y2="${lp(R)[1]}" stroke="rgba(30,17,71,.28)" stroke-width="1.5"/>`; });
+      return s; } },
+  { id:'globo', nombre:'un globo terráqueo', cuerpo:'esfera', porque:'toda su superficie es redonda.', nota:'La Tierra tampoco es una esfera perfecta, pero se le parece.',
+    svg:() => { const cx = 150, cy = 100, r = 62, id = 'gt' + (++gradN);
+      return `<path d="M${cx+10},22 A92,92 0 0 1 ${cx},186" stroke="#cbd5e1" stroke-width="5" fill="none" stroke-linecap="round"/><line x1="${cx}" y1="168" x2="${cx}" y2="192" stroke="#cbd5e1" stroke-width="6"/><ellipse cx="${cx}" cy="196" rx="42" ry="9" fill="#94a3b8"/>` +
+        esfera(cx, cy, r, 205, 70, 48) + `<clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#${id})" fill="#4ade80" opacity=".9"><path d="M${cx-50},${cy-30} q20,-26 46,-8 q10,22 -6,34 q-18,8 -26,28 q-18,-16 -14,-54Z"/><path d="M${cx+14},${cy+4} q26,-14 40,8 q8,28 -14,46 q-18,-10 -26,-54Z"/><path d="M${cx+10},${cy-52} q22,-8 34,10 q-16,10 -34,-10Z"/></g>`; } },
+  { id:'cereal', nombre:'una caja de cereal', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.',
+    svg:() => { const x = 105, y = 68, w = 84, h = 112, dx = 36, dy = 22;
+      return extruir(rectPts(x, y, w, h), [dx, -dy], 45, 90, 50) +
+        `<circle cx="${x+42}" cy="${y+44}" r="24" fill="#fef3c7"/><circle cx="${x+42}" cy="${y+44}" r="24" fill="none" stroke="#f97316" stroke-width="5" stroke-dasharray="3 7"/>` +
+        `<path d="M${x+12},${y+86} q30,-20 60,0 v14 h-60Z" fill="#fff"/><circle cx="${x+30}" cy="${y+82}" r="5" fill="#f59e0b"/><circle cx="${x+48}" cy="${y+78}" r="5" fill="#d97706"/><circle cx="${x+62}" cy="${y+84}" r="5" fill="#f59e0b"/>`; } },
+  { id:'chocolate', nombre:'una caja triangular de chocolates', cuerpo:'prisma-tri', porque:'tiene dos caras triangulares iguales y 3 caras rectangulares.',
+    svg:() => extruir([[70,152],[150,152],[110,84]], [130, -30], 25, 55, 32) + `<polygon points="88,146 132,146 110,106" fill="${hsl(45, 90, 56)}"/><circle cx="110" cy="132" r="7" fill="${hsl(25, 55, 28)}"/>` },
+  { id:'lapiz', nombre:'un lápiz de madera', cuerpo:'prisma-hex', porque:'su cuerpo tiene 6 caras rectangulares y dos bases hexagonales.', nota:'Si no miramos la punta, el cuerpo del lápiz es un prisma hexagonal.',
+    svg:() => { const c = [70, 140], v = [150, -62], hex = polyPts(6, c[0], c[1], 24, 0), L = Math.hypot(...v), d = [v[0]/L, v[1]/L], nn = [-d[1], d[0]];
+      const back = hex.map(p => [p[0]+v[0], p[1]+v[1]]), pr = back.map(p => p[0]*nn[0] + p[1]*nn[1]);
+      const vmin = back[pr.indexOf(Math.min(...pr))], vmax = back[pr.indexOf(Math.max(...pr))], cb = [c[0]+v[0], c[1]+v[1]], ap = [cb[0] + d[0]*52, cb[1] + d[1]*52];
+      const gp = k => [ap[0] - d[0]*k, ap[1] - d[1]*k];
+      const w0 = (Math.max(...pr) - Math.min(...pr)) / 2, g = gp(18);
+      return extruir(hex, v, 48, 95, 52, '#f9a8d4') + `<polygon points="${P2S([vmin, vmax, ap])}" fill="${hsl(32, 60, 72)}" ${LINEA}/><polygon points="${P2S([[g[0] + nn[0]*w0*.35, g[1] + nn[1]*w0*.35], [g[0] - nn[0]*w0*.35, g[1] - nn[1]*w0*.35], ap])}" fill="#334155"/>`; } },
+  { id:'rollo', nombre:'un rollo de papel higiénico', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.', nota:'Este es hueco por dentro, pero por fuera es como un cilindro.',
+    svg:() => { const cx = 160, ty = 62, h = 104, rx = 46, ry = 13;
+      return cilindro(cx, ty, h, rx, ry, 40, 30, 88, hsl(40, 30, 94)) + `<ellipse cx="${cx}" cy="${ty}" rx="17" ry="5" fill="#7c5a36"/><ellipse cx="${cx}" cy="${ty+1}" rx="17" ry="5" fill="none" stroke="rgba(30,17,71,.4)"/>` +
+        `<path d="M${cx-rx+4},${ty+24} q20,8 40,0 t42,0" stroke="rgba(30,17,71,.12)" stroke-width="2" fill="none"/>`; } },
+  { id:'regalo', nombre:'una caja de regalo cuadrada', cuerpo:'cubo', porque:'tiene 6 caras cuadradas iguales.', nota:'Una caja real puede tener medidas apenas distintas.',
+    svg:() => { const x = 100, y = 92, w = 86, dx = 36, dy = 30, m = x + w/2, cb = [x + w/2 + dx/2, y - dy/2];
+      return extruir(rectPts(x, y, w, w), [dx, -dy], 335, 70, 52) + `<rect x="${m-9}" y="${y}" width="18" height="${w}" fill="${hsl(48, 95, 60)}"/>` +
+        `<polygon points="${P2S([[m-9, y], [m+9, y], [m+9+dx, y-dy], [m-9+dx, y-dy]])}" fill="${hsl(48, 95, 66)}"/>` +
+        `<ellipse cx="${cb[0]-13}" cy="${cb[1]-7}" rx="15" ry="8" transform="rotate(-20 ${cb[0]-13} ${cb[1]-7})" fill="${hsl(48, 95, 58)}" ${LINEA}/><ellipse cx="${cb[0]+13}" cy="${cb[1]-7}" rx="15" ry="8" transform="rotate(20 ${cb[0]+13} ${cb[1]-7})" fill="${hsl(48, 95, 58)}" ${LINEA}/><circle cx="${cb[0]}" cy="${cb[1]-4}" r="5" fill="${hsl(48, 95, 46)}"/>`; } },
+  { id:'gorro', nombre:'un gorro de cumpleaños', cuerpo:'cono', porque:'tiene una base redonda y una cara curva que termina en una punta.',
+    svg:() => { const cx = 160, ty = 48, by = 172, r = 58, ry = 15; let s = cono(cx, ty, by, r, ry, 285, 70, 56) + `<ellipse cx="${cx}" cy="${by}" rx="${r}" ry="${ry}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3" transform="translate(0,-2)" clip-path="none" opacity="0"/>`;
+      [[150,90,'#fde68a'],[176,118,'#f9a8d4'],[132,132,'#a5f3fc'],[168,150,'#fde68a'],[196,150,'#a5f3fc'],[138,160,'#f9a8d4']].forEach(p => s += `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="${p[2]}"/>`);
+      return s + esfera(cx, ty - 4, 11, 48, 95, 60); } },
+];
+
+/* ---------- Escenas: cada forma plana es un elemento tocable con su nombre geométrico ---------- */
+const FORMAS = {
+  cuadrado:{ pl:'cuadrados', un:'un cuadrado', rec:'Recuerda que el cuadrado tiene 4 lados iguales y 4 vértices.' },
+  rectangulo:{ pl:'rectángulos', un:'un rectángulo', rec:'Recuerda que el rectángulo tiene 4 lados y 4 vértices; sus lados opuestos son iguales.' },
+  circulo:{ pl:'círculos', un:'un círculo', rec:'Recuerda que el círculo es redondo: no tiene lados ni vértices.' },
+  ovalo:{ pl:'óvalos', un:'un óvalo', rec:'Recuerda que el óvalo es redondo y alargado: no tiene lados ni vértices.' },
+  triangulo:{ pl:'triángulos', un:'un triángulo', rec:'Recuerda que el triángulo tiene 3 lados y 3 vértices.' },
+  octagono:{ pl:'octágonos', un:'un octágono', rec:'Recuerda que el octágono tiene 8 lados y 8 vértices.' },
+  trapecio:{ pl:'trapecios', un:'un trapecio', rec:'Recuerda que el trapecio tiene 4 lados, y dos de ellos van en la misma dirección sin juntarse.' },
+  rombo:{ pl:'rombos', un:'un rombo', rec:'Recuerda que el rombo tiene 4 lados iguales, pero está "inclinado" como un cuadrado estirado.' },
+  hexagono:{ pl:'hexágonos', un:'un hexágono', rec:'Recuerda que el hexágono tiene 6 lados y 6 vértices.' },
+  pentagono:{ pl:'pentágonos', un:'un pentágono', rec:'Recuerda que el pentágono tiene 5 lados y 5 vértices.' },
+};
+const FORMA_IDS = Object.keys(FORMAS);
+const bRect = (x, y, w, h) => a => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" ${a}/>`;
+const bPoly = pts => a => `<polygon points="${P2S(pts)}" ${a}/>`;
+const bCirc = (cx, cy, r) => a => `<circle cx="${cx}" cy="${cy}" r="${r}" ${a}/>`;
+const bElip = (cx, cy, rx, ry) => a => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${a}/>`;
+const it = (f, g, fill, c) => ({ f, g, fill, c });
+const ESCENAS = [
+  { id:'calle', titulo:'la calle', bg:'linear-gradient(#7dd3fc, #e0f2fe)',
+    deco:`<path d="M0,170 Q80,156 160,168 T320,164 V220 H0Z" fill="#64748b"/><path d="M118,36 q-8,-14 8,-14 q4,-10 18,-4 q14,-2 12,12 q10,2 4,12 h-34 q-12,0 -8,-6Z" fill="#fff" opacity=".9"/>`,
+    top:`<line x1="258" y1="90" x2="258" y2="168" stroke="#475569" stroke-width="3"/><line x1="298" y1="83" x2="298" y2="168" stroke="#475569" stroke-width="3"/>` +
+        [[32,55],[70,55],[32,92],[70,92]].map(p => ``).join('') + `<text x="258" y="75" text-anchor="middle" font-family="Baloo 2, Nunito, sans-serif" font-weight="800" font-size="9" fill="#fff" pointer-events="none">PARE</text><text x="298" y="66" text-anchor="middle" font-family="Baloo 2, Nunito, sans-serif" font-weight="800" font-size="11" fill="#0f172a" pointer-events="none">30</text>`,
+    items:[
+      it('rectangulo', bRect(20, 40, 90, 130), '#f59e0b', [65, 100]),
+      ...[[32,55],[70,55],[32,92],[70,92]].map(p => it('cuadrado', bRect(p[0], p[1], 22, 22), '#bae6fd', [p[0]+11, p[1]+11])),
+      it('rectangulo', bRect(53, 132, 24, 38), '#78350f', [65, 151]),
+      it('rectangulo', bRect(140, 122, 100, 44), '#ef4444', [190, 144]),
+      ...[158, 198].map(x => it('cuadrado', bRect(x, 128, 20, 20), '#bae6fd', [x+10, 138])),
+      ...[162, 220].map(x => it('circulo', bCirc(x, 168, 11), '#1e293b', [x, 168])),
+      it('circulo', bCirc(205, 34, 14), '#fde047', [205, 34]),
+      it('octagono', bPoly(polyPts(8, 258, 66, 22, Math.PI/8)), '#dc2626', [258, 66]),
+      it('circulo', bCirc(298, 66, 17), '#fff', [298, 66]),
+      it('triangulo', bPoly([[280,96],[316,96],[298,126]]), '#fff', [298, 104]),
+    ] },
+  { id:'sala', titulo:'la sala', bg:'linear-gradient(#fde68a, #fef3c7)',
+    deco:`<path d="M0,168 Q80,160 160,168 T320,166 V220 H0Z" fill="#a16207"/>`,
+    top:`<line x1="275" y1="82" x2="275" y2="166" stroke="#475569" stroke-width="4"/><line x1="95" y1="125" x2="95" y2="120" stroke="#0f172a" stroke-width="2.5" pointer-events="none"/><line x1="95" y1="125" x2="102" y2="128" stroke="#0f172a" stroke-width="2.5" pointer-events="none"/>`,
+    items:[
+      it('cuadrado', bRect(30, 35, 56, 56), '#7dd3fc', [58, 63]),
+      it('rectangulo', bRect(110, 35, 64, 44), '#f472b6', [142, 57]),
+      it('rectangulo', bRect(190, 30, 40, 56), '#a78bfa', [210, 58]),
+      it('cuadrado', bRect(234, 28, 26, 26), '#34d399', [247, 41]),
+      it('circulo', bCirc(95, 125, 16), '#fff', [95, 125]),
+      it('rectangulo', bRect(110, 98, 70, 44), '#1e293b', [145, 120]),
+      it('ovalo', bElip(225, 126, 18, 28), '#bae6fd', [225, 126]),
+      it('rectangulo', bRect(18, 100, 44, 66), '#92400e', [40, 133]),
+      it('ovalo', bElip(150, 194, 70, 14), '#ef4444', [150, 194]),
+      it('trapecio', bPoly([[264,54],[286,54],[302,82],[248,82]]), '#fb923c', [275, 68]),
+    ] },
+  { id:'parque', titulo:'el parque', bg:'linear-gradient(#93c5fd, #dbeafe)',
+    deco:`<path d="M0,150 Q80,136 160,148 T320,144 V220 H0Z" fill="#4ade80"/><path d="M128,58 Q175,78 232,58" stroke="#475569" stroke-width="2" fill="none"/><line x1="190" y1="112" x2="188" y2="140" stroke="#475569" stroke-width="1.5"/><line x1="210" y1="124" x2="212" y2="146" stroke="#475569" stroke-width="1.5"/><path d="M260,126 q-8,14 4,24 q10,8 2,18" stroke="#475569" stroke-width="1.5" fill="none"/>`,
+    top:'',
+    items:[
+      it('cuadrado', bRect(40, 100, 60, 60), '#fcd34d', [70, 130]),
+      it('triangulo', bPoly([[30,100],[110,100],[70,64]]), '#ef4444', [70, 90]),
+      it('rectangulo', bRect(72, 124, 18, 36), '#78350f', [81, 142]),
+      it('circulo', bCirc(53, 123, 9), '#bae6fd', [53, 123]),
+      it('circulo', bCirc(270, 34, 15), '#fde047', [270, 34]),
+      ...[148, 178, 208].map((x, i) => it('triangulo', bPoly([[x-9, 66],[x+9, 66],[x, 88]]), ['#f472b6','#facc15','#38bdf8'][i], [x, 72])),
+      it('rombo', bPoly([[260,76],[276,100],[260,124],[244,100]]), '#a78bfa', [260, 100]),
+      it('rectangulo', bRect(130, 162, 84, 34), '#f87171', [172, 179]),
+      it('circulo', bCirc(232, 178, 11), '#fff', [232, 178]),
+      it('ovalo', bElip(190, 100, 10, 13), '#f472b6', [190, 100]),
+      it('ovalo', bElip(210, 112, 10, 13), '#38bdf8', [210, 112]),
+      it('cuadrado', bRect(252, 160, 44, 44), '#fde68a', [274, 182]),
+    ] },
+];
+
+/* ---------- Más objetos ---------- */
+const rejilla = (O, u, v, cols) => cols.map((c, k) => `<rect transform="matrix(${u[0]} ${u[1]} ${v[0]} ${v[1]} ${O[0]} ${O[1]})" x="${(k%3)/3 + .025}" y="${Math.floor(k/3)/3 + .025}" width=".283" height=".283" rx=".03" fill="${c}"/>`).join('');
+const TXT = (x, y, t, sz, col) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Baloo 2, Nunito, sans-serif" font-weight="800" font-size="${sz}" fill="${col}">${t}</text>`;
+function piramideSVG(c1, c2, suelo){
+  const A = [150,48], L = [48,162], F = [160,190], R = [272,158];
+  let s = `<path d="M0,184 Q80,168 160,186 T320,178 V220 H0Z" fill="${suelo}" opacity=".75"/>`;
+  s += `<polygon points="${P2S([A, L, F])}" fill="${c1}" ${LINEA}/><polygon points="${P2S([A, F, R])}" fill="${c2}" ${LINEA}/>`;
+  return s;
+}
+OBJETOS.push(
+  { id:'hielo', nombre:'un cubo de hielo', cuerpo:'cubo', porque:'tiene 6 caras cuadradas iguales.', nota:'Al derretirse pierde la forma, pero recién sacado se parece mucho.',
+    svg:() => extruir(rectPts(100, 90, 84, 84), [36, -32], 195, 70, 72) + `<polygon points="112,102 134,102 112,124" fill="#fff" opacity=".5"/>` },
+  { id:'rubik', nombre:'un cubo de Rubik', cuerpo:'cubo', porque:'tiene 6 caras cuadradas iguales.',
+    svg:() => { const x = 95, y = 88, w = 84, dx = 38, dy = 34;
+      return extruir(rectPts(x, y, w, w), [dx, -dy], 0, 0, 12, '#111827') +
+        rejilla([x, y], [w, 0], [0, w], ['#ef4444','#22c55e','#f8fafc','#3b82f6','#ef4444','#facc15','#f8fafc','#22c55e','#f97316']) +
+        rejilla([x, y], [w, 0], [dx, -dy], ['#f8fafc','#3b82f6','#facc15','#f97316','#f8fafc','#22c55e','#ef4444','#facc15','#3b82f6']) +
+        rejilla([x+w, y], [dx, -dy], [0, w], ['#22c55e','#f97316','#ef4444','#f8fafc','#3b82f6','#f97316','#facc15','#ef4444','#f8fafc']); } },
+  { id:'madera', nombre:'un bloque de madera de juguete', cuerpo:'cubo', porque:'tiene 6 caras cuadradas iguales.',
+    svg:() => extruir(rectPts(100, 90, 84, 84), [36, -32], 32, 60, 50) + TXT(142, 132, 'A', 46, '#fef3c7') },
+  { id:'azucar', nombre:'un terrón de azúcar', cuerpo:'cubo', porque:'tiene 6 caras cuadradas casi iguales.', nota:'Los terrones reales tienen bordes un poco gastados.',
+    svg:() => extruir(rectPts(115, 100, 70, 70), [30, -26], 40, 15, 80) + [[130,125],[150,148],[165,118],[174,150],[140,155]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="rgba(30,17,71,.3)"/>`).join('') },
+  { id:'ladrillo', nombre:'un ladrillo', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.',
+    svg:() => extruir(rectPts(80, 112, 150, 56), [44, -26], 12, 62, 44) + [[110,140],[140,150],[190,130],[160,138]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="1.8" fill="rgba(30,17,71,.28)"/>`).join('') },
+  { id:'libro', nombre:'un libro cerrado', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.',
+    svg:() => { const x = 100, y = 70, w = 92, h = 116, dx = 26, dy = 14;
+      return extruir(rectPts(x, y, w, h), [dx, -dy], 215, 70, 40) + `<polygon points="${P2S([[x, y], [x+w, y], [x+w+dx, y-dy], [x+dx, y-dy]])}" fill="#fef3c7" ${LINEA}/><polygon points="${P2S([[x+w, y], [x+w+dx, y-dy], [x+w+dx, y+h-dy], [x+w, y+h]])}" fill="#fde68a" ${LINEA}/>` +
+        `<rect x="${x+14}" y="${y+22}" width="64" height="9" rx="3" fill="#fff"/><rect x="${x+14}" y="${y+40}" width="44" height="6" rx="3" fill="#bfdbfe"/><circle cx="${x+46}" cy="${y+84}" r="18" fill="#fbbf24"/>`; } },
+  { id:'leche', nombre:'una caja de leche', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.', nota:'La parte de arriba tiene un pliegue, pero en general se parece a un paralelepípedo.',
+    svg:() => { const x = 120, y = 72, w = 64, h = 110, dx = 30, dy = 18;
+      return extruir(rectPts(x, y, w, h), [dx, -dy], 210, 25, 88) + `<rect x="${x}" y="${y+40}" width="${w}" height="34" fill="#60a5fa"/>` + TXT(x+32, y+57, 'LECHE', 13, '#fff'); } },
+  { id:'refri', nombre:'un refrigerador', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.',
+    svg:() => { const x = 110, y = 36, w = 80, h = 146, dx = 34, dy = 18;
+      return extruir(rectPts(x, y, w, h), [dx, -dy], 200, 12, 80) + `<line x1="${x}" y1="${y+50}" x2="${x+w}" y2="${y+50}" ${LINEA}/><rect x="${x+8}" y="${y+18}" width="5" height="22" rx="2" fill="#475569"/><rect x="${x+8}" y="${y+62}" width="5" height="40" rx="2" fill="#475569"/>`; } },
+  { id:'jabon', nombre:'una barra de jabón', cuerpo:'ortoedro', porque:'tiene 6 caras rectangulares; las opuestas son iguales.', nota:'Con el uso se le redondean las esquinas.',
+    svg:() => extruir(rectPts(100, 112, 100, 56), [36, -20], 330, 60, 78) + TXT(150, 140, 'JABÓN', 15, '#be185d') },
+  { id:'vaso', nombre:'un vaso', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.', nota:'Un vaso real suele ser un poco más ancho arriba que abajo.',
+    svg:() => { const cx = 160, ty = 60, h = 112, rx = 40, ry = 12;
+      return cilindro(cx, ty, h, rx, ry, 200, 60, 82, hsl(200, 40, 70)) + `<path d="M${cx-rx},${ty+54} A${rx},${ry} 0 0 0 ${cx+rx},${ty+54} V${ty+h} A${rx},${ry} 0 0 0 ${cx-rx},${ty+h} Z" fill="#38bdf8" opacity=".55"/>`; } },
+  { id:'tarro', nombre:'un tarro de pintura', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.',
+    svg:() => { const cx = 160, ty = 84, h = 84, rx = 62, ry = 17;
+      return `<path d="M${cx-rx},${ty+8} Q${cx},${ty-54} ${cx+rx},${ty+8}" stroke="#94a3b8" stroke-width="4" fill="none"/>` + cilindro(cx, ty, h, rx, ry, 215, 8, 72, hsl(340, 80, 55)) +
+        `<path d="M${cx-rx},${ty+26} A${rx},${ry} 0 0 0 ${cx+rx},${ty+26} V${ty+62} A${rx},${ry} 0 0 1 ${cx-rx},${ty+62} Z" fill="#f43f5e" opacity=".9"/>`; } },
+  { id:'tambor', nombre:'un tambor', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.',
+    svg:() => { const cx = 160, ty = 84, h = 76, rx = 66, ry = 18;
+      return cilindro(cx, ty, h, rx, ry, 355, 75, 48, hsl(40, 30, 95)) + `<path d="M${cx-rx},${ty+h*.35} l16,${h*.35} l16,-${h*.35} l16,${h*.35} l16,-${h*.35} l16,${h*.35} l16,-${h*.35} l16,${h*.35} l16,-${h*.35} l16,${h*.35}" stroke="#fde68a" stroke-width="3" fill="none" opacity=".85"/>` +
+        `<line x1="${cx+10}" y1="${ty-6}" x2="${cx+60}" y2="${ty-46}" stroke="#92400e" stroke-width="5" stroke-linecap="round"/><line x1="${cx-10}" y1="${ty-6}" x2="${cx-60}" y2="${ty-46}" stroke="#92400e" stroke-width="5" stroke-linecap="round"/>`; } },
+  { id:'tronco', nombre:'un tronco de árbol cortado', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.', nota:'La corteza es rugosa, pero el tronco se parece a un cilindro.',
+    svg:() => { const cx = 160, ty = 62, h = 118, rx = 48, ry = 14;
+      return cilindro(cx, ty, h, rx, ry, 28, 45, 36, hsl(35, 60, 66)) + [.7, .45, .2].map(k => `<ellipse cx="${cx}" cy="${ty}" rx="${rx*k*1.2 > rx-4 ? rx-5 : rx*k*1.2}" ry="${ry*k*1.2}" fill="none" stroke="${hsl(28, 45, 40)}" stroke-width="1.5"/>`).join('') +
+        [-30, -10, 14, 32].map(dx => `<line x1="${cx+dx}" y1="${ty+16}" x2="${cx+dx}" y2="${ty+h-10}" stroke="rgba(30,17,71,.2)" stroke-width="2"/>`).join(''); } },
+  { id:'pila', nombre:'una pila', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.', nota:'Tiene un botoncito arriba, pero casi toda ella es un cilindro.',
+    svg:() => { const cx = 160, ty = 66, h = 112, rx = 32, ry = 10;
+      return cilindro(cx, ty - 8, 12, 11, 4, 40, 10, 75, hsl(40, 10, 85)) + cilindro(cx, ty, h, rx, ry, 150, 55, 38, hsl(150, 50, 60)) + `<rect x="${cx-rx}" y="${ty+36}" width="${rx*2}" height="34" fill="${hsl(48, 95, 56)}"/>` + TXT(cx, ty+54, '+', 22, '#1e1147'); } },
+  { id:'vela', nombre:'una vela', cuerpo:'cilindro', porque:'tiene dos bases circulares y una cara curva.',
+    svg:() => { const cx = 160, ty = 86, h = 92, rx = 28, ry = 9;
+      return cilindro(cx, ty, h, rx, ry, 45, 70, 86, hsl(45, 70, 94)) + `<line x1="${cx}" y1="${ty}" x2="${cx}" y2="${ty-14}" stroke="#1e1147" stroke-width="2.5"/><path d="M${cx},${ty-52} q14,22 0,36 q-14,-14 0,-36Z" fill="#fb923c"/><path d="M${cx},${ty-38} q6,12 0,20 q-6,-8 0,-20Z" fill="#fde047"/>`; } },
+  { id:'naranja', nombre:'una naranja', cuerpo:'esfera', porque:'toda su superficie es redonda.', nota:'Una naranja real no es una esfera perfecta, pero se le parece mucho.',
+    svg:() => esfera(160, 116, 66, 28, 95, 52) + [[130,100],[175,92],[190,130],[145,140],[165,160],[125,128]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="rgba(124,45,18,.35)"/>`).join('') + `<path d="M160,52 q22,-18 36,-2 q-18,14 -36,2Z" fill="#16a34a"/>` },
+  { id:'tenis', nombre:'una pelota de tenis', cuerpo:'esfera', porque:'toda su superficie es redonda.',
+    svg:() => { const cx = 160, cy = 112, r = 64, id = 'pt' + (++gradN);
+      return esfera(cx, cy, r, 70, 80, 55) + `<clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#${id})" fill="none" stroke="#f8fafc" stroke-width="4"><path d="M${cx-r*.55},${cy-r} Q${cx+r*.05},${cy} ${cx-r*.55},${cy+r}"/><path d="M${cx+r*.55},${cy-r} Q${cx-r*.05},${cy} ${cx+r*.55},${cy+r}"/></g>`; } },
+  { id:'canica', nombre:'una canica', cuerpo:'esfera', porque:'toda su superficie es redonda.',
+    svg:() => { const cx = 160, cy = 112, r = 56, id = 'pk' + (++gradN);
+      return esfera(cx, cy, r, 190, 80, 50) + `<clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#${id})" fill="none" stroke="#f472b6" stroke-width="6" opacity=".7"><path d="M${cx-60},${cy+10} q30,-40 60,0 t60,-10"/><path d="M${cx-60},${cy+34} q30,-30 60,0 t60,-6"/></g><ellipse cx="${cx-18}" cy="${cy-26}" rx="9" ry="5" fill="#fff" opacity=".7" transform="rotate(-35 ${cx-18} ${cy-26})"/>`; } },
+  { id:'basquet', nombre:'un balón de básquetbol', cuerpo:'esfera', porque:'toda su superficie es redonda.',
+    svg:() => { const cx = 160, cy = 112, r = 68, id = 'pb' + (++gradN);
+      return esfera(cx, cy, r, 24, 90, 50) + `<clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#${id})" fill="none" stroke="#1e1147" stroke-width="3"><line x1="${cx}" y1="${cy-r}" x2="${cx}" y2="${cy+r}"/><line x1="${cx-r}" y1="${cy}" x2="${cx+r}" y2="${cy}"/><path d="M${cx-r*.7},${cy-r*.8} Q${cx-r*.2},${cy} ${cx-r*.7},${cy+r*.8}"/><path d="M${cx+r*.7},${cy-r*.8} Q${cx+r*.2},${cy} ${cx+r*.7},${cy+r*.8}"/></g>`; } },
+  { id:'barquillo', nombre:'un barquillo de helado vacío', cuerpo:'cono', porque:'tiene una base redonda y una cara curva que termina en una punta.',
+    svg:() => { const cx = 160, ty = 56, by = 190, r = 46, ry = 11, id = 'pq' + (++gradN);
+      let s = `<clipPath id="${id}"><path d="M${cx-r},${ty} L${cx},${by} L${cx+r},${ty} Z"/></clipPath><path d="M${cx-r},${ty} L${cx},${by} L${cx+r},${ty} Z" fill="${hsl(35, 70, 64)}" ${LINEA}/><g clip-path="url(#${id})" stroke="${hsl(30, 60, 42)}" stroke-width="1.8">`;
+      for(let k = -6; k <= 6; k++){ s += `<line x1="${cx+k*14-40}" y1="${ty}" x2="${cx+k*14+40}" y2="${by}"/><line x1="${cx+k*14+40}" y1="${ty}" x2="${cx+k*14-40}" y2="${by}"/>`; }
+      return s + `</g><ellipse cx="${cx}" cy="${ty}" rx="${r}" ry="${ry}" fill="${hsl(30, 55, 30)}" ${LINEA}/>`; } },
+  { id:'tipi', nombre:'una tienda tipi', cuerpo:'cono', porque:'tiene una base redonda y una cara curva que termina en una punta.', nota:'Es una tela estirada sobre palos, pero se parece a un cono.',
+    svg:() => { const cx = 160, ty = 52, by = 170, r = 74, ry = 18;
+      return `<path d="M0,190 Q80,176 160,190 T320,186 V220 H0Z" fill="#65a30d" opacity=".8"/><line x1="${cx-8}" y1="${ty-22}" x2="${cx+2}" y2="${ty+10}" stroke="#78350f" stroke-width="4"/><line x1="${cx+8}" y1="${ty-24}" x2="${cx-2}" y2="${ty+10}" stroke="#78350f" stroke-width="4"/>` +
+        cono(cx, ty, by, r, ry, 28, 55, 58) + `<path d="M${cx-18},${by+ry*.85} L${cx+18},${by+ry*.85} L${cx},${by-58} Z" fill="#1c1917" opacity=".85"/><path d="M${cx-52},${by-32} h104" stroke="#ef4444" stroke-width="5" opacity="0"/>`; } },
+  { id:'cuna', nombre:'una cuña de queso', cuerpo:'prisma-tri', porque:'tiene dos caras triangulares iguales y 3 caras rectangulares.',
+    svg:() => extruir([[80,168],[196,168],[196,108]], [50, -30], 48, 90, 58) + [[170,150],[150,160],[184,128]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="${hsl(46, 90, 40)}"/>`).join('') },
+  { id:'tuerca', nombre:'una tuerca', cuerpo:'prisma-hex', porque:'tiene dos bases hexagonales y 6 caras rectangulares.', nota:'Tiene un agujero en el medio, pero su forma es la de un prisma hexagonal.',
+    svg:() => { const c = [140, 118], hex = polyPts(6, c[0], c[1], 58, 0);
+      return extruir(hex, [32, -22], 215, 12, 58) + `<circle cx="${c[0]}" cy="${c[1]}" r="24" fill="#1e293b"/><circle cx="${c[0]}" cy="${c[1]}" r="24" fill="none" stroke="#94a3b8" stroke-width="3"/>`; } },
+  { id:'bombonera', nombre:'una caja hexagonal de bombones', cuerpo:'prisma-hex', porque:'tiene dos bases hexagonales y 6 caras rectangulares.',
+    svg:() => { const c = [138, 116], hex = polyPts(6, c[0], c[1], 56, Math.PI/6);
+      return extruir(hex, [50, -30], 340, 60, 40) + `<polygon points="${P2S(polyPts(6, c[0], c[1], 40, Math.PI/6))}" fill="none" stroke="${hsl(48, 90, 62)}" stroke-width="3"/>` + TXT(c[0], c[1], '♥', 30, hsl(48, 90, 70)); } },
+  { id:'basalto', nombre:'una columna de roca de lava', cuerpo:'prisma-hex', porque:'su cuerpo tiene 6 caras rectangulares y dos bases hexagonales.', nota:'En la naturaleza hay columnas de roca con esa forma, aunque no son perfectas.',
+    svg:() => { const cx = 160, ty = 50, h = 126, rx = 52, a = k => Math.PI/3 * k, T = Array.from({length:6}, (_, k) => [cx + rx*Math.cos(a(k)), ty + .4*rx*Math.sin(a(k))]);
+      let s = ''; for(let k = 0; k < 3; k++){ const p = T[k], q = T[k+1]; s += `<polygon points="${P2S([p, q, [q[0], q[1]+h], [p[0], p[1]+h]])}" fill="${hsl(215, 8, 30 + k*12)}" ${LINEA}/>`; }
+      return `<path d="M0,196 Q80,180 160,196 T320,192 V220 H0Z" fill="#475569" opacity=".6"/>` + s.replace(/(<polygon[^>]*\/>)(?=<polygon)/, '$1') + `<polygon points="${P2S(T)}" fill="${hsl(215, 8, 52)}" ${LINEA}/>`; } },
+  { id:'pentagonal', nombre:'una caja de regalo pentagonal', cuerpo:'prisma-pent', porque:'tiene dos bases pentagonales y 5 caras rectangulares.',
+    svg:() => { const c = [128, 116]; return extruir(polyPts(5, c[0], c[1], 58), [56, -30], 270, 55, 50) + `<polygon points="${P2S(polyPts(5, c[0], c[1], 42))}" fill="none" stroke="${hsl(48, 95, 62)}" stroke-width="3"/>`; } },
+  { id:'piramide-vidrio', nombre:'una pirámide de vidrio de un museo', cuerpo:'piramide-cuad', porque:'tiene una base cuadrada y 4 caras triangulares que se juntan en la punta.', nota:'Es una construcción real: se parece mucho a una pirámide.',
+    svg:() => piramideSVG(hsl(195, 70, 76), hsl(205, 60, 52), '#94a3b8') + [.3, .55, .78].map(t => { const A = [150, 48], L = [48, 162], F = [160, 190], R = [272, 158], pt = (P) => [A[0] + (P[0]-A[0])*t, A[1] + (P[1]-A[1])*t]; return `<line x1="${pt(L)[0]}" y1="${pt(L)[1]}" x2="${pt(F)[0]}" y2="${pt(F)[1]}" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/><line x1="${pt(F)[0]}" y1="${pt(F)[1]}" x2="${pt(R)[0]}" y2="${pt(R)[1]}" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>`; }).join('') },
+);
+
+/* ---------- Más escenas ---------- */
+ESCENAS.push(
+  { id:'mesa', titulo:'la mesa vista desde arriba', bg:'linear-gradient(#e7c38a, #d4a066)', deco:'', top:'', aus:2,
+    items:[
+      ...[[70, 62], [250, 62], [70, 158], [250, 158]].map(p => it('rectangulo', bRect(p[0]-42, p[1]-31, 84, 62), '#bfdbfe', p)),
+      ...[[70, 62], [250, 62], [70, 158], [250, 158]].map(p => it('circulo', bCirc(p[0], p[1], 24), '#fff', p)),
+      ...[[125, 62], [195, 62], [125, 158], [195, 158]].map(p => it('cuadrado', bRect(p[0]-9, p[1]-9, 18, 18), '#fca5a5', p)),
+      it('ovalo', bElip(160, 110, 30, 20), '#e2e8f0', [160, 110]),
+      ...[146, 160, 174].map(x => it('triangulo', bPoly([[x-7, 119], [x+7, 119], [x, 101]]), '#fbbf24', [x, 112])),
+      it('circulo', bCirc(160, 40, 9), '#7dd3fc', [160, 40]), it('circulo', bCirc(160, 180, 9), '#7dd3fc', [160, 180]),
+    ] },
+  { id:'dormitorio', titulo:'el dormitorio', bg:'linear-gradient(#c4b5fd, #ede9fe)',
+    deco:`<path d="M0,170 Q80,162 160,170 T320,168 V220 H0Z" fill="#a78bfa"/>`, top:`<line x1="207" y1="120" x2="207" y2="128" stroke="#475569" stroke-width="3"/>`,
+    items:[
+      it('rectangulo', bRect(30, 120, 150, 44), '#60a5fa', [105, 142]), it('rectangulo', bRect(20, 94, 14, 70), '#92400e', [27, 129]),
+      it('ovalo', bElip(62, 116, 22, 9), '#fff', [62, 116]),
+      it('cuadrado', bRect(200, 36, 50, 50), '#7dd3fc', [225, 61]), it('rectangulo', bRect(60, 28, 70, 44), '#f9a8d4', [95, 50]),
+      it('circulo', bCirc(160, 52, 14), '#fff', [160, 52]),
+      it('cuadrado', bRect(192, 128, 30, 30), '#d97706', [207, 143]), it('trapecio', bPoly([[199, 98], [215, 98], [224, 120], [190, 120]]), '#fde047', [207, 110]),
+      it('rectangulo', bRect(264, 66, 40, 98), '#78350f', [284, 115]),
+      it('ovalo', bElip(150, 196, 48, 10), '#f472b6', [150, 196]), it('circulo', bCirc(232, 178, 11), '#fb923c', [232, 178]),
+    ] },
+  { id:'feria', titulo:'la feria', bg:'linear-gradient(#bae6fd, #f0f9ff)',
+    deco:`<path d="M0,160 Q80,150 160,160 T320,158 V220 H0Z" fill="#a3e635"/>`, top:`<line x1="30" y1="78" x2="30" y2="110" stroke="#475569" stroke-width="3"/><line x1="130" y1="78" x2="130" y2="110" stroke="#475569" stroke-width="3"/><line x1="184" y1="78" x2="184" y2="110" stroke="#475569" stroke-width="3"/><line x1="290" y1="78" x2="290" y2="110" stroke="#475569" stroke-width="3"/><line x1="155" y1="12" x2="155" y2="6" stroke="#475569" stroke-width="2"/>`,
+    items:[
+      it('trapecio', bPoly([[34, 48], [126, 48], [140, 78], [20, 78]]), '#ef4444', [80, 63]), it('rectangulo', bRect(28, 110, 104, 40), '#a16207', [80, 130]),
+      ...[50, 75, 100].map(x => it('circulo', bCirc(x, 101, 9), '#fb923c', [x, 101])),
+      it('trapecio', bPoly([[184, 48], [286, 48], [300, 78], [170, 78]]), '#22c55e', [235, 63]), it('rectangulo', bRect(178, 110, 114, 40), '#a16207', [235, 130]),
+      it('cuadrado', bRect(190, 86, 24, 24), '#fcd34d', [202, 98]), it('cuadrado', bRect(222, 86, 24, 24), '#fcd34d', [234, 98]),
+      it('rombo', bPoly([[155, 14], [170, 30], [155, 46], [140, 30]]), '#a78bfa', [155, 30]), it('circulo', bCirc(292, 24, 13), '#fde047', [292, 24]),
+    ] },
+  { id:'patio', titulo:'el patio de juegos', bg:'linear-gradient(#93c5fd, #e0f2fe)',
+    deco:`<path d="M0,150 Q80,138 160,150 T320,146 V220 H0Z" fill="#4ade80"/><path d="M235,30 q10,-8 22,0 q8,-6 14,2 q4,6 -4,8 h-30 q-8,-2 -2,-10Z" fill="#fff" opacity=".9"/>`,
+    top:`<line x1="176" y1="112" x2="176" y2="132" stroke="#475569" stroke-width="2.5"/><path d="M200,78 q-10,16 4,28 q10,10 0,22" stroke="#475569" stroke-width="1.5" fill="none"/><line x1="230" y1="112" x2="230" y2="128" stroke="#475569" stroke-width="1.5"/>`,
+    items:[
+      it('triangulo', bPoly([[40, 70], [40, 160], [124, 160]]), '#ef4444', [60, 130]), it('cuadrado', bRect(150, 132, 52, 52), '#fde68a', [176, 158]),
+      it('triangulo', bPoly([[176, 128], [176, 112], [192, 120]]), '#f472b6', [180, 120]),
+      it('rectangulo', bRect(210, 148, 38, 12), '#92400e', [229, 154]), it('rectangulo', bRect(274, 96, 10, 54), '#78350f', [279, 123]), it('circulo', bCirc(279, 74, 26), '#22c55e', [279, 74]),
+      it('circulo', bCirc(130, 176, 10), '#fff', [130, 176]), it('circulo', bCirc(232, 184, 10), '#fb923c', [232, 184]), it('circulo', bCirc(60, 32, 14), '#fde047', [60, 32]),
+      it('rombo', bPoly([[200, 52], [214, 74], [200, 96], [186, 74]]), '#a78bfa', [200, 74]), it('ovalo', bElip(230, 100, 10, 13), '#38bdf8', [230, 100]),
+    ] },
+  { id:'ciudad', titulo:'la ciudad', bg:'linear-gradient(#bae6fd, #e0f2fe)',
+    deco:`<path d="M0,176 Q80,170 160,176 T320,174 V220 H0Z" fill="#64748b"/>`,
+    top:[30, 90, 150, 210, 270].map(x => `<line x1="${x}" y1="${x === 270 ? 62 : 70}" x2="${x}" y2="176" stroke="#475569" stroke-width="3"/>`).join('') + [60, 120, 180, 240, 300].map(x => `<line x1="${x}" y1="142" x2="${x}" y2="176" stroke="#475569" stroke-width="3"/>`).join('') + TXT(30, 48, 'PARE', 8, '#fff') + TXT(120, 122, 'PARE', 8, '#fff'),
+    items:[
+      it('octagono', bPoly(polyPts(8, 30, 48, 20, Math.PI/8)), '#dc2626', [30, 48]), it('triangulo', bPoly([[68, 32], [112, 32], [90, 68]]), '#fff', [90, 42]),
+      it('circulo', bCirc(150, 48, 19), '#fff', [150, 48]), it('rombo', bPoly([[210, 26], [234, 48], [210, 70], [186, 48]]), '#facc15', [210, 48]),
+      it('rectangulo', bRect(246, 32, 50, 30), '#16a34a', [271, 47]),
+      it('circulo', bCirc(60, 118, 17), '#fff', [60, 118]), it('octagono', bPoly(polyPts(8, 120, 118, 20, Math.PI/8)), '#dc2626', [120, 118]),
+      it('cuadrado', bRect(162, 104, 36, 36), '#3b82f6', [180, 122]), it('triangulo', bPoly([[222, 102], [258, 102], [240, 134]]), '#fff', [240, 110]),
+      it('rombo', bPoly([[300, 100], [318, 122], [300, 144], [282, 122]]), '#facc15', [300, 122]),
+    ] },
+  { id:'playa', titulo:'la playa', bg:'linear-gradient(#7dd3fc, #e0f2fe)',
+    deco:`<path d="M0,104 Q80,96 160,104 T320,100 V150 H0Z" fill="#38bdf8"/><path d="M0,140 Q80,130 160,140 T320,136 V220 H0Z" fill="#fcd34d"/>`,
+    top:`<line x1="70" y1="110" x2="70" y2="172" stroke="#475569" stroke-width="3"/><line x1="230" y1="68" x2="230" y2="116" stroke="#475569" stroke-width="3"/>`,
+    items:[
+      it('circulo', bCirc(50, 36, 15), '#fde047', [50, 36]),
+      it('triangulo', bPoly([[38, 110], [102, 110], [70, 82]]), '#ef4444', [70, 102]),
+      it('trapecio', bPoly([[205, 116], [255, 116], [247, 130], [213, 130]]), '#92400e', [230, 123]),
+      it('triangulo', bPoly([[230, 70], [230, 112], [256, 112]]), '#fff', [238, 100]), it('triangulo', bPoly([[226, 80], [226, 112], [206, 112]]), '#fca5a5', [220, 102]),
+      it('rectangulo', bRect(110, 160, 70, 32), '#f472b6', [145, 176]), it('circulo', bCirc(200, 178, 10), '#fff', [200, 178]),
+      it('cuadrado', bRect(236, 158, 34, 34), '#fbbf24', [253, 175]), it('rectangulo', bRect(237, 144, 9, 14), '#fbbf24', [241, 151]), it('rectangulo', bRect(260, 144, 9, 14), '#fbbf24', [264, 151]),
+    ] },
+);
+
+const SesC = { cola:[], i:0, n:1, fase:1, resuelto:null, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, aciertosHip:0, token:0, opciones:[], elegida:null };
+const pregC = () => SesC.cola[SesC.i];
+const $c = id => document.getElementById(id);
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const totalC = q => ESCENAS[q.ei].items.filter(x => x.f === q.f).length;
+
+function nuevaColaC(ultima){
+  const c = [];
+  OBJETOS.forEach((o, oi) => c.push({ t:'obj', oi, key:'o' + oi }));
+  ESCENAS.forEach((e, ei) => {
+    const fs = [...new Set(e.items.map(x => x.f))];
+    fs.forEach(f => c.push({ t:'esc', ei, f, key:'e' + ei }));
+    barajar(FORMA_IDS.filter(f => !fs.includes(f))).slice(0, e.aus || 1).forEach(f => c.push({ t:'esc', ei, f, key:'e' + ei }));   // formas que NO están en la escena
+  });
+  const ordenar = () => {
+    barajar(c);
+    for(let i = 1; i < c.length; i++){
+      if(c[i].key === c[i-1].key){ const j = c.findIndex((x, n) => n > i && x.key !== c[i-1].key); if(j > 0) [c[i], c[j]] = [c[j], c[i]]; }
+    }
+  };
+  ordenar();
+  for(let t = 0; t < 30 && ultima && c[0].key === ultima.key; t++) ordenar();
+  return c;
+}
+function opcionesObjeto(o){
+  let ops = [o.cuerpo];
+  const g = CUERPO_GRUPOS.filter(x => x.includes(o.cuerpo)).flat();
+  barajar([...new Set(g)].filter(x => x !== o.cuerpo)).forEach(x => { if(ops.length < 4 && !(o.cuerpo === 'cubo' && x === 'ortoedro')) ops.push(x); });
+  barajar(Object.keys(CUERPO_NOM).filter(x => !ops.includes(x) && !(o.cuerpo === 'cubo' && x === 'ortoedro'))).forEach(x => { if(ops.length < 4) ops.push(x); });
+  return barajar(ops);
+}
+function medirC(){
+  const st = $c('stageC'), r = st.getBoundingClientRect(), sv = $c('svgC');
+  const w = Math.max(10, Math.min(r.width - 8, (r.height - 8) * 320 / 220));
+  sv.style.width = Math.round(w) + 'px'; sv.style.height = Math.round(w * 220 / 320) + 'px';
+}
+function dibujarC(){
+  const q = pregC(), sv = $c('svgC'); if(!q) return;
+  let h = '';
+  if(q.t === 'obj'){ sv.style.background = 'none'; h = OBJETOS[q.oi].svg(); }
+  else {
+    const e = ESCENAS[q.ei]; sv.style.background = e.bg; h = e.deco;
+    e.items.forEach((x, i) => { h += `<g data-i="${i}" style="cursor:pointer">${x.g(`fill="${x.fill}" stroke="rgba(30,17,71,.45)" stroke-width="1.5"`)}</g>`; });
+    h += `<g pointer-events="none">${e.top}</g>`;
+    let orden = 0;
+    SesC.marcas.forEach(i => { const x = e.items[i]; orden++;
+      h += `<g pointer-events="none">${x.g('fill="none" stroke="#fbbf24" stroke-width="4.5"')}<circle cx="${x.c[0]}" cy="${x.c[1]}" r="9" fill="#1e1147" stroke="#fbbf24" stroke-width="2"/><text x="${x.c[0]}" y="${x.c[1]}" text-anchor="middle" dominant-baseline="central" font-family="Baloo 2, Nunito, sans-serif" font-weight="800" font-size="11" fill="#fff">${orden}</text></g>`; });
+  }
+  sv.innerHTML = h;
+}
+function tocarC(i){
+  const q = pregC();
+  if(!q || q.t !== 'esc' || SesC.fase !== 2 || SesC.bloqueado) return;
+  const x = ESCENAS[q.ei].items[i]; if(!x) return;
+  if(x.f !== q.f){ SesC.tipoMsg = 'mal'; SesC.mensaje = `Eso es ${FORMAS[x.f].un}, no ${FORMAS[q.f].un}. Busca los ${FORMAS[q.f].pl}.`; refrescarUIC(); return; }
+  if(SesC.marcas.has(i)) SesC.marcas.delete(i); else SesC.marcas.add(i);
+  SesC.mensaje = null; SesC.tipoMsg = null;
+  if(SesC.marcas.size === totalC(q)){ resolverC(); return; }
+  refrescarUIC();
+}
+function noHayMasC(){
+  const q = pregC(); if(!q || q.t !== 'esc' || SesC.fase !== 2 || SesC.bloqueado) return;
+  if(SesC.marcas.size === totalC(q)){ resolverC(); return; }
+  SesC.tipoMsg = 'mal'; SesC.mensaje = `Todavía quedan ${FORMAS[q.f].pl} sin marcar. Mira bien toda la escena.`; refrescarUIC();
+}
+function progresoC(clave){
+  Prog.respC[clave] = true; Prog.nC++; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 4); }catch(e){} }
+  repOnline('C', SesC.resuelto === 'ok');
+}
+function resolverC(){
+  const q = pregC(), e = ESCENAS[q.ei], total = totalC(q), acerto = SesC.hip === total, F = FORMAS[q.f];
+  SesC.bloqueado = true; SesC.resuelto = acerto ? 'ok' : 'mal'; SesC.tipoMsg = acerto ? 'bien' : 'mal';
+  const dato = total === 0 ? `En ${e.titulo} no hay ningún ${F.un.slice(3)}.` : `En ${e.titulo} hay <b>${total}</b> ${total === 1 ? F.un.slice(3) : F.pl}.`;
+  if(acerto){ SesC.aciertosHip++; SesC.mensaje = '¡Hipótesis correcta! ' + dato; }
+  else SesC.mensaje = `Tu hipótesis fue incorrecta: ${dato} ${F.rec}`;
+  progresoC(e.id + ':' + q.f); refrescarUIC();
+}
+function responderObjeto(id){
+  const q = pregC(); if(!q || q.t !== 'obj' || SesC.bloqueado) return;
+  const o = OBJETOS[q.oi], acerto = id === o.cuerpo;
+  SesC.elegida = id; SesC.bloqueado = true; SesC.resuelto = acerto ? 'ok' : 'mal'; SesC.tipoMsg = acerto ? 'bien' : 'mal';
+  const base = `${cap(o.nombre)} se parece a ${CUERPO_UN[o.cuerpo]}: ${o.porque}` + (o.nota ? ' ' + o.nota : '');
+  if(acerto){ SesC.aciertosHip++; SesC.mensaje = '¡Eso es! ' + base; } else SesC.mensaje = 'No era esa. ' + base;
+  progresoC('obj:' + o.id); refrescarUIC();
+}
+function refrescarUIC(){
+  const q = pregC(); if(!q) return;
+  const esO = q.t === 'obj', f2 = SesC.fase === 2, res = SesC.resuelto, n = SesC.marcas.size;
+  $c('chipPregC').textContent = `Pregunta ${SesC.n}`;
+  $c('chipHipC').textContent = `💡 ${SesC.aciertosHip}`;
+  const F = esO ? null : FORMAS[q.f];
+  $c('preguntaC').innerHTML = esO ? `<span class="q">¿A qué</span> <span class="kw k-nombre">CUERPO</span> <span class="q">se parece?</span>`
+    : `<span class="q">¿Cuántos</span> <span class="kw k-nombre">${F.pl.toUpperCase()}</span> <span class="q">hay?</span>`;
+  let msg = SesC.mensaje;
+  if(!msg) msg = esO ? `Observa ${OBJETOS[q.oi].nombre}. ¿A qué cuerpo geométrico se parece más?` : !f2 ? `Mira con atención ${ESCENAS[q.ei].titulo}.` : `Toca cada ${F.un.slice(3)} para marcarlo.`;
+  $c('msgC').className = 'msg' + (SesC.tipoMsg ? ' ' + SesC.tipoMsg : '');
+  $c('msgC').innerHTML = '<span>' + msg + '</span>';
+  $c('fila1C').style.display = (!esO && !f2) ? '' : 'none';
+  if(!esO) $c('txtElemC').textContent = F.pl + '.';
+  $c('inpGuessC').value = SesC.guess === null ? '' : SesC.guess;
+  const oc = $c('opcionesC'); oc.style.display = esO ? '' : 'none';
+  if(esO){
+    oc.innerHTML = SesC.opciones.map(id => { const cl = SesC.elegida ? (id === OBJETOS[q.oi].cuerpo ? ' ok' : id === SesC.elegida ? ' no' : '') : ''; return `<button class="btn opc${cl}" data-id="${id}"${SesC.elegida ? ' disabled' : ''}>${CUERPO_NOM[id]}</button>`; }).join('');
+    oc.querySelectorAll('button').forEach(b => b.onclick = () => responderObjeto(b.dataset.id));
+  }
+  const c = $c('fila2C'); c.style.display = (!esO && f2) ? '' : 'none'; c.className = 'contador'; c.dataset.k = 'lados';
+  c.innerHTML = `<small>Marcados</small><span class="n" style="color:#fbbf24">${n}</span> / ${SesC.hip}`;
+  const bP = $c('btnPrincipalC'), bL = $c('btnLimpiarC'), bN = $c('btnNoMasC');
+  bP.style.display = esO ? (res ? '' : 'none') : (!f2 || res ? '' : 'none');
+  bP.textContent = res ? 'Siguiente ▶' : 'Esa es mi hipótesis ▶';
+  bP.className = 'btn ' + (res ? 'siguiente' : 'azul'); bP.disabled = res ? false : (SesC.guess === null);
+  bL.style.display = bN.style.display = (!esO && f2 && !res) ? '' : 'none';
+  bL.disabled = n === 0;
+  dibujarC();
+}
+function fijarGuessC(v){ if(SesC.bloqueado || SesC.fase !== 1) return; SesC.guess = (v === null || isNaN(v)) ? null : Math.max(0, Math.min(40, v)); refrescarUIC(); }
+function principalC(){ if(SesC.resuelto) siguienteC(); else if(SesC.fase === 1 && pregC().t === 'esc') confirmarHipotesisC(); }
+function confirmarHipotesisC(){
+  if(SesC.fase !== 1 || SesC.guess === null || SesC.bloqueado) return;
+  SesC.hip = SesC.guess; SesC.guess = null; SesC.fase = 2; SesC.mensaje = null; SesC.tipoMsg = null; refrescarUIC();
+}
+function limpiarMarcasC(){ if(SesC.bloqueado) return; SesC.marcas.clear(); SesC.mensaje = null; SesC.tipoMsg = null; refrescarUIC(); }
+function iniciarSesionC(){ SesC.cola = nuevaColaC(); SesC.i = 0; SesC.n = 1; SesC.aciertosHip = 0; cargarPreguntaC(); }
+function cargarPreguntaC(){
+  const q = pregC();
+  Object.assign(SesC, { fase:1, hip:null, guess:null, marcas:new Set(), mensaje:null, tipoMsg:null, bloqueado:false, resuelto:null, elegida:null, opciones:q.t === 'obj' ? opcionesObjeto(OBJETOS[q.oi]) : [] });
+  medirC(); refrescarUIC();
+}
+function siguienteC(){
+  const ultima = pregC(); SesC.i++; SesC.n++;
+  if(SesC.i >= SesC.cola.length){ SesC.cola = nuevaColaC(ultima); SesC.i = 0; }
+  cargarPreguntaC();
+}
+$c('svgC').addEventListener('click', e => { const g = e.target.closest('[data-i]'); if(g) tocarC(parseInt(g.dataset.i, 10)); });
+new ResizeObserver(() => { if($c('screen-mundo').classList.contains('active')){ medirC(); } }).observe($c('stageC'));
+async function abrirMundo(){
+  mostrar('screen-mundo');
+  await new Promise(r => requestAnimationFrame(r));
+  if(!SesC.cola.length) iniciarSesionC(); else { medirC(); refrescarUIC(); }
+}
+$c('btnInicioC').onclick = () => { renderHome(); mostrar('screen-home'); };
+$c('btnLimpiarC').onclick = limpiarMarcasC;
+$c('btnMenosC').onclick = () => fijarGuessC(SesC.guess === null ? 0 : SesC.guess - 1);
+$c('btnMasC').onclick = () => fijarGuessC(SesC.guess === null ? 1 : SesC.guess + 1);
+$c('inpGuessC').oninput = e => { const t = e.target.value.replace(/\D/g, ''); fijarGuessC(t === '' ? null : parseInt(t, 10)); };
+$c('inpGuessC').onkeydown = e => { if(e.key === 'Enter') principalC(); };
+$c('btnPrincipalC').onclick = principalC;
+$c('btnNoMasC').onclick = noHayMasC;
+
+/* =====================================================================
+   8. MÓDULO D: TALLER DE DESARROLLOS PLANOS
+   Los desarrollos NO se dibujan a mano: se obtienen "abriendo" el modelo de cada cuerpo (módulo B)
+   por un árbol de aristas al azar. El plegado vuelve a cerrar exactamente el mismo cuerpo, y se verifica.
+   ===================================================================== */
+const CUERPOS_D = ['cubo', 'ortoedro', 'prisma-tri', 'prisma-pent', 'prisma-hex', 'piramide-cuad', 'piramide-tri', 'piramide-pent'];
+const UN_D = { cubo:'un cubo', ortoedro:'un paralelepípedo', 'prisma-tri':'un prisma triangular', 'prisma-pent':'un prisma pentagonal', 'prisma-hex':'un prisma hexagonal', 'piramide-cuad':'una pirámide de base cuadrada', 'piramide-tri':'una pirámide triangular', 'piramide-pent':'una pirámide pentagonal' };
+const NOM_D = { cubo:'Cubo', ortoedro:'Paralelepípedo', 'prisma-tri':'Prisma triangular', 'prisma-pent':'Prisma pentagonal', 'prisma-hex':'Prisma hexagonal', 'piramide-cuad':'Pirámide cuadrada', 'piramide-tri':'Pirámide triangular', 'piramide-pent':'Pirámide pentagonal' };
+const GRUPOS_D = [['cubo', 'ortoedro'], ['prisma-tri', 'piramide-tri', 'prisma-pent'], ['prisma-pent', 'prisma-hex', 'piramide-pent'], ['piramide-cuad', 'piramide-tri', 'piramide-pent']];
+const ORDEN_TIPO = ['triángulo', 'cuadrado', 'rectángulo', 'pentágono', 'hexágono'];
+const COLOR_TIPO = { 'triángulo':0x38bdf8, 'cuadrado':0x34d399, 'rectángulo':0xfbbf24, 'pentágono':0xf472b6, 'hexágono':0xa78bfa };
+const modeloD = id => MODELOS.find(m => m.cuerpo.id === id);
+const compoTexto = r => ORDEN_TIPO.filter(t => r[t]).map(t => `${r[t]} ${r[t] === 1 ? t : PLURAL[t]}`).join(' y ');
+const uni = a => { const l = Math.hypot(a[0], a[1], a[2] || 0) || 1; return a.map(x => x / l); };
+const cruz3 = (a, b) => [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]];
+
+/* ¿Se tocan dos polígonos convexos del plano? (eje separador) */
+function solapan(P, Q){
+  for(const poly of [P, Q]){
+    for(let i = 0; i < poly.length; i++){
+      const a = poly[i], b = poly[(i+1)%poly.length], nx = b[1] - a[1], ny = a[0] - b[0];
+      const pr = pts => { let mn = 1e9, mx = -1e9; pts.forEach(p => { const d = p[0]*nx + p[1]*ny; mn = Math.min(mn, d); mx = Math.max(mx, d); }); return [mn, mx]; };
+      const [a1, a2] = pr(P), [b1, b2] = pr(Q), L = Math.hypot(nx, ny);
+      if(a2 <= b1 + 1e-4 * L || b2 <= a1 + 1e-4 * L) return false;
+    }
+  }
+  return true;
+}
+function hayChoque(caras){
+  for(let i = 0; i < caras.length; i++) for(let j = i + 1; j < caras.length; j++) if(solapan(caras[i].pts, caras[j].pts)) return true;
+  return false;
+}
+/* Abre un cuerpo: árbol de aristas al azar → todas las caras quedan en un plano, unidas por aristas */
+function desplegarCuerpo(m, quitarTipo){
+  const F = m.caras.length, V = m.verts, ady = Array.from({length:F}, () => []);
+  m.aristas.forEach(e => { const [f1, f2] = e.caras; ady[f1].push({ f:f2, a:e.a, b:e.b }); ady[f2].push({ f:f1, a:e.a, b:e.b }); });
+  for(let intento = 0; intento < 400; intento++){
+    const raiz = Math.floor(Math.random() * F), vis = new Set([raiz]), orden = [{ fi:raiz, padre:-1 }];
+    let fr = []; const add = f => ady[f].forEach(x => { if(!vis.has(x.f)) fr.push({ desde:f, ...x }); }); add(raiz);
+    while(vis.size < F){
+      fr = fr.filter(x => !vis.has(x.f)); const x = fr[Math.floor(Math.random() * fr.length)];
+      vis.add(x.f); orden.push({ fi:x.f, padre:x.desde, a:x.a, b:x.b }); add(x.f);
+    }
+    const idxDe = {}, caras = [];
+    orden.forEach((o, k) => {
+      idxDe[o.fi] = k; const cara = m.caras[o.fi], lz = cara.lazo, L = lz.length, n = cara.normal; let pos2 = {}, a2 = null, b2 = null, alfa = 0, padre = -1;
+      if(o.padre < 0){
+        const v0 = V[lz[0]], e1 = uni(v3.sub(V[lz[1]], v0)), e2 = cruz3(n, e1);
+        lz.forEach(i => { const d = v3.sub(V[i], v0); pos2[i] = [v3.dot(d, e1), v3.dot(d, e2)]; });
+      } else {
+        padre = idxDe[o.padre]; const P = caras[padre]; let s = -1;
+        for(let i = 0; i < L; i++) if((lz[i] === o.a && lz[(i+1)%L] === o.b) || (lz[i] === o.b && lz[(i+1)%L] === o.a)) s = i;
+        const vs = lz[s], ve = lz[(s+1)%L], ps = P.pos2[vs], pe = P.pos2[ve], d2 = uni([pe[0]-ps[0], pe[1]-ps[1], 0]), l2 = [-d2[1], d2[0]];
+        const E1 = uni(v3.sub(V[ve], V[vs])), E2 = cruz3(n, E1);
+        lz.forEach(i => { const d = v3.sub(V[i], V[vs]), u = v3.dot(d, E1), w = v3.dot(d, E2); pos2[i] = [ps[0] + u*d2[0] + w*l2[0], ps[1] + u*d2[1] + w*l2[1]]; });
+        a2 = ps; b2 = pe; alfa = Math.acos(Math.max(-1, Math.min(1, v3.dot(m.caras[o.padre].normal, n))));
+      }
+      caras.push({ fi:o.fi, padre, vid:lz.slice(), pts:lz.map(i => pos2[i]), pos2, a2, b2, alfa, tipo:cara.tipo, M:null });
+    });
+    if(hayChoque(caras)) continue;
+    let fantasma = -1;
+    if(quitarTipo){
+      const hijos = new Set(caras.map(c => c.padre)), hojas = caras.map((c, k) => k).filter(k => k > 0 && !hijos.has(k) && caras[k].tipo === quitarTipo);
+      if(!hojas.length) continue; fantasma = hojas[Math.floor(Math.random() * hojas.length)]; caras[fantasma].fantasma = true;
+    }
+    return { m, caras, fantasma, cubo:false };
+  }
+  return null;
+}
+/* Desarrollo con una figura equivocada: una hoja del árbol se cambia por otro polígono regular pegado a la misma arista */
+function desplegarMala(m){
+  for(let intento = 0; intento < 400; intento++){
+    const red = desplegarCuerpo(m); if(!red) return null;
+    const hijos = new Set(red.caras.map(c => c.padre)), hojas = red.caras.map((c, k) => k).filter(k => k > 0 && !hijos.has(k));
+    const k = hojas[Math.floor(Math.random() * hojas.length)], c = red.caras[k], orig = c.pts.length;
+    const opciones = [3, 4, 5, 6].filter(n => n !== orig && !(orig === 4 && n === 4));
+    const n = opciones[Math.floor(Math.random() * opciones.length)], ps = c.a2, pe = c.b2, L = Math.hypot(pe[0]-ps[0], pe[1]-ps[1]);
+    let ang = Math.atan2(pe[1]-ps[1], pe[0]-ps[0]), p = [ps[0], ps[1]]; const pts = [[p[0], p[1]]];
+    for(let i = 1; i < n; i++){ p = [p[0] + L*Math.cos(ang), p[1] + L*Math.sin(ang)]; pts.push([p[0], p[1]]); ang += 2*Math.PI/n; }
+    const anterior = c.pts; c.pts = pts; c.tipo = nombrePoligono(n) === 'cuadrilátero' ? 'cuadrado' : nombrePoligono(n); c.vid = pts.map((_, i) => 'x' + i); c.pos2 = null;
+    if(hayChoque(red.caras)){ c.pts = anterior; continue; }
+    red.mala = k; return red;
+  }
+  return null;
+}
+/* ---------- Hexaminós: los 35 "seis cuadrados unidos por lados"; solo 11 son desarrollos del cubo ---------- */
+const SIM8 = [(x, y) => [x, y], (x, y) => [-y, x], (x, y) => [-x, -y], (x, y) => [y, -x], (x, y) => [-x, y], (x, y) => [y, x], (x, y) => [x, -y], (x, y) => [-y, -x]];
+function normCeldas(c){ const mx = Math.min(...c.map(p => p[0])), my = Math.min(...c.map(p => p[1])); return c.map(p => [p[0]-mx, p[1]-my]).sort((a, b) => a[0] - b[0] || a[1] - b[1]); }
+const claveCeldas = c => normCeldas(c).map(p => p.join(',')).join(';');
+function canonCeldas(c){ return SIM8.map(f => claveCeldas(c.map(p => f(p[0], p[1])))).sort()[0]; }
+function generarHexaminos(){
+  let nivel = new Map([[canonCeldas([[0, 0]]), [[0, 0]]]]);
+  for(let n = 1; n < 6; n++){
+    const sig = new Map();
+    nivel.forEach(c => { c.forEach(p => [[1,0],[-1,0],[0,1],[0,-1]].forEach(d => { const q = [p[0]+d[0], p[1]+d[1]]; if(c.some(r => r[0] === q[0] && r[1] === q[1])) return; const nuevo = c.concat([q]), k = canonCeldas(nuevo); if(!sig.has(k)) sig.set(k, normCeldas(nuevo)); })); });
+    nivel = sig;
+  }
+  return [...nivel.values()];
+}
+const tiene2x2 = c => c.some(p => [[1,0],[0,1],[1,1]].every(d => c.some(q => q[0] === p[0]+d[0] && q[1] === p[1]+d[1])));
+function redDeCeldas(celdas, lado){
+  const idx = new Map(celdas.map((c, i) => [c.join(','), i])), raiz = Math.floor(Math.random() * celdas.length), orden = [raiz], padreDe = { [raiz]:-1 }, vis = new Set([raiz]);
+  for(let q = 0; q < orden.length; q++){ const c = celdas[orden[q]]; [[1,0],[-1,0],[0,1],[0,-1]].sort(() => Math.random() - .5).forEach(d => { const j = idx.get((c[0]+d[0]) + ',' + (c[1]+d[1])); if(j !== undefined && !vis.has(j)){ vis.add(j); padreDe[j] = orden[q]; orden.push(j); } }); }
+  const pos = {}, caras = [];
+  orden.forEach((ci, k) => {
+    pos[ci] = k; const [x, y] = celdas[ci], s = lado, pts = [[x*s, y*s], [(x+1)*s, y*s], [(x+1)*s, (y+1)*s], [x*s, (y+1)*s]];
+    let a2 = null, b2 = null, padre = -1;
+    if(padreDe[ci] >= 0){
+      padre = pos[padreDe[ci]]; const [px, py] = celdas[padreDe[ci]], dx = x - px, dy = y - py;
+      let p, q; if(dx === 1){ p = [x*s, y*s]; q = [x*s, (y+1)*s]; } else if(dx === -1){ p = [px*s, y*s]; q = [px*s, (y+1)*s]; } else if(dy === 1){ p = [x*s, y*s]; q = [(x+1)*s, y*s]; } else { p = [x*s, py*s]; q = [(x+1)*s, py*s]; }
+      const d = uni([q[0]-p[0], q[1]-p[1], 0]), l = [-d[1], d[0]], c = [(x+.5)*s, (y+.5)*s], mid = [(p[0]+q[0])/2, (p[1]+q[1])/2];
+      if(l[0]*(c[0]-mid[0]) + l[1]*(c[1]-mid[1]) < 0){ const t = p; p = q; q = t; }
+      a2 = p; b2 = q;
+    }
+    caras.push({ fi:ci, padre, vid:null, pts, a2, b2, alfa:Math.PI/2, tipo:'cuadrado', M:null });
+  });
+  return { m:null, caras, fantasma:-1, cubo:true };
+}
+/* ---------- Plegado ---------- */
+function calcularPliegue(red, t){
+  const T = (x, y) => new THREE.Matrix4().makeTranslation(x, y, 0);
+  red.caras.forEach(c => {
+    if(c.padre < 0){ c.M = new THREE.Matrix4(); return; }
+    const P = red.caras[c.padre], d = new THREE.Vector3(c.b2[0] - c.a2[0], c.b2[1] - c.a2[1], 0).normalize();
+    c.M = P.M.clone().multiply(T(c.a2[0], c.a2[1])).multiply(new THREE.Matrix4().makeRotationAxis(d, -c.alfa * t)).multiply(T(-c.a2[0], -c.a2[1]));
+  });
+}
+const pos3 = (c, p) => new THREE.Vector3(p[0], p[1], 0).applyMatrix4(c.M);
+/* Cierre: cada vértice del cuerpo debe quedar en un solo punto del espacio */
+function verificarCierre(red){
+  calcularPliegue(red, 1); const g = {}; let dev = 0;
+  red.caras.forEach(c => c.vid.forEach((id, i) => { const p = pos3(c, c.pts[i]); (g[id] = g[id] || []).push(p); }));
+  Object.values(g).forEach(l => l.forEach(p => { dev = Math.max(dev, p.distanceTo(l[0])); }));
+  return dev;
+}
+/* Cubo: ¿las 6 caras plegadas quedan mirando a 6 direcciones distintas? */
+function analizarCubo(red){
+  calcularPliegue(red, 1); const grupos = {};
+  red.caras.forEach((c, k) => { const n = new THREE.Vector3(0, 0, 1).transformDirection(c.M), key = [n.x, n.y, n.z].map(v => Math.round(v)).join(','); (grupos[key] = grupos[key] || []).push(k); });
+  const distintas = Object.keys(grupos).length;
+  const normal = {}; Object.entries(grupos).forEach(([k, g]) => g.forEach(i => { normal[i] = k.split(',').map(Number); }));
+  return { valido:distintas === 6, distintas, repetidas:Object.values(grupos).filter(g => g.length > 1).flat(), grupos:Object.values(grupos), normal };
+}
+
+/* ---------- Escena 3D ---------- */
+const Ed = { listo:false, renderer:null, escena:null, camara:null, vista:null, tilt:null, grupo:null, q:null, zoom:1, auto:0, malla:[], red:null, t:0, pend:false, giraSolo:false };
+async function iniciarD(){
+  if(Ed.listo) return true;
+  const cargando = $d('cargandoD');
+  try{
+    if(!THREE) THREE = await import('three');
+    const cv = $d('cvD'), gl = cv.getContext('webgl2') || cv.getContext('webgl');
+    if(!gl) throw new Error('sin WebGL');
+    Ed.renderer = new THREE.WebGLRenderer({ canvas:cv, antialias:true, alpha:true }); Ed.renderer.setClearColor(0x000000, 0);
+    Ed.escena = new THREE.Scene(); Ed.camara = new THREE.PerspectiveCamera(38, 1, .1, 100);
+    Ed.escena.add(new THREE.AmbientLight(0xffffff, .8)); const l1 = new THREE.DirectionalLight(0xffffff, 1.3); l1.position.set(3, 5, 6); Ed.escena.add(l1);
+    const l2 = new THREE.DirectionalLight(0xb8a8ff, .5); l2.position.set(-4, -3, -5); Ed.escena.add(l2);
+    Ed.vista = new THREE.Group(); Ed.tilt = new THREE.Group(); Ed.grupo = new THREE.Group(); Ed.escena.add(Ed.vista); Ed.vista.add(Ed.tilt); Ed.tilt.add(Ed.grupo);
+    Ed.q = new THREE.Quaternion();
+    new ResizeObserver(() => { ajustarD(); }).observe($d('stageD'));
+    punterosD(cv); Ed.listo = true; cargando.style.display = 'none'; ajustarD(); return true;
+  }catch(err){ console.error(err); cargando.classList.add('error'); cargando.textContent = 'No se pudo cargar el modelo 3D. Revisa tu conexión e inténtalo de nuevo.'; return false; }
+}
+function ajustarD(){
+  if(!Ed.listo) return; const st = $d('stageD'), w = st.clientWidth, h = st.clientHeight; if(!w || !h) return;
+  Ed.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); Ed.renderer.setSize(w, h, false); Ed.camara.aspect = w / h; Ed.camara.updateProjectionMatrix(); pedirRenderD();
+}
+function pedirRenderD(){ if(Ed.pend) return; Ed.pend = true; requestAnimationFrame(() => { Ed.pend = false; renderD(); }); }
+function renderD(){
+  if(!Ed.listo || !Ed.red) return;
+  const red = Ed.red; calcularPliegue(red, Ed.t);
+  const pts = []; red.caras.forEach(c => { c.pts.forEach(p => pts.push(pos3(c, p))); });
+  const cen = new THREE.Vector3(); pts.forEach(p => cen.add(p)); cen.multiplyScalar(1 / pts.length);
+  let R = 0; pts.forEach(p => { R = Math.max(R, p.distanceTo(cen)); });
+  Ed.grupo.position.copy(cen).multiplyScalar(-1);
+  Ed.tilt.rotation.set(-Ed.t * .95, Ed.auto + Ed.t * .75, 0, 'YXZ');
+  Ed.malla.forEach((g, k) => { const c = red.caras[k]; g.matrix.copy(c.M); if(c.off) g.matrix.premultiply(new THREE.Matrix4().makeTranslation(c.off.x * Ed.t, c.off.y * Ed.t, c.off.z * Ed.t)); g.matrixWorldNeedsUpdate = true; });
+  const vf = Ed.camara.fov * Math.PI / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * Ed.camara.aspect), f = Math.min(vf, hf);
+  Ed.camara.position.set(0, 0, (R * 1.18) / Math.sin(f / 2) / Ed.zoom); Ed.camara.lookAt(0, 0, 0);
+  Ed.vista.quaternion.copy(Ed.q);
+  Ed.renderer.render(Ed.escena, Ed.camara);
+}
+function construirD(red){
+  while(Ed.grupo.children.length) Ed.grupo.remove(Ed.grupo.children[0]);
+  Ed.malla = []; Ed.red = red;
+  red.caras.forEach((c, k) => {
+    const g = new THREE.Group(); g.matrixAutoUpdate = false;
+    const col = red.cubo ? 0x34d399 : COLOR_TIPO[c.tipo] || 0xa9a3d6, n = c.pts.length, pos = [];
+    for(let i = 1; i < n - 1; i++) [c.pts[0], c.pts[i], c.pts[i+1]].forEach(p => pos.push(p[0], p[1], 0));
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.computeVertexNormals();
+    const matF = new THREE.MeshLambertMaterial({ color:col, side:THREE.FrontSide, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+    const matB = new THREE.MeshLambertMaterial({ color:new THREE.Color(col).multiplyScalar(.55), side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+    const f = new THREE.Mesh(geo, matF), b = new THREE.Mesh(geo, matB);
+    const lp = c.pts.map(p => new THREE.Vector3(p[0], p[1], 0)), lg = new THREE.BufferGeometry().setFromPoints(lp);
+    const lin = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color:0x1e1147 }));
+    g.add(f, b, lin); g.userData = { matF, matB, lin, col };
+    if(c.fantasma){ matF.transparent = matB.transparent = true; matF.opacity = matB.opacity = .3; g.visible = false; }
+    Ed.grupo.add(g); Ed.malla.push(g);
+  });
+  pedirRenderD();
+}
+function punterosD(cv){
+  const ptr = new Map(); let d0 = 0, z0 = 1;
+  let ini = null, movio = false;
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); if(ptr.size === 1){ ini = [e.clientX, e.clientY]; movio = false; } else movio = true; if(ptr.size === 2){ const [a, b] = [...ptr.values()]; d0 = Math.hypot(a[0]-b[0], a[1]-b[1]); z0 = Ed.zoom; } });
+  cv.addEventListener('pointermove', e => {
+    if(!ptr.has(e.pointerId)) return; const p = ptr.get(e.pointerId), n = [e.clientX, e.clientY]; ptr.set(e.pointerId, n);
+    if(ptr.size >= 2){ const [a, b] = [...ptr.values()], d = Math.hypot(a[0]-b[0], a[1]-b[1]); if(d0 > 0){ Ed.zoom = Math.max(.6, Math.min(1.8, z0 * d / d0)); pedirRenderD(); } return; }
+    if(ini && Math.hypot(n[0] - ini[0], n[1] - ini[1]) > 6) movio = true;
+    const dx = n[0] - p[0], dy = n[1] - p[1], qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx * .011), qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy * .011);
+    Ed.q.premultiply(qy).premultiply(qx); pedirRenderD();
+  });
+  const fin = e => { const toque = ptr.size === 1 && !movio && e.type === 'pointerup'; ptr.delete(e.pointerId); if(toque) tocarD(e.clientX, e.clientY); };
+  cv.addEventListener('pointerup', fin); cv.addEventListener('pointercancel', fin);
+  cv.addEventListener('wheel', e => { e.preventDefault(); Ed.zoom = Math.max(.6, Math.min(1.8, Ed.zoom * (e.deltaY < 0 ? 1.1 : 1/1.1))); pedirRenderD(); }, { passive:false });
+}
+function restablecerVistaD(){
+  const q0 = Ed.q.clone(), z0 = Ed.zoom, t0 = performance.now();
+  const paso = now => { const k = Math.min(1, (now - t0) / 300), e = k*k*(3 - 2*k); Ed.q.copy(q0).slerp(new THREE.Quaternion(), e); Ed.zoom = z0 + (1 - z0) * e; pedirRenderD(); if(k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+/* ---------- Sesión ---------- */
+const $d = id => document.getElementById(id);
+const SesD = { cola:[], i:0, n:1, fase:1, resuelto:null, elegida:null, opciones:[], mensaje:null, tipoMsg:null, bloqueado:false, aciertos:0, red:null, q:null, info:null, token:0, anim:0, giro:0 };
+const pregD = () => SesD.cola[SesD.i];
+let HEXA = null;
+function colaD(ultima){
+  if(!HEXA){
+    HEXA = generarHexaminos().map(c => ({ celdas:c, valido:analizarCubo(redDeCeldas(c, 1)).valido, bloque:tiene2x2(c) }));
+  }
+  const c = [];
+  CUERPOS_D.forEach(id => { for(let k = 0; k < 5; k++) c.push({ tipo:'cuerpo', id, key:id }); });
+  CUERPOS_D.forEach(id => c.push({ tipo:'figuras', id, key:id }));
+  CUERPOS_D.forEach(id => { const tipos = [...new Set(modeloD(id).caras.map(f => f.tipo))]; tipos.forEach(t => c.push({ tipo:'falta', id, faltante:t, key:id })); });
+  CUERPOS_D.forEach(id => c.push({ tipo:'mala', id, key:id }));
+  HEXA.filter(h => h.valido).forEach(h => c.push({ tipo:'cubo', celdas:h.celdas, valido:true, key:'cubo' }));
+  barajar(HEXA.filter(h => !h.valido && !h.bloque)).slice(0, 11).forEach(h => c.push({ tipo:'cubo', celdas:h.celdas, valido:false, key:'cubo' }));
+  const ord = () => { barajar(c); for(let i = 1; i < c.length; i++){ if(c[i].key === c[i-1].key){ const j = c.findIndex((x, n) => n > i && x.key !== c[i-1].key); if(j > 0) [c[i], c[j]] = [c[j], c[i]]; } } };
+  ord(); for(let t = 0; t < 30 && ultima && c[0].key === ultima.key; t++) ord();
+  return c;
+}
+function opcionesD(q){
+  if(q.tipo === 'mala') return [];
+  if(q.tipo === 'cubo') return ['si', 'no'];
+  if(q.tipo === 'falta'){ const ops = [q.faltante]; barajar(ORDEN_TIPO.filter(t => t !== q.faltante && !(q.faltante === 'cuadrado' && t === 'rectángulo' && false))).forEach(t => { if(ops.length < 4) ops.push(t); }); return barajar(ops); }
+  const ops = [q.id]; barajar(GRUPOS_D.filter(g => g.includes(q.id)).flat().filter(x => x !== q.id && !(q.id === 'cubo' && x === 'ortoedro'))).forEach(x => { if(ops.length < 4 && !ops.includes(x)) ops.push(x); });
+  barajar(CUERPOS_D.filter(x => !ops.includes(x) && !(q.id === 'cubo' && x === 'ortoedro'))).forEach(x => { if(ops.length < 4) ops.push(x); });
+  if(q.tipo === 'figuras'){ const ids = ops.slice(); return barajar(ids.map(id => 'f:' + id)); }
+  return barajar(ops);
+}
+const etiquetaD = (q, id) => q.tipo === 'cubo' ? (id === 'si' ? 'Sí, se arma' : 'No se arma') : q.tipo === 'falta' ? cap(id) : q.tipo === 'figuras' ? compoTexto(modeloD(id.slice(2)).resumen) : NOM_D[id];
+
+async function iniciarSesionD(){ if(!(await iniciarD())) return; SesD.cola = colaD(); SesD.i = 0; SesD.n = 1; SesD.aciertos = 0; await cargarPreguntaD(); }
+async function cargarPreguntaD(){
+  if(!(await iniciarD())) return;
+  const q = pregD(); SesD.anim++; SesD.token++;
+  Object.assign(SesD, { fase:1, resuelto:null, elegida:null, mensaje:null, tipoMsg:null, bloqueado:false, q, opciones:opcionesD(q) });
+  Ed.t = 0; Ed.q = new THREE.Quaternion(); Ed.zoom = 1; Ed.auto = 0; Ed.giraSolo = false;
+  let red;
+  if(q.tipo === 'cubo'){ const f = SIM8[Math.floor(Math.random() * 8)]; red = redDeCeldas(normCeldas(q.celdas.map(p => f(p[0], p[1]))), 1.5); }
+  else if(q.tipo === 'mala'){ red = desplegarMala(modeloD(q.id)); }
+  else { red = desplegarCuerpo(modeloD(q.id), q.tipo === 'falta' ? q.faltante : null); }
+  SesD.red = red;
+  if(q.tipo === 'figuras'){ Ed.t = 1; Ed.giraSolo = true; Ed.auto = Math.random() * 6; }
+  construirD(red); refrescarUID(); bucleGiroD();
+}
+function bucleGiroD(){
+  if(!Ed.giraSolo || !$d('screen-taller').classList.contains('active')) return;
+  Ed.auto += .012; renderD(); requestAnimationFrame(bucleGiroD);
+}
+function siguienteD(){ const ultima = pregD(); SesD.i++; SesD.n++; if(SesD.i >= SesD.cola.length){ SesD.cola = colaD(ultima); SesD.i = 0; } return cargarPreguntaD(); }
+function seleccionarD(k){
+  if(!SesD.q || SesD.q.tipo !== 'mala' || SesD.fase !== 1 || SesD.bloqueado) return;
+  SesD.elegida = k; Ed.malla.forEach((g, i) => { const e = i === k ? 0xb45309 : 0x000000; g.userData.matF.emissive.setHex(e); g.userData.matB.emissive.setHex(e); });
+  pedirRenderD(); refrescarUID();
+}
+function tocarD(cx, cy){
+  const q = SesD.q; if(!q || q.tipo !== 'mala' || SesD.fase !== 1 || SesD.bloqueado || !Ed.listo) return;
+  const r = $d('cvD').getBoundingClientRect(), rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), Ed.camara);
+  const hit = rc.intersectObjects(Ed.malla, true)[0]; if(!hit) return;
+  let o = hit.object; while(o && !Ed.malla.includes(o)) o = o.parent; const k = Ed.malla.indexOf(o); if(k >= 0) seleccionarD(k);
+}
+function confirmarD(){ if(SesD.q.tipo === 'mala' && SesD.fase === 1 && SesD.elegida !== null){ SesD.fase = 2; SesD.mensaje = null; refrescarUID(); } }
+function posCaraD(k){ const c = SesD.red.caras[k], g = Ed.malla[k], r = $d('cvD').getBoundingClientRect(); const p = new THREE.Vector3(0, 0, 0); c.pts.forEach(q => p.add(new THREE.Vector3(q[0], q[1], 0))); p.multiplyScalar(1 / c.pts.length).applyMatrix4(g.matrixWorld).project(Ed.camara); return { x:r.left + (p.x + 1) / 2 * r.width, y:r.top + (1 - p.y) / 2 * r.height }; }
+function elegirD(id){
+  if(SesD.bloqueado || SesD.fase !== 1) return;
+  SesD.elegida = id;
+  if(SesD.q.tipo === 'figuras'){ resolverD(); return; }
+  SesD.fase = 2; SesD.mensaje = null; SesD.tipoMsg = null; refrescarUID();
+}
+function fijarT(t){ Ed.t = Math.max(0, Math.min(1, t)); $d('sliderD').value = Math.round(Ed.t * 100); pedirRenderD(); comprobarPliegueD(); refrescarUID(true); }
+function comprobarPliegueD(){ if(SesD.fase === 2 && !SesD.resuelto && Ed.t >= .995) resolverD(); }
+function animarD(dest){
+  if(SesD.fase !== 2 && !SesD.resuelto) return;
+  const t0 = performance.now(), a = Ed.t, dur = 1500 * Math.abs(dest - a) + 250, tok = ++SesD.anim;
+  const paso = now => { if(tok !== SesD.anim) return; const k = Math.min(1, (now - t0) / dur), e = k*k*(3 - 2*k); fijarT(a + (dest - a) * e); if(k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+function resolverD(){
+  const q = SesD.q, red = SesD.red, el = SesD.elegida; let acerto, msg;
+  SesD.bloqueado = true;
+  if(q.tipo === 'cuerpo'){
+    const m = modeloD(q.id); acerto = el === q.id;
+    msg = `${acerto ? '¡Correcto! ' : 'No era esa. '}Estas figuras arman ${UN_D[q.id]}: ${compoTexto(m.resumen)}.`;
+  } else if(q.tipo === 'figuras'){
+    const m = modeloD(q.id), elegido = el.slice(2); acerto = elegido === q.id;
+    msg = `${acerto ? '¡Correcto! ' : 'No era esa. '}${cap(UN_D[q.id])} se arma con ${compoTexto(m.resumen)}.`;
+  } else if(q.tipo === 'mala'){
+    const m = modeloD(q.id); acerto = el === red.mala;
+    Ed.malla.forEach(g => { g.userData.matF.emissive.setHex(0); g.userData.matB.emissive.setHex(0); });
+    const u = Ed.malla[red.mala].userData; u.matF.color.set(0xfb7185); u.matB.color.set(0xbe123c);
+    msg = acerto ? `¡Correcto! Esa figura no corresponde: ${UN_D[q.id]} se arma con ${compoTexto(m.resumen)}.` : `No era esa. Pulsa Desplegar: la que no corresponde está en rojo. ${cap(UN_D[q.id])} se arma con ${compoTexto(m.resumen)}.`;
+  } else if(q.tipo === 'falta'){
+    acerto = el === q.faltante; const g = Ed.malla[red.fantasma]; if(g){ g.visible = true; }
+    msg = `${acerto ? '¡Correcto! ' : 'No era esa. '}Le faltaba ${({ 'triángulo':'un triángulo', 'cuadrado':'un cuadrado', 'rectángulo':'un rectángulo', 'pentágono':'un pentágono', 'hexágono':'un hexágono' })[q.faltante]} para cerrar ${UN_D[q.id]}. (Se ve más claro en el hueco que queda.)`;
+  } else {
+    const an = analizarCubo(red); acerto = (el === 'si') === an.valido;
+    if(an.valido) msg = `${acerto ? '¡Correcto! ' : 'Sí se podía. '}Al plegar, las 6 caras quedan en lugares distintos y cierran el cubo.`;
+    else {
+      an.repetidas.forEach(k => { const u = Ed.malla[k].userData; u.matF.color.set(0xfb7185); u.matB.color.set(0xbe123c); });
+      an.grupos.filter(g => g.length > 1).forEach(g => g.forEach((k, j) => { const n = an.normal[k]; red.caras[k].off = new THREE.Vector3(n[0], n[1], n[2]).multiplyScalar(.14 * j); }));
+      const sobran = 6 - an.distintas;
+      msg = `${acerto ? '¡Correcto! ' : 'No se podía. '}Al plegar, ${sobran === 1 ? '2 caras quedan' : (sobran + 1) + ' caras quedan'} una sobre otra (en rojo) y ${sobran === 1 ? 'queda un hueco' : 'quedan ' + sobran + ' huecos'}.`;
+    }
+  }
+  SesD.resuelto = acerto ? 'ok' : 'mal'; SesD.tipoMsg = acerto ? 'bien' : 'mal'; SesD.mensaje = msg; if(acerto) SesD.aciertos++;
+  Prog.respD[(q.id || 'cubo') + ':' + q.tipo] = true; Prog.nD++; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 3); }catch(e){} }
+  repOnline('D', acerto);
+  pedirRenderD(); refrescarUID();
+}
+function refrescarUID(soloSlider){
+  const q = SesD.q; if(!q) return;
+  const f2 = SesD.fase === 2, res = SesD.resuelto, esF = q.tipo === 'figuras';
+  const btnP = $d('btnPlegarD'); btnP.textContent = Ed.t >= .5 ? '◀ Desplegar' : 'Plegar ▶';
+  if(soloSlider) return;
+  $d('chipPregD').textContent = `Pregunta ${SesD.n}`; $d('chipHipD').textContent = `💡 ${SesD.aciertos}`;
+  const kw = t => `<span class="kw k-nombre">${t}</span>`;
+  $d('preguntaD').innerHTML = q.tipo === 'cuerpo' ? `<span class="q">¿Qué</span> ${kw('CUERPO')} <span class="q">se arma?</span>`
+    : q.tipo === 'cubo' ? `<span class="q">¿Se arma un</span> ${kw('CUBO')}<span class="q">?</span>`
+    : q.tipo === 'mala' ? `<span class="q">¿Qué</span> ${kw('FIGURA')} <span class="q">no corresponde?</span>`
+    : q.tipo === 'falta' ? `<span class="q">¿Qué</span> ${kw('FIGURA')} <span class="q">le falta?</span>`
+    : `<span class="q">¿Qué</span> ${kw('FIGURAS')} <span class="q">forman sus caras?</span>`;
+  let msg = SesD.mensaje;
+  if(!msg){
+    if(q.tipo === 'cuerpo') msg = f2 ? 'Ahora pliega el desarrollo para comprobar tu respuesta.' : 'Observa las figuras del desarrollo. ¿Qué cuerpo armarías?';
+    else if(q.tipo === 'cubo') msg = f2 ? 'Pliega las 6 figuras para comprobarlo.' : 'Mira cómo están unidas las 6 figuras. ¿Se podría armar un cubo?';
+    else if(q.tipo === 'mala') msg = f2 ? 'Pliega el desarrollo para ver que esa figura no cierra el cuerpo.' : SesD.elegida !== null ? 'Marcaste una figura. Si estás seguro, confirma.' : `Este desarrollo es de ${UN_D[q.id]}, pero una figura está de más. ¡Tócala!`;
+    else if(q.tipo === 'falta') msg = f2 ? 'Pliega el desarrollo para ver qué hueco queda.' : `Con este desarrollo se quiere armar ${UN_D[q.id]}. ¿Qué figura le falta?`;
+    else msg = `Observa ${UN_D[q.id]} y piensa en sus caras.`;
+  }
+  $d('msgD').className = 'msg' + (SesD.tipoMsg ? ' ' + SesD.tipoMsg : ''); $d('msgD').innerHTML = '<span>' + msg + '</span>';
+  const oc = $d('opcionesD'); oc.className = 'opciones' + (q.tipo === 'figuras' ? ' largas' : '');
+  oc.innerHTML = SesD.opciones.map(id => {
+    let cl = ''; const correcta = q.tipo === 'cubo' ? (id === 'si') === (analizarCubo(SesD.red).valido) : q.tipo === 'falta' ? id === q.faltante : q.tipo === 'figuras' ? id === 'f:' + q.id : id === q.id;
+    if(res) cl = correcta ? ' ok' : id === SesD.elegida ? ' no' : ''; else if(id === SesD.elegida) cl = ' sel';
+    return `<button class="btn opc${cl}" data-id="${id}"${(SesD.elegida && !res && false) || res ? ' disabled' : ''}>${etiquetaD(q, id)}</button>`;
+  }).join('');
+  oc.style.display = SesD.opciones.length ? '' : 'none';
+  oc.querySelectorAll('button').forEach(b => b.onclick = () => elegirD(b.dataset.id));
+  $d('filaConfD').style.display = (q.tipo === 'mala' && SesD.fase === 1 && SesD.elegida !== null && !res) ? '' : 'none';
+  $d('filaPlegarD').style.display = esF ? 'none' : '';
+  $d('sliderD').disabled = !(f2 || res); btnP.disabled = !(f2 || res); $d('sliderD').value = Math.round(Ed.t * 100);
+  $d('filaSigD').style.display = res ? '' : 'none';
+}
+$d('sliderD').oninput = e => { if(SesD.fase === 2 || SesD.resuelto){ SesD.anim++; fijarT(parseInt(e.target.value, 10) / 100); } };
+$d('btnPlegarD').onclick = () => animarD(Ed.t >= .5 ? 0 : 1);
+$d('btnConfirmarD').onclick = confirmarD;
+$d('btnPrincipalD').onclick = () => { if(SesD.resuelto) siguienteD(); };
+$d('btnInicioD').onclick = () => { Ed.giraSolo = false; renderHome(); mostrar('screen-home'); };
+$d('btnVistaD').onclick = () => { if(Ed.listo) restablecerVistaD(); };
+async function abrirTaller(){
+  mostrar('screen-taller');
+  await new Promise(r => requestAnimationFrame(r));
+  if(!SesD.cola.length) await iniciarSesionD(); else { if(await iniciarD()){ ajustarD(); refrescarUID(); if(SesD.q && SesD.q.tipo === 'figuras'){ Ed.giraSolo = true; bucleGiroD(); } } }
+}
+
+/* =====================================================================
+   9. MÓDULO E — MISIONES (integran varios módulos; sin preguntas sueltas de A–D)
+   ===================================================================== */
+const $e = id => document.getElementById(id);
+const idsE = CUERPOS.map(c => c.id);
+const modE = id => MODELOS[idsE.indexOf(id)];
+const unE = id => `${CUERPOS[idsE.indexOf(id)].art} ${CUERPO_NOM[id].toLowerCase()}`;
+const UnE = id => cap(unE(id));
+const aE = id => unE(id).replace(/^el /, 'al '), deE = id => unE(id).replace(/^el /, 'del ');
+const aE2 = id => unE(id).startsWith('el ') ? 'al ' + unE(id).slice(3) : 'a ' + unE(id), deE2 = id => unE(id).startsWith('el ') ? 'del ' + unE(id).slice(3) : 'de ' + unE(id);
+const curvoE = id => modE(id).clase === 'curvo';
+function datosE(id){ const t = modE(id).misiones.map(x => x.total); return { caras:t[0], aristas:t[1], vertices:t[2] }; }
+function compoE(id){ return curvoE(id) ? ({ esfera:'1 superficie curva', cono:'1 círculo y 1 superficie curva', cilindro:'2 círculos y 1 superficie curva' })[id] : compoTexto(modE(id).resumen); }
+const FIG_DE_TIPO = { 'triángulo':'triangulo', 'cuadrado':'cuadrado', 'rectángulo':'rectangulo', 'pentágono':'pentagono', 'hexágono':'hexagono' };
+function figsE(id){ return curvoE(id) ? (id === 'esfera' ? [] : ['circulo']) : Object.keys(modE(id).resumen).map(t => FIG_DE_TIPO[t]).filter(Boolean); }
+const figE = id => FIGURAS.find(f => f.id === id);
+const ruedaE = id => curvoE(id), apoyaE = id => id !== 'esfera';
+const ELEM_E = { caras:['cara', 'caras'], aristas:['arista', 'aristas'], vertices:['vértice', 'vértices'] };
+const txtN = (n, k) => n === 0 ? `no tiene ${ELEM_E[k][1]}` : `tiene ${n} ${ELEM_E[k][n === 1 ? 0 : 1]}`;
+
+/* ---- Biblioteca de propiedades (para pistas, condiciones y afirmaciones) ---- */
+const PROPS_E = [];
+const addP = (k, fam, txt, test) => PROPS_E.push({ k, fam, txt, test });
+[...new Set(idsE.map(i => datosE(i).caras))].forEach(v => addP('c' + v, 'c', cap(txtN(v, 'caras')), id => datosE(id).caras === v));
+[...new Set(idsE.map(i => datosE(i).aristas))].forEach(v => addP('a' + v, 'a', cap(txtN(v, 'aristas')), id => datosE(id).aristas === v));
+[...new Set(idsE.map(i => datosE(i).vertices))].forEach(v => addP('v' + v, 'v', cap(txtN(v, 'vertices')), id => datosE(id).vertices === v));
+addP('c>5', 'c', 'Tiene más de 5 caras', id => datosE(id).caras > 5);
+addP('a>9', 'a', 'Tiene más de 9 aristas', id => datosE(id).aristas > 9);
+addP('v>5', 'v', 'Tiene más de 5 vértices', id => datosE(id).vertices > 5);
+addP('v<6', 'v', 'Tiene menos de 6 vértices', id => datosE(id).vertices < 6);
+addP('rueda', 'r', 'Puede rodar', ruedaE);
+addP('norueda', 'r', 'No puede rodar', id => !ruedaE(id));
+addP('apoya', 'ap', 'Se apoya sobre una base plana', apoyaE);
+addP('planas', 'p', 'Todas sus caras son planas', id => !curvoE(id));
+addP('curva', 'p', 'Tiene una superficie curva', curvoE);
+[['triangulo', 'triangulares'], ['cuadrado', 'cuadradas'], ['rectangulo', 'rectangulares'], ['pentagono', 'pentagonales'], ['hexagono', 'hexagonales'], ['circulo', 'circulares']]
+  .forEach(([f, adj]) => addP('f' + f, 'f' + f, `Tiene caras ${adj}`, id => figsE(id).includes(f)));
+const propsVerdad = id => PROPS_E.filter(p => p.test(id));
+
+/* ---- Banco de misiones (descriptores); cada ronda las recorre todas sin repetir ---- */
+function combinaciones(a, n){ if(n === 0) return [[]]; const r = []; a.forEach((x, i) => combinaciones(a.slice(i + 1), n - 1).forEach(c => r.push([x, ...c]))); return r; }
+const unicosE = props => idsE.filter(id => props.every(p => p.test(id)));
+const famDistintas = ps => new Set(ps.map(p => p.fam)).size === ps.length;
+function construirBancoE(){
+  const banco = [];
+  /* 1. Cadena desde un objeto: cuerpo → conteo → figuras o comportamiento */
+  OBJETOS.forEach((o, oi) => ['caras', 'aristas', 'vertices'].forEach(el => banco.push({ t:'cad', oi, el, key:`cad|${oi}|${el}` })));
+  /* 2. Cuerpo misterioso: 2 o 3 pistas que se necesitan todas */
+  idsE.forEach(id => {
+    const v = propsVerdad(id);
+    [2, 3].forEach(n => {
+      const ok = combinaciones(v, n).filter(c => famDistintas(c) && unicosE(c).length === 1 && c.every((_, i) => unicosE(c.filter((__, j) => j !== i)).length > 1));
+      barajar(ok).slice(0, n === 2 ? 3 : 4).forEach(c => banco.push({ t:'pis', id, ps:c.map(p => p.k), key:`pis|${id}|${c.map(p => p.k).join('+')}` }));
+    });
+  });
+  /* 3. Detective de errores: una afirmación falsa */
+  idsE.forEach(id => {
+    const d = datosE(id), cand = [];
+    ['caras', 'aristas', 'vertices'].forEach(k => [-2, -1, 1, 2].forEach(dv => { if(d[k] + dv >= 0 && d[k] + dv !== d[k]) cand.push({ t:'err', id, tipo:k, val:d[k] + dv, key:`err|${id}|${k}|${d[k] + dv}` }); }));
+    idsE.filter(o => o !== id && compoE(o) !== compoE(id)).forEach(o => cand.push({ t:'err', id, tipo:'compo', val:o, key:`err|${id}|compo|${o}` }));
+    cand.push({ t:'err', id, tipo:'rueda', key:`err|${id}|rueda` });
+    barajar(cand).slice(0, 5).forEach(c => banco.push(c));
+  });
+  /* 4. Dos condiciones a la vez (selección múltiple) */
+  const pares = combinaciones(PROPS_E, 2).filter(c => famDistintas(c) && unicosE(c).length >= 1 && unicosE(c).length <= 3);
+  barajar(pares).slice(0, 45).forEach(c => banco.push({ t:'cnd', ps:c.map(p => p.k), key:`cnd|${c.map(p => p.k).join('+')}` }));
+  /* 5. Desarrollo → cuerpo → conteo */
+  CUERPOS_D.forEach(id => ['aristas', 'vertices'].forEach(el => banco.push({ t:'net', id, el, key:`net|${id}|${el}` })));
+  return banco;
+}
+let BANCO_E = null;
+const propE = k => PROPS_E.find(p => p.k === k);
+
+/* ---- Dibujos ---- */
+const hexCss = n => '#' + n.toString(16).padStart(6, '0');
+function netSVG(red){
+  const xs = [], ys = []; red.caras.forEach(c => c.pts.forEach(p => { xs.push(p[0]); ys.push(p[1]); }));
+  const x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0, h = Math.max(...ys) - y0, m = Math.max(w, h) * .06;
+  return `<svg viewBox="${x0 - m} ${y0 - m} ${w + 2*m} ${h + 2*m}" preserveAspectRatio="xMidYMid meet">` +
+    red.caras.map(c => `<polygon points="${c.pts.map(p => p[0].toFixed(3) + ',' + p[1].toFixed(3)).join(' ')}" fill="${hexCss(COLOR_TIPO[c.tipo] || 0xa9a3d6)}" stroke="#1e1147" stroke-width="${(Math.max(w, h) * .018).toFixed(3)}" stroke-linejoin="round"/>`).join('') + '</svg>';
+}
+function figTileSVG(f){
+  const g = f.gen();
+  const forma = f.curva ? `<ellipse cx="0" cy="0" rx="${g.rx}" ry="${g.ry}" fill="#38bdf8" stroke="#1e1147" stroke-width=".07"/>`
+    : `<polygon points="${g.map(p => p[0].toFixed(3) + ',' + p[1].toFixed(3)).join(' ')}" fill="#38bdf8" stroke="#1e1147" stroke-width=".07" stroke-linejoin="round"/>`;
+  return `<svg viewBox="-1.2 -1.2 2.4 2.4">${forma}</svg>`;
+}
+const objSVG = oi => `<svg viewBox="0 0 320 220">${OBJETOS[oi].svg()}</svg>`;
+
+/* ---- Utilidades de opciones ---- */
+const kwE = t => `<span class="kw k-nombre">${t}</span>`;
+function distractoresCuerpo(id, n, afines){
+  const pool = idsE.filter(x => x !== id);
+  const pun = x => (afines ? afines.filter(p => p.test(x)).length : 0) + (CUERPO_GRUPOS.some(g => g.includes(id) && g.includes(x)) ? 1 : 0) + Math.random() * 1.5;
+  return pool.sort((a, b) => pun(b) - pun(a)).slice(0, n + 3).sort(() => Math.random() - .5).slice(0, n);
+}
+function opcionesCuerpo(id, afines){ return barajar([id, ...distractoresCuerpo(id, 3, afines)]).map(x => ({ id:x, html:CUERPO_NOM[x], ok:x === id })); }
+function opcionesNum(v){
+  const s = new Set([v]); barajar([-3, -2, -1, 1, 2, 3]).forEach(d => { if(s.size < 4 && v + d >= 0) s.add(v + d); });
+  return [...s].sort((a, b) => a - b).map(x => ({ id:String(x), html:String(x), ok:x === v }));
+}
+function tilesFiguras(ids, correctas, rotulos){
+  return barajar(ids.slice()).map(fid => ({ id:fid, html:figTileSVG(figE(fid)) + (rotulos ? `<span>${figE(fid).nombre}</span>` : ''), ok:correctas.includes(fid), tile:true }));
+}
+const listaNat = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
+
+/* ---- Pasos reutilizables ---- */
+function pasoCuerpo(id, titulo, visual, pista, expl, afines){
+  return { titulo, visual, opciones:opcionesCuerpo(id, afines), modo:'g2', pista, expl };
+}
+const CUANT_E = { caras:'Cuántas', aristas:'Cuántas', vertices:'Cuántos' };
+function pasoNumero(id, el, visual, titulo){
+  const v = datosE(id)[el];
+  return { titulo: titulo || `<span class="q">¿${CUANT_E[el]}</span> ${kwE(ELEM_E[el][1].toUpperCase())} <span class="q">tiene ese cuerpo?</span>`,
+    visual, opciones:opcionesNum(v), modo:'fila',
+    pista:`Cuenta ${el === 'caras' ? 'cada superficie' : el === 'aristas' ? 'cada línea donde se juntan dos caras' : 'cada punta o esquina'} ${deE2(id)} sin repetir ninguna.`,
+    expl:`${UnE(id)} ${txtN(v, el)}.` };
+}
+
+/* ---- Materializar una misión ---- */
+function materializarE(d){
+  const q = { t:d.t, key:d.key, pasos:[] };
+  if(d.t === 'cad'){
+    const o = OBJETOS[d.oi], id = o.cuerpo, vis = `<div class="eobj">${objSVG(d.oi)}</div>`;
+    q.pasos.push(pasoCuerpo(id, `<span class="q">Observa el objeto. ¿A qué</span> ${kwE('CUERPO')} <span class="q">se parece?</span>`, vis,
+      'Fíjate en sus superficies: ¿son planas o curvas? ¿Cuántas caras distintas alcanzas a ver?', `${cap(o.nombre)} se parece ${aE2(id)}: ${o.porque}`));
+    q.pasos.push(pasoNumero(id, d.el, vis));
+    if(id === 'esfera'){
+      q.pasos.push({ titulo:`<span class="q">¿Esa forma puede</span> ${kwE('RODAR')}<span class="q">?</span>`, visual:vis, modo:'g2',
+        opciones:[{ id:'si', html:'Sí, rueda', ok:true }, { id:'no', html:'No rueda', ok:false }], pista:'Piensa en una pelota: ¿qué pasa si la empujas?', expl:'La esfera es toda curva, por eso rueda hacia cualquier lado.' });
+    } else {
+      const fs = figsE(id), pool = ['triangulo', 'cuadrado', 'rectangulo', 'pentagono', 'hexagono', 'circulo'];
+      const ids = barajar([...fs, ...barajar(pool.filter(x => !fs.includes(x))).slice(0, 5 - fs.length)]);
+      q.pasos.push({ titulo:`<span class="q">¿Qué</span> ${kwE('FIGURAS')} <span class="q">forman sus caras planas?</span>`, visual:vis, modo:'fila', multi:true, tiles:true,
+        opciones:tilesFiguras(ids, fs, true), pista:'Mira las caras planas de ese cuerpo, una por una. Puede haber más de una figura distinta.',
+        expl:`Las caras planas de ${unE(id)} son: ${listaNat(fs.map(f => figE(f).nl))}.` });
+    }
+  } else if(d.t === 'pis'){
+    const ps = d.ps.map(propE), id = d.id;
+    const vis = `<div class="eclues">${ps.map((p, i) => `<div class="eclue"><i>${i + 1}</i><span>${p.txt}</span></div>`).join('')}</div>`;
+    q.pasos.push({ titulo:`<span class="q">Cuerpo</span> ${kwE('MISTERIOSO')}<span class="q">: cumple todas las pistas</span>`, visual:vis, modo:'g2',
+      opciones:opcionesCuerpo(id, ps), pista:`Descarta con una pista a la vez. Empieza por «${ps[0].txt}»: ¿cuáles lo cumplen? Luego prueba la siguiente con los que quedaron.`,
+      expl:`${UnE(id)} cumple todas: ${ps.map(p => p.txt.toLowerCase()).join('; ')}. Los otros fallan al menos una.` });
+  } else if(d.t === 'err'){
+    const id = d.id, dat = datosE(id), enun = (k, v) => `${UnE(id)} ${txtN(v, k)}.`;
+    const verd = [], falsa = {};
+    const hechos = [ ...['caras', 'aristas', 'vertices'].map(k => ({ k, txt:enun(k, dat[k]) })), { k:'compo', txt:`En ${unE(id)}, las caras son ${compoE(id)}.` },
+      { k:'rueda', txt:`${UnE(id)} ${ruedaE(id) ? 'puede' : 'no puede'} rodar.` } ];
+    if(d.tipo === 'compo') falsa.txt = `En ${unE(id)}, las caras son ${compoE(d.val)}.`;
+    else if(d.tipo === 'rueda') falsa.txt = `${UnE(id)} ${ruedaE(id) ? 'no puede' : 'puede'} rodar.`;
+    else falsa.txt = enun(d.tipo, d.val);
+    const otros = barajar(hechos.filter(h => h.k !== d.tipo)).slice(0, 3);
+    const ops = barajar([...otros.map(h => ({ id:h.txt, html:h.txt, ok:false })), { id:falsa.txt, html:falsa.txt, ok:true }]);
+    const real = d.tipo === 'compo' ? `En ${unE(id)}, las caras son ${compoE(id)}.` : d.tipo === 'rueda' ? `${UnE(id)} ${ruedaE(id) ? 'puede' : 'no puede'} rodar` : enun(d.tipo, dat[d.tipo]);
+    q.pasos.push({ titulo:`<span class="q">Detective: una afirmación es</span> ${kwE('FALSA')}`, visual:`<div class="ebig">${UnE(id)}</div>`, modo:'g1', opciones:ops,
+      pista:`Comprueba cada afirmación con lo que sabes ${deE2(id)}: cuenta sus caras, aristas y vértices, o piensa en sus figuras.`, expl:`Esa es falsa. En realidad: ${real.replace(/\.$/, '')}.` });
+  } else if(d.t === 'cnd'){
+    const ps = d.ps.map(propE), buenos = unicosE(ps), resto = idsE.filter(x => !buenos.includes(x));
+    resto.sort((a, b) => ps.filter(p => p.test(b)).length - ps.filter(p => p.test(a)).length + (Math.random() - .5));
+    const ids = barajar([...buenos, ...resto.slice(0, 4 - buenos.length)]);
+    const vis = `<div class="eclues">${ps.map((p, i) => `<div class="eclue"><i>${i + 1}</i><span>${p.txt}</span></div>`).join('')}</div>`;
+    q.pasos.push({ titulo:`<span class="q">Marca los cuerpos que cumplen</span> ${kwE('LAS DOS')} <span class="q">pistas</span>`, visual:vis, modo:'g2', multi:true,
+      opciones:ids.map(x => ({ id:x, html:CUERPO_NOM[x], ok:buenos.includes(x) })),
+      pista:'Un cuerpo vale solo si cumple la pista 1 Y la pista 2. Revisa cada uno con las dos. Puede haber más de uno.',
+      expl:`Cumplen las dos: ${listaNat(buenos.map(unE))}.` });
+  } else if(d.t === 'net'){
+    let red = null; for(let i = 0; i < 50 && !red; i++) red = desplegarCuerpo(modE(d.id));
+    const vis = `<div class="eobj">${netSVG(red)}</div>`, id = d.id;
+    q.pasos.push(pasoCuerpo(id, `<span class="q">Este</span> ${kwE('DESARROLLO')} <span class="q">¿arma qué cuerpo?</span>`, vis,
+      'Cuenta las figuras del desarrollo y fíjate en sus colores: ¿cuántas de cada tipo hay?', `Se arma con ${compoE(id)}: es ${unE(id)}.`, [propE('c' + datosE(id).caras)]));
+    q.pasos.push(pasoNumero(id, d.el, vis, `<span class="q">Al plegarlo, ¿${CUANT_E[d.el].toLowerCase()}</span> ${kwE(ELEM_E[d.el][1].toUpperCase())} <span class="q">tendrá?</span>`));
+  }
+  return q;
+}
+
+/* ---- Sesión ---- */
+const SesE = { cola:[], i:0, n:1, q:null, paso:0, intentos:0, sel:new Set(), descartadas:new Set(), resuelto:null, msg:'', tipoMsg:'', logros:[], aciertos1:0, ultimoTipo:null, ronda:1 };
+const pasoE = () => SesE.q && SesE.q.pasos[SesE.paso];
+function nuevaColaE(){
+  if(!BANCO_E) BANCO_E = construirBancoE();
+  const b = barajar(BANCO_E.slice());
+  for(let i = 1; i < b.length; i++) if(b[i].t === b[i - 1].t){ const j = b.findIndex((x, k) => k > i && x.t !== b[i - 1].t); if(j > 0) [b[i], b[j]] = [b[j], b[i]]; }
+  if(SesE.ultimoTipo && b[0].t === SesE.ultimoTipo){ const j = b.findIndex(x => x.t !== SesE.ultimoTipo); if(j > 0) [b[0], b[j]] = [b[j], b[0]]; }
+  return b;
+}
+function iniciarSesionE(){
+  SesE.cola = nuevaColaE(); SesE.i = 0; SesE.n = 1; SesE.aciertos1 = 0; SesE.ronda = 1; SesE.ultimoTipo = null;
+  cargarMisionE();
+}
+function cargarMisionE(){
+  const d = SesE.cola[SesE.i]; SesE.q = materializarE(d); SesE.ultimoTipo = d.t; SesE.paso = 0; SesE.logros = []; reiniciarPasoE(); renderE();
+}
+function reiniciarPasoE(){ Object.assign(SesE, { intentos:0, sel:new Set(), descartadas:new Set(), resuelto:null, msg:'', tipoMsg:'' }); }
+function evaluarE(){
+  const p = pasoE(), correcto = p.opciones.every((o, j) => o.ok === SesE.sel.has(j));
+  if(correcto){
+    SesE.resuelto = 'ok'; if(SesE.intentos === 0) SesE.aciertos1++;
+    SesE.msg = `¡Correcto! ${p.expl}`; SesE.tipoMsg = 'bien';
+  } else {
+    SesE.intentos++; repOnline('E', false);
+    const bien = [...SesE.sel].filter(j => p.opciones[j].ok).length, sobran = SesE.sel.size - bien, faltan = p.opciones.filter((o, j) => o.ok && !SesE.sel.has(j)).length;
+    if(!p.multi){ SesE.descartadas.add([...SesE.sel][0]); SesE.sel = new Set(); }
+    if(SesE.intentos === 1) SesE.msg = `Todavía no. 💡 Pista: ${p.pista} ¡Inténtalo de nuevo!`;
+    else if(p.multi) SesE.msg = `Sigue intentando: ${bien} bien marcada(s), ${sobran} de más y te faltan ${faltan}. ${p.pista}`;
+    else SesE.msg = `Esa tampoco. Quedan menos opciones: piensa con calma. ${p.pista}`;
+    SesE.tipoMsg = 'pista';
+  }
+  if(SesE.resuelto){
+    if(SesE.paso === SesE.q.pasos.length - 1) completarMisionE();
+  }
+  renderE();
+}
+function completarMisionE(){
+  Prog.nE++; Prog.respE[SesE.q.key] = 1; guardarProg();
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, 'geometria-en-accion', 1, 0, 6); }catch(e){} }
+  repOnline('E', true);
+}
+function tocarOpcionE(j){
+  const p = pasoE(); if(!p || SesE.resuelto || SesE.descartadas.has(j)) return;
+  if(p.multi){ if(SesE.sel.has(j)) SesE.sel.delete(j); else SesE.sel.add(j); renderE(); }
+  else { SesE.sel = new Set([j]); evaluarE(); }
+}
+function listoE(){ if(SesE.sel.size && !SesE.resuelto) evaluarE(); }
+function siguienteE(){
+  if(!SesE.resuelto) return;
+  if(SesE.paso < SesE.q.pasos.length - 1){ SesE.paso++; reiniciarPasoE(); renderE(); return; }
+  SesE.i++; SesE.n++;
+  if(SesE.i >= SesE.cola.length){ SesE.cola = nuevaColaE(); SesE.i = 0; SesE.ronda++; }
+  cargarMisionE();
+}
+function renderE(){
+  const q = SesE.q, p = pasoE(); if(!q || !p) return;
+  const res = SesE.resuelto, np = q.pasos.length;
+  $e('chipMisionE').textContent = np > 1 ? `Misión ${SesE.n} · ${SesE.paso + 1}/${np}` : `Misión ${SesE.n}`;
+  $e('chipHipE').textContent = '💡 ' + SesE.aciertos1;
+  $e('preguntaE').innerHTML = p.titulo;
+  const ops = p.opciones.map((o, j) => {
+    let cl = 'eop' + (o.tile ? ' tile' : '');
+    if(res){ if(o.ok) cl += ' ok'; else if(SesE.sel.has(j) || SesE.descartadas.has(j)) cl += ' no'; }
+    else if(SesE.descartadas.has(j)) cl += ' no'; else if(SesE.sel.has(j)) cl += ' sel';
+    return `<button class="${cl}" data-j="${j}"${res || SesE.descartadas.has(j) ? ' disabled' : ''}>${o.html}</button>`;
+  }).join('');
+  $e('stageE').innerHTML = `<div class="evis">${p.visual}</div><div class="eopc ${p.modo}">${ops}</div>`;
+  $e('stageE').querySelectorAll('.eop').forEach(b => b.onclick = () => tocarOpcionE(+b.dataset.j));
+  const m = $e('msgE'); m.className = 'msg ' + (SesE.tipoMsg || ''); 
+  m.textContent = SesE.msg || (p.multi ? 'Marca todas las que correspondan y pulsa «Listo».' : 'Piensa y toca tu respuesta.');
+  $e('filaListoE').style.display = p.multi && !res ? '' : 'none'; $e('btnListoE').disabled = !SesE.sel.size;
+  $e('filaSigE').style.display = res ? '' : 'none';
+}
+async function abrirMisiones(){
+  mostrar('screen-misiones'); await new Promise(r => requestAnimationFrame(r));
+  if(!SesE.q) iniciarSesionE(); else renderE();
+}
+$e('btnInicioE').onclick = () => { renderHome(); mostrar('screen-home'); };
+$e('btnListoE').onclick = listoE; $e('btnSigE').onclick = siguienteE;
+window.GeoMisiones = { SesE, construirBancoE, materializarE, iniciarSesionE, tocarOpcionE, listoE, siguienteE, pasoE, propsVerdad, PROPS_E, datosE, compoE, figsE, unicosE, get BANCO(){ if(!BANCO_E) BANCO_E = construirBancoE(); return BANCO_E; } };
+
+/* ---------- Progreso: preguntas ya respondidas bien (cuerpo:elemento) ---------- */
+let AlumnoActual = null;
+const Prog = { resp:{}, n:0, respA:{}, nA:0, respC:{}, nC:0, respD:{}, nD:0, respE:{}, nE:0 };
+const claveLocal = () => 'geo_accion_progreso_v1_' + (AlumnoActual ? AlumnoActual.id : 'invitado');
+function cargarProg(){ try{ const j = JSON.parse(localStorage.getItem(claveLocal()) || 'null'); Prog.resp = (j && j.resp) || {}; Prog.n = (j && j.n) || 0; Prog.respA = (j && j.respA) || {}; Prog.nA = (j && j.nA) || 0; Prog.respC = (j && j.respC) || {}; Prog.nC = (j && j.nC) || 0; Prog.respD = (j && j.respD) || {}; Prog.nD = (j && j.nD) || 0; Prog.respE = (j && j.respE) || {}; Prog.nE = (j && j.nE) || 0; }catch(e){ Prog.resp = {}; Prog.n = 0; Prog.respA = {}; Prog.nA = 0; Prog.respC = {}; Prog.nC = 0; Prog.respD = {}; Prog.nD = 0; Prog.respE = {}; Prog.nE = 0; } }
+function guardarProg(){ try{ localStorage.setItem(claveLocal(), JSON.stringify(Prog)); }catch(e){} }
+
+/* =====================================================================
+   5. NAVEGACIÓN, INICIO Y LOGIN
+   ===================================================================== */
+function mostrar(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); pintarTiempo(); }
+const MODULOS = [
+  { letra:'A', ico:'🔷', nombre:'Figuras planas', desc:'Detectives: lados, vértices y nombres', listo:true, abrir:() => abrirPlanas() },
+  { letra:'B', ico:'🧊', nombre:'Cuerpos geométricos',          desc:'Piensa, explora y comprueba', listo:true, abrir:() => abrirCuerpos() },
+  { letra:'C', ico:'🏠', nombre:'Geometría en el mundo',   desc:'Formas en objetos y escenas reales', listo:true, abrir:() => abrirMundo() },
+  { letra:'D', ico:'✂️', nombre:'Desarrollos planos', desc:'Taller: pliega y arma cuerpos', listo:true, abrir:() => abrirTaller() },
+  { letra:'E', ico:'🎯', nombre:'Misiones',         desc:'Retos que combinan todo lo aprendido', listo:true, abrir:() => abrirMisiones() },
+];
+MODULOS.forEach(mo => { const f = mo.abrir; mo.abrir = () => { iniciarRondaOnline(mo.letra); return f(); }; });
+function renderHome(){
+  const cont = document.getElementById('listaModulos'); cont.innerHTML = '';
+    MODULOS.forEach(mo => {
+    const el = document.createElement(mo.listo ? 'button' : 'div');
+    el.className = 'mod-card' + (mo.listo ? '' : ' pronto');
+    const der = mo.listo
+      ? `<span class="prog">${(mo.letra === 'A' ? Prog.nA : mo.letra === 'C' ? Prog.nC : mo.letra === 'D' ? Prog.nD : mo.letra === 'E' ? Prog.nE : Prog.n) ? (mo.letra === 'A' ? Prog.nA : mo.letra === 'C' ? Prog.nC : mo.letra === 'D' ? Prog.nD : mo.letra === 'E' ? Prog.nE : Prog.n) + ' respondidas' : 'Empezar'}</span>`
+      : `<span class="tag">Pronto</span>`;
+    el.innerHTML = `<span class="ico">${mo.ico}</span><span class="tx"><span class="letra">Módulo ${mo.letra}</span><h3>${mo.nombre}</h3><p>${mo.desc}</p></span>${der}`;
+    if(mo.listo) el.onclick = mo.abrir;
+    cont.appendChild(el);
+  });
+}
+function entrarAlHome(){ cargarProg(); renderHome(); mostrar('screen-home'); }
+
+/* =====================================================================
+   DESAFÍO ONLINE (clase en vivo): el profesor puede fijar el módulo (A–E) y el modo (libre / contrarreloj)
+   ===================================================================== */
+const DURACION_CONTRARRELOJ = 5 * 60;
+const Online = { activo:false, codigo:null, uid:null, nombre:null, docId:null, modulo:null, modo:'libre', ok:0, mal:0, mod:null };
+const Cont = { activo:false, fin:false, restante:0, intervalo:null };
+const textoTiempo = () => `⏱️ ${Math.floor(Cont.restante / 60)}:${String(Cont.restante % 60).padStart(2, '0')}`;
+function pintarTiempo(){
+  document.querySelectorAll('.chip-tiempo').forEach(e => e.remove());
+  if(!Cont.activo) return;
+  const tb = document.querySelector('.screen.active .topbar'); if(!tb) return;
+  const c = document.createElement('span'); c.className = 'chip chip-tiempo'; c.textContent = textoTiempo(); tb.appendChild(c);
+}
+function detenerCont(){ if(Cont.intervalo){ clearInterval(Cont.intervalo); Cont.intervalo = null; } Cont.activo = false; Cont.fin = false; pintarTiempo(); }
+function iniciarCont(){ detenerCont(); Cont.activo = true; Cont.restante = DURACION_CONTRARRELOJ; pintarTiempo(); Cont.intervalo = setInterval(() => { Cont.restante--; pintarTiempo(); if(Cont.restante <= 0) finCont(); }, 1000); }
+function finCont(){
+  clearInterval(Cont.intervalo); Cont.intervalo = null; Cont.activo = false; Cont.fin = true; pintarTiempo();
+  const ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = `<div class="fin-card"><h2>⏱️ ¡Se acabó el tiempo!</h2><div class="gran">${Online.ok}</div><div class="fin-ref">acierto${Online.ok === 1 ? '' : 's'}${Online.mal ? ` · ${Online.mal} error${Online.mal === 1 ? '' : 'es'}` : ''}</div>
+    <div class="fin-btns"><button class="btn verde" id="cOtra" type="button">➜ Otra ronda</button>${Online.modulo ? '' : '<button class="btn azul" id="cNiv" type="button">Módulos</button>'}</div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#cOtra').onclick = () => { ov.remove(); iniciarRondaOnline(Online.mod); };
+  const cn = ov.querySelector('#cNiv'); if(cn) cn.onclick = () => { ov.remove(); detenerCont(); renderHome(); mostrar('screen-home'); };
+}
+function iniciarRondaOnline(letra){
+  detenerCont(); Online.ok = 0; Online.mal = 0; Online.mod = letra;
+  if(!Online.activo) return;
+  Online.docId = Online.uid + '_' + Date.now();                 // cada ronda es una fila propia en el panel
+  if(window.iniciarNuevoIntentoOnline) window.iniciarNuevoIntentoOnline(Online.codigo, Online.docId, Online.nombre, Online.uid);
+  if(Online.modo === 'contrarreloj') iniciarCont();
+}
+function repOnline(letra, acerto){
+  if(!Online.activo || Cont.fin) return;
+  if(acerto) Online.ok++; else Online.mal++;
+  if(window.reportarProgresoOnline) window.reportarProgresoOnline(Online.codigo, Online.docId, acerto ? 1 : 0, acerto ? 0 : 1);
+}
+function entrarOnline(codigo, r, nombre){
+  Online.activo = true; Online.codigo = codigo; Online.uid = r.uid; Online.nombre = nombre;
+  Online.modulo = (r.nivelObjetivo && r.nivelObjetivo !== 'libre') ? String(r.nivelObjetivo).toUpperCase() : null; Online.modo = r.modoObjetivo || 'libre';
+  cargarProg(); document.body.classList.toggle('online-fijo', !!Online.modulo);
+  const ind = document.getElementById('indicadorOnline'); if(ind){ ind.style.display = 'block'; document.getElementById('nombreOnline').textContent = nombre; }
+  const mo = Online.modulo && MODULOS.find(m => m.letra === Online.modulo);
+  if(mo) mo.abrir(); else { renderHome(); mostrar('screen-home'); }
+}
+
+async function abrirCuerpos(){
+  mostrar('screen-cuerpos');
+  await new Promise(r => requestAnimationFrame(r));
+  if(!Sesion.cola.length) await iniciarSesion();
+  else { if(await iniciar3D()){ ajustarTamano(); refrescarUI(); } }
+}
+document.getElementById('btnInicio').onclick = () => { renderHome(); mostrar('screen-home'); };
+document.getElementById('btnVista').onclick = restablecerVista;
+document.getElementById('btnLimpiar').onclick = limpiarMarcas;
+document.getElementById('btnMenos').onclick = () => fijarGuess(Sesion.guess === null ? 0 : Sesion.guess - 1);
+document.getElementById('btnMas').onclick = () => fijarGuess(Sesion.guess === null ? 1 : Sesion.guess + 1);
+document.getElementById('inpGuess').oninput = e => { const t = e.target.value.replace(/\D/g, ''); fijarGuess(t === '' ? null : parseInt(t, 10)); };
+document.getElementById('inpGuess').onkeydown = e => { if(e.key === 'Enter') principal(); };
+document.getElementById('btnPrincipal').onclick = principal;
+document.getElementById('btnNoMas').onclick = noHayMas;
+document.getElementById('btnOtra').onclick = () => iniciarSesion();
+
+function intentarSesionCompartida(){
+  try{
+    const g = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null');
+    if(g && g.id && g.nombre){
+      AlumnoActual = g;
+      const ind = document.getElementById('indicadorAlumno'); ind.textContent = '👤 ' + g.nombre; ind.style.display = 'block';
+      entrarAlHome(); iniciarHeartbeatTiempo(); return true;
+    }
+  }catch(e){}
+  return false;
+}
+document.getElementById('btnLoginEntrar').onclick = async () => {
+  const u = document.getElementById('loginUsuario').value.trim(), pw = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  if(!u || !pw){ err.textContent = 'Escribe tu usuario y tu contraseña.'; return; }
+  const btn = document.getElementById('btnLoginEntrar'); btn.disabled = true; btn.textContent = 'Entrando…'; err.textContent = '';
+  try{
+    const r = await window.verificarLoginAlumnoCompartido(u, pw);
+    if(!r.ok) err.textContent = r.error;
+    else {
+      AlumnoActual = { id:r.id, nombre:r.nombre };
+      try{ sessionStorage.setItem('profehoracio_alumno_actual', JSON.stringify(AlumnoActual)); }catch(e){}
+      const ind = document.getElementById('indicadorAlumno'); ind.textContent = '👤 ' + r.nombre; ind.style.display = 'block';
+      entrarAlHome(); iniciarHeartbeatTiempo();
+    }
+  }catch(e){ console.error(e); err.textContent = 'Error de conexión. Intenta de nuevo.'; }
+  btn.disabled = false; btn.textContent = 'Ingresar';
+};
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnLoginEntrar').click(); });
+document.getElementById('btnSinLogin').onclick = () => { AlumnoActual = null; entrarAlHome(); };
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse === 'function') window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'geometria-en-accion');
+  else setTimeout(iniciarHeartbeatTiempo, 100);
+}
+if(!intentarSesionCompartida()) mostrar('screen-login');
+
+/* API para pruebas y futuras etapas */
+window.GeoTaller = { SesD, Ed, pregD, desplegarCuerpo, generarHexaminos, redDeCeldas, analizarCubo, verificarCierre, calcularPliegue, desplegarMala, tocarD, posCaraD, seleccionarD, confirmarD, colaD, iniciarSesionD, cargarPreguntaD, siguienteD, elegirD, fijarT, resolverD, modeloD, compoTexto, solapan, tiene2x2, canonCeldas, get HEXA(){ return HEXA; } };
+window.GeoMundo = { OBJETOS, ESCENAS, SesC, pregC, iniciarSesionC, cargarPreguntaC, siguienteC, fijarGuessC, principalC, noHayMasC, tocarC, responderObjeto, opcionesObjeto, totalC, FORMAS };
+window.GeoPlanas = { responderNombre, FIGURAS, SesA, FigA, VA, pregA, iniciarSesionA, cargarPreguntaA, siguienteA, fijarGuessA, principalA, noHayMasA, procesarToqueA, golpeA, aPantallaA, limpiarMarcasA, confirmarHipotesisA,
+  pos(t, i){ const r = document.getElementById('svg2d').getBoundingClientRect(); let p; const P = FigA.pts.map(aPantallaA); p = t === 'lado' ? [(P[i][0] + P[(i+1)%P.length][0]) / 2, (P[i][1] + P[(i+1)%P.length][1]) / 2] : P[i]; return { x:r.left + p[0], y:r.top + p[1] }; } };
+window.GeoOnline = { Online, Cont, entrarOnline, iniciarRondaOnline, repOnline };
+window.GeoApp = {
+  CUERPOS, MODELOS, analizarCuerpo, analizarCurvo, formulaFamilia, textoComposicion, Esc, Sesion, preg, iniciarSesion, cargarPregunta, siguiente, elegirEn, alternarMarca,
+  fijarGuess, principal, confirmarHipotesis, noHayMas, procesarToque, pedirRender, limpiarMarcas, Prog,
+  /* posición en pantalla (px) y visibilidad de un elemento de un poliedro del cuerpo actual */
+  proyectar(k, idx){
+    const m = Esc.modelo, cv = document.getElementById('cv'), r = cv.getBoundingClientRect();
+    Esc.grupo.updateMatrixWorld(true); Esc.camara.updateMatrixWorld(true);
+    const cam = Esc.camara.position;
+    const mundo = c => new THREE.Vector3(...c.centro).applyMatrix4(Esc.grupo.matrixWorld);
+    const nrm = c => new THREE.Vector3(...c.normal).transformDirection(Esc.grupo.matrixWorld);
+    const vis = fi => { const c = m.caras[fi]; return nrm(c).dot(cam.clone().sub(mundo(c))) > 0.05; };
+    let p, frente;
+    if(k === 'caras'){ p = new THREE.Vector3(...m.caras[idx].centro); frente = vis(idx); }
+    else if(k === 'aristas'){ const e = m.aristas[idx]; p = new THREE.Vector3(...m.verts[e.a]).add(new THREE.Vector3(...m.verts[e.b])).multiplyScalar(.5); frente = e.caras.some(vis); }
+    else { p = new THREE.Vector3(...m.verts[idx]); frente = m.caras.some((c, fi) => c.lazo.includes(idx) && vis(fi)); }
+    p.applyMatrix4(Esc.grupo.matrixWorld).project(Esc.camara);
+    return { x:r.left + (p.x + 1) / 2 * r.width, y:r.top + (1 - p.y) / 2 * r.height, frente };
+  },
+};
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig, "onlineGeometria");
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+    const sessionSnap = await getDoc(doc(db, 'sessions', codigo));
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+    if(datos.recurso && datos.recurso !== 'geometria-en-accion') return { ok:false, error:`Ese código es para ${datos.recurso}, no para Geometría en acción.` };
+    const duracionMinutos = datos.duracionMinutos || 180;
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos) return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+    }
+    return { ok:true, uid, nivelObjetivo: datos.nivelObjetivo, modoObjetivo: datos.modoObjetivo, tipoObjetivo: datos.tipoObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+window.iniciarNuevoIntentoOnline = async function(codigo, docId, nombre, uid){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      name: nombre, uid: uid || null, startedAt: serverTimestamp(), completados: 0, errores: 0
+    });
+  } catch(err){ console.error('No se pudo iniciar el intento online:', err); }
+};
+window.reportarProgresoOnline = async function(codigo, docId, deltaCompletados, deltaErrores){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      completados: increment(deltaCompletados || 0),
+      errores: increment(deltaErrores || 0),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){ console.error('No se pudo reportar el progreso online:', err); }
+};
+
+// Llegada desde el inicio con ?codigoClase=XXXX (y ?invitado=Nombre si no tiene cuenta)
+try{
+  const pu = new URLSearchParams(location.search);
+  const codigoUrl = pu.get('codigoClase'), invitadoUrl = pu.get('invitado');
+  let nombre = null;
+  if(AlumnoActual) nombre = AlumnoActual.nombre;
+  else if(invitadoUrl && invitadoUrl.trim()) nombre = `👤 Invitado: ${invitadoUrl.trim()}`;
+  if(codigoUrl && nombre){
+    (async () => {
+      const r = await window.unirseClaseOnline(codigoUrl.toUpperCase(), nombre);
+      if(!r.ok){ alert(r.error); return; }
+      entrarOnline(codigoUrl.toUpperCase(), r, nombre);
+    })();
+  }
+} catch(e){ console.error(e); }
+</script>
+
+</body>
+</html>
