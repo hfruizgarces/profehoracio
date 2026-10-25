@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Patrones en acción · Profe Horacio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+  --hb:clamp(34px,8dvh,60px);
+}
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; font-family:var(--font-body); font-weight:600; color:var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh; overflow-x:hidden;
+}
+body.en-juego{ overflow:hidden; height:100dvh; min-height:0; }
+button{ font-family:inherit; }
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+.hidden{ display:none !important; }
+
+.screen{ display:none; animation:fadeIn .35s ease; }
+.screen.active{ display:block; }
+.portada{ max-width:520px; margin:0 auto; padding:16px 16px 50px; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+/* ---------- Portada y login ---------- */
+.hero{ text-align:center; padding:26px 6px 10px; }
+.hero h1{ font-size:clamp(1.9rem,6vw,2.6rem); margin-bottom:10px; }
+.hero .subtitle{ color:var(--text-dim); font-weight:600; }
+.login-card{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:24px;
+  max-width:340px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter:blur(6px);
+  margin:14px auto 0; display:flex; flex-direction:column; gap:10px;
+}
+.login-card input{
+  width:100%; padding:12px; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:700; text-align:center;
+}
+.login-error{ color:var(--error); font-weight:700; font-size:.82rem; min-height:1.2em; margin:0; }
+.btn-ingresar{
+  padding:13px; border-radius:999px; border:none; cursor:pointer;
+  background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c;
+  font-family:var(--font-display); font-weight:800; font-size:1rem;
+}
+.btn-sin-login{
+  padding:10px; border-radius:999px; border:1px solid var(--border-soft); cursor:pointer;
+  background:var(--surface); color:var(--text-faint); font-family:var(--font-display); font-weight:700; font-size:.78rem;
+}
+.level-selector{ display:grid; grid-template-columns:1fr; gap:clamp(10px,2.5vw,16px); width:100%; max-width:480px; margin:20px auto 0; }
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:clamp(16px,4vw,22px) 10px; min-height:90px; border:none; border-radius:var(--radius-sm);
+  cursor:pointer; transition:var(--transition); text-align:center; width:100%;
+  color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.4); }
+.level-btn .level-star{ font-size:clamp(1.4rem,4vw,1.7rem); }
+.level-btn .level-name{ font-weight:800; font-size:clamp(1rem,2.6vw,1.1rem); font-family:var(--font-display); }
+.level-btn .level-desc{ font-weight:700; font-size:.78rem; opacity:.92; }
+footer.credits{ text-align:center; color:var(--text-faint); font-weight:700; font-size:.78rem; padding:24px 10px 4px; }
+
+/* ---------- Pantalla de juego (sin scroll) ---------- */
+#screen-juego{ height:100dvh; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+#screen-juego.active{ display:grid; }
+.app-topbar{
+  display:grid; align-items:center; gap:6px 8px; width:100%; max-width:1050px; margin:0 auto; padding:8px 62px 4px 14px;
+  grid-template-columns:1fr auto 1fr; grid-template-areas:"back pill der";
+}
+.icon-btn{
+  grid-area:back; justify-self:start; display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text);
+  padding:8px 14px; border-radius:999px; font-weight:700; font-size:.9rem; cursor:pointer;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.topbar-der{ grid-area:der; justify-self:end; display:flex; gap:6px; }
+.nivel-pill{
+  grid-area:pill; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4); color:var(--accent);
+  padding:6px 12px; border-radius:999px; font-family:var(--font-display); font-weight:800;
+  font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+}
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:var(--transition);
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); padding:7px 14px; border-radius:999px;
+}
+.btn:hover{ background:var(--surface-strong); }
+.btn.icono{ width:38px; height:38px; padding:0; font-size:19px; display:inline-flex; align-items:center; justify-content:center; }
+.btn.verde{ background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.siguiente{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3d1f00; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+.btn.corte{ padding:5px 11px; min-width:34px; }
+.btn.sel{ background:rgba(56,189,248,.22); border-color:var(--blue); color:var(--blue); }
+
+.juego-main{
+  width:100%; max-width:1050px; margin:0 auto; min-height:0; padding:0 14px 40px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.escenario{
+  flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:8px;
+  padding:4px 2px; overflow:hidden;
+}
+.fila{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:center; }
+.fila.fix{ flex-wrap:nowrap; }
+.fila .flex1{ flex:1; min-width:0; }
+.etq{ font-family:var(--font-display); font-weight:800; font-size:15px; min-width:78px; color:var(--text-dim); }
+.estado{ display:flex; justify-content:center; align-items:center; font-family:var(--font-display); font-weight:800; font-size:15px; color:var(--accent); }
+.sub{ margin:0; text-align:center; font-size:14px; line-height:1.3; color:var(--text-dim); font-weight:700; }
+.sub b{ color:var(--text); }
+
+.msg{ min-height:2.7em; margin:0; padding:3px 8px; text-align:center; line-height:1.3; font-size:14px; font-weight:700; color:var(--text-dim); display:block; }
+.msg.bien{ color:var(--primary); } .msg.mal{ color:var(--error); } .msg.casi{ color:var(--accent); }
+.msg b{ color:inherit; }
+
+/* Fracciones */
+.frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; font-weight:800; line-height:1.05; margin:0 3px; }
+.frac > span:first-child{ border-bottom:2.5px solid currentColor; padding:0 4px; }
+.frac .den{ border-top:3px solid currentColor; padding:0 10px; }
+.frac.grande{ font-size:clamp(1.35rem,5.5vw,1.9rem); font-family:var(--font-display); }
+.entrada{
+  width:68px; padding:6px; font-size:1.25rem; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  text-align:center; background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:800;
+  -moz-appearance:textfield; appearance:textfield;
+}
+.entrada::-webkit-outer-spin-button,.entrada::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.entrada:focus{ outline:none; border-color:var(--blue); }
+
+/* Barras */
+.barra{
+  display:flex; height:var(--hb); border:3px solid var(--text); border-radius:var(--radius-sm); overflow:hidden;
+  background:rgba(255,255,255,.06); transition:outline .2s, transform .5s, opacity .3s; touch-action:none; width:100%;
+}
+.barra.entero{ height:calc(var(--hb)*.75); background:rgba(56,189,248,.18); justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; font-family:var(--font-display); }
+.trozo{
+  flex:1; min-width:0; border-right:2px solid var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(8px,2.5vw,13px); color:var(--text-dim); user-select:none; touch-action:none; transition:background .15s;
+}
+.trozo:last-child{ border-right:none; }
+.trozo.on{ background:var(--blue); color:#0c1b3a; font-weight:800; }
+.barra.b .trozo.on{ background:var(--accent); color:#3d1f00; }
+.barra.coincide{ outline:5px solid var(--primary); }
+.sup-z{ position:relative; z-index:3; }
+.historial{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; font-size:1.15rem; font-family:var(--font-display); }
+.historial .frac{ opacity:.55; } .historial .frac.actual{ opacity:1; color:var(--accent); }
+svg text{ font-weight:800; font-family:var(--font-display); }
+.balanza{ width:100%; flex:1 1 0; min-height:70px; }
+
+@media(max-width:600px){
+  .app-topbar{ padding:6px 62px 2px 8px; }
+  .icon-btn{ padding:7px 11px; font-size:.82rem; }
+  .btn.icono{ width:34px; height:34px; font-size:17px; }
+  .juego-main{ padding:0 8px 40px; }
+  .escenario{ padding:4px 0; }
+  .etq{ min-width:60px; font-size:14px; }
+}
+@media(max-height:620px){ :root{ --hb:clamp(30px,6.6dvh,48px); } .escenario{ gap:6px; } }
+@media(max-height:480px){
+  :root{ --hb:clamp(28px,9dvh,40px); }
+  .app-topbar{ padding-top:3px; padding-bottom:2px; min-height:52px; }
+  .btn.icono{ width:30px; height:30px; }
+  .juego-main{ padding-bottom:38px; gap:3px; }
+  .escenario{ padding:2px 8px; gap:4px; }
+  .msg{ font-size:12.5px; min-height:2.4em; padding:1px; }
+  .sub{ font-size:12.5px; }
+  .btn.corte{ padding:3px 9px; } .btn.verde,.btn.siguiente,.btn.azul{ padding:5px 14px; }
+  .entrada{ padding:3px; font-size:1.05rem; width:60px; }
+  .frac.grande{ font-size:1.25rem; }
+}
+
+a.level-btn{ text-decoration:none; }
+.level-btn.soon{ opacity:.42; cursor:default; filter:grayscale(.5); pointer-events:none; }
+.level-btn.soon:hover{ transform:none; }
+.volver-sub{ text-decoration:none; display:inline-flex; margin:4px 0 0; }
+
+.trozo .frac{ margin:0; font-size:inherit; } .trozo .frac > span:first-child{ border-bottom-width:1px; padding:0 2px; }
+
+/* ---------- Patrones en acción ---------- */
+.menu-niv{ font-size:.72rem; color:var(--accent); font-weight:800; margin-top:2px; }
+.consigna{ display:block; text-align:center; font-family:var(--font-display); font-weight:800; font-size:clamp(.95rem,3.3vw,1.2rem);
+  color:var(--text); background:var(--surface); border:1px solid var(--border-soft); border-radius:22px; padding:6px 20px; margin:2px auto 0; max-width:100%; line-height:1.2; }
+.consigna b{ color:var(--accent); }
+.zona{ width:100%; flex:1 1 0; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; overflow:hidden; }
+.zona svg{ width:100%; max-width:860px; flex:0 1 auto; min-height:0; max-height:100%; display:block; }
+.herram{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; align-items:center; min-height:44px; }
+.opciones{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.op{ min-width:76px; padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer; color:var(--text);
+  background:var(--surface-strong); border:2px solid var(--border-soft); font-family:var(--font-display); font-weight:800; font-size:1.15rem; transition:var(--transition); }
+.op:hover{ border-color:var(--blue); } .op.mal{ border-color:var(--error); opacity:.4; pointer-events:none; } .op.bien{ border-color:var(--primary); background:rgba(52,211,153,.22); }
+.op svg{ display:block; width:60px; height:60px; margin:0 auto; } .op.fig svg{ width:auto; height:70px; max-width:130px; }
+.op.txt{ font-size:.98rem; text-align:left; max-width:420px; width:100%; line-height:1.25; padding:9px 14px; }
+.op.mat{ font-size:1.4rem; min-width:64px; padding:6px 8px; }
+.tabla{ border-collapse:collapse; font-family:var(--font-display); font-weight:800; font-size:1.1rem; }
+.tabla td, .tabla th{ border:2px solid var(--border-soft); padding:5px 10px; text-align:center; min-width:46px; }
+.tabla th{ background:var(--surface-strong); color:var(--text-dim); font-size:.8rem; }
+.tabla td.hueco{ background:rgba(251,191,36,.12); }
+.tabla input{ width:62px; font-size:1.05rem; }
+.tabla .dif{ color:var(--accent); font-size:.85rem; border:none; }
+.maq-tabla{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:34px; }
+.chip{ font-family:var(--font-display); font-weight:800; padding:4px 12px; border-radius:999px; background:var(--surface-strong); border:1px solid var(--border-soft); }
+.chip.nuevo{ border-color:var(--accent); color:var(--accent); }
+.fila-in{ display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; font-family:var(--font-display); font-weight:800; }
+.entrada.ancha{ width:84px; }
+.pal{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.pal button{ background:var(--surface-strong); border:2px solid var(--border-soft); border-radius:12px; padding:4px; cursor:pointer; }
+.pal button svg{ width:46px; height:46px; display:block; }
+.cons-nota{ color:var(--text-dim); font-size:.85rem; text-align:center; }
+.grid-menu .level-btn small{ opacity:.9; font-weight:700; }
+@media(max-height:480px){ .consigna{ padding:2px 14px; font-size:.95rem; } .herram{ min-height:34px; } .op svg{ width:44px; height:44px; } }
+/* evita que el ancho natural de los SVG ensanche la pantalla */
+#screen-juego{ width:100%; max-width:100vw; overflow-x:hidden; grid-template-columns:minmax(0,1fr); }
+.juego-main,.escenario,.zona{ min-width:0; max-width:100%; }
+.zona svg{ height:auto; }
+/* selector de nivel */
+.nivsel{ display:none; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; padding:2px 10px 0; font-family:var(--font-display); font-weight:800; }
+.nivsel .ns-t{ color:var(--text-dim); font-size:.85rem; }
+.nivsel .ns-b{ width:34px; height:34px; border-radius:50%; border:2px solid var(--border-soft); background:var(--surface); color:var(--text); font-family:var(--font-display); font-weight:800; font-size:1rem; cursor:pointer; transition:var(--transition); }
+.nivsel .ns-b.on{ background:var(--accent); color:#3d1f00; border-color:transparent; }
+.nivsel .ns-d{ color:var(--text-dim); font-size:.78rem; font-weight:700; }
+@media(max-height:480px){ .nivsel .ns-d{ display:none; } .nivsel .ns-b{ width:28px; height:28px; font-size:.85rem; } }
+.tcons{ font-size:1rem; } .tcons td, .tcons th{ padding:4px 6px; min-width:38px; } .tcons input{ width:54px; padding:3px; font-size:1rem; }
+@media(max-width:600px){ .tcons th{ font-size:.62rem; padding:2px 3px; } .tcons td{ padding:3px 2px; min-width:0; font-size:.9rem; } .tcons input{ width:38px; padding:2px; font-size:.9rem; border-width:1.5px; } }
+@media(max-width:600px){ .pal{ gap:6px; } .pal button svg{ width:38px; height:38px; } }
+/* Inicio y selección de nivel: todo cabe en una pantalla, sin scroll */
+#screen-home.active, #screen-nivel.active{ display:flex; flex-direction:column; height:100vh; height:100dvh; max-width:900px; padding:8px 14px 10px; overflow:hidden; }
+#screen-home .hero, #screen-nivel .hero{ padding:6px 6px 0; flex:0 0 auto; }
+#screen-home .hero h1, #screen-nivel .hero h1{ font-size:clamp(1.25rem,5vh,2.2rem); margin:0 0 4px; }
+#screen-home .hero .subtitle, #screen-nivel .hero .subtitle{ font-size:clamp(.74rem,2.1vh,1rem); margin:0; }
+#menu, #nvMenu{ flex:1 1 0; min-height:0; width:100%; max-width:none; margin:8px auto 0; display:grid; grid-template-columns:repeat(6,1fr); grid-auto-rows:minmax(0,1fr); gap:10px; }
+#menu .level-btn{ grid-column:span 2; } #menu .level-btn:nth-child(4){ grid-column:2 / span 2; } #menu .level-btn:nth-child(5){ grid-column:4 / span 2; }
+#nvMenu{ grid-template-columns:repeat(3,1fr); max-width:760px; } #nvMenu .level-btn{ grid-column:auto; }
+#menu .level-btn, #nvMenu .level-btn{ min-height:0; height:100%; padding:6px 8px; gap:3px; overflow:hidden; }
+#menu .level-star, #nvMenu .level-star{ font-size:clamp(1.2rem,4.5vh,1.9rem); line-height:1; }
+#menu .level-name, #nvMenu .level-name{ font-size:clamp(.9rem,2.8vh,1.15rem); line-height:1.1; }
+#menu .level-desc, #nvMenu .level-desc{ font-size:clamp(.68rem,1.9vh,.82rem); line-height:1.2; }
+#screen-nivel > div:last-child{ flex:0 0 auto; margin-top:8px !important; }
+#screen-home footer.credits{ flex:0 0 auto; padding:6px 0 0; }
+@media(max-width:600px){
+  #screen-home .hero, #screen-nivel .hero{ padding-left:44px; padding-right:44px; }
+  #menu, #nvMenu{ grid-template-columns:1fr; gap:8px; max-width:480px; }
+  #menu .level-btn, #menu .level-btn:nth-child(4), #menu .level-btn:nth-child(5), #nvMenu .level-btn{ grid-column:auto; }
+}
+@media(max-height:520px){ #screen-home footer.credits{ display:none; } #menu .level-desc, #nvMenu .level-desc{ font-size:.7rem; } }
+@media(max-width:600px){ .opciones{ gap:8px; flex-wrap:nowrap; } .op.mat{ font-size:1.05rem; padding:7px 5px; min-width:0; flex:1 1 0; white-space:nowrap; } }
+#nvMenu{ flex:0 1 auto; grid-auto-rows:clamp(92px,22vh,190px); margin-top:14px; }
+</style>
+</head>
+<body>
+<a href="../index.html#recursos" title="Volver a los recursos" style="position:fixed; top:12px; right:12px; z-index:99999; width:42px; height:42px; border-radius:50%; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.25rem; text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.35);">🏠</a>
+<div id="monedasPill" class="hidden" style="position:fixed; bottom:12px; right:12px; z-index:99998; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(251,191,36,.4); border-radius:20px; padding:8px 14px; font-family:var(--font-display); font-weight:800; font-size:.85rem; color:var(--accent); box-shadow:0 4px 14px rgba(0,0,0,.35);">🪙 0</div>
+
+<div class="screen portada active" id="screen-login">
+  <div class="hero"><h1>🔎 Patrones en acción</h1></div>
+  <div class="login-card">
+    <input type="text" id="loginUsuario" placeholder="Usuario" autocomplete="off" maxlength="30">
+    <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="off" maxlength="30">
+    <p class="login-error" id="loginError"></p>
+    <button class="btn-ingresar" id="btnLoginEntrar">Ingresar</button>
+    <button type="button" class="btn-sin-login" id="btnSinLogin">Continuar sin loguearse (tu progreso solo queda en este computador)</button>
+  </div>
+</div>
+
+<div class="screen portada" id="screen-home">
+  <div class="hero" style="padding-top:12px;">
+    <h1>🔎 Patrones en acción</h1>
+    <p class="subtitle">Observa, descubre la regla, compruébala y predice. Elige lo que quieras jugar.</p>
+  </div>
+  <div class="level-selector grid-menu" id="menu">
+    <button class="level-btn easy" data-act="detectives" type="button"><span class="level-star">🔍</span><span class="level-name">Detectives de regularidades</span><span class="level-desc">¿Qué sigue? ¿Qué falta? ¿Dónde está el error?</span></button>
+    <button class="level-btn mid" data-act="constructores" type="button"><span class="level-star">🧱</span><span class="level-name">Constructores de patrones</span><span class="level-desc">Figuras que crecen: compara, construye y predice</span></button>
+    <button class="level-btn hard" data-act="maquinas" type="button"><span class="level-star">🎰</span><span class="level-name">Máquinas misteriosas</span><span class="level-desc">Prueba entradas y descubre la regla escondida</span></button>
+    <button class="level-btn easy" data-act="reglas" type="button"><span class="level-star">📐</span><span class="level-name">El lenguaje de las reglas</span><span class="level-desc">Tablas, palabras y letras para decir la misma regla</span></button>
+    <button class="level-btn mid" data-act="crea" type="button"><span class="level-star">✏️</span><span class="level-name">Crea tu propio patrón</span><span class="level-desc">Inventa un patrón y comprueba si de verdad lo es</span></button>
+  </div>
+  <footer class="credits">Los niveles se guardan solo en este dispositivo.</footer>
+</div>
+
+<div class="screen portada" id="screen-nivel">
+  <div class="hero" style="padding-top:12px;">
+    <h1 id="nvTitulo"></h1>
+    <p class="subtitle">¿Qué nivel quieres trabajar?</p>
+  </div>
+  <div class="level-selector grid-menu" id="nvMenu"></div>
+  <div style="text-align:center; margin-top:10px;"><button class="icon-btn" id="nvVolver" type="button">← Volver</button></div>
+</div>
+
+<div class="screen" id="screen-juego">
+  <div class="app-topbar">
+    <button class="icon-btn" id="bVolver" type="button">← Volver</button>
+    <span class="nivel-pill" id="actPill"></span>
+    <div class="topbar-der">
+      <button class="btn icono" id="bSon" title="Sonido">🔊</button>
+      <button class="btn icono" id="bFull" title="Pantalla completa">⛶</button>
+    </div>
+  </div>
+  <main class="juego-main">
+    <div class="consigna" id="consigna"></div>
+    <section class="escenario" id="escenario">
+      <div class="zona" id="zona"></div>
+      <div class="herram" id="herram"></div>
+    </section>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </main>
+</div>
+<script>
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rnd(0,arr.length-1)];
+const barajar = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const $ = s => document.querySelector(s);
+let AlumnoActual = null;
+function mostrarAlumno(nombre){
+  const ind = document.getElementById('indicadorAlumno'); if(!ind) return;
+  ind.textContent = `👤 ${nombre}`; ind.style.display = 'block';
+}
+function sesionGuardada(){
+  try{ const g = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null'); if(g && g.id && g.nombre) return g; }catch(e){}
+  return null;
+}
+function esInvitado(){ try{ return sessionStorage.getItem('profehoracio_invitado')==='1'; }catch(e){ return false; } }
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('en-juego', id === 'screen-juego');
+  window.scrollTo(0, 0);
+}
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse === 'function'){
+    window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'patrones-en-accion');
+  } else { setTimeout(iniciarHeartbeatTiempo, 100); }
+}
+function configurarLogin(alEntrar){
+  document.getElementById('btnLoginEntrar').onclick = async () => {
+    const usuario = document.getElementById('loginUsuario').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    if(!usuario || !password){ errEl.textContent = 'Escribe tu usuario y tu contraseña.'; return; }
+    const btn = document.getElementById('btnLoginEntrar');
+    btn.disabled = true; btn.textContent = 'Entrando…'; errEl.textContent = '';
+    try{
+      const resultado = await window.verificarLoginAlumnoCompartido(usuario, password);
+      if(!resultado.ok){ errEl.textContent = resultado.error; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
+      AlumnoActual = { id: resultado.id, nombre: resultado.nombre };
+      try{ sessionStorage.setItem('profehoracio_alumno_actual', JSON.stringify(AlumnoActual)); sessionStorage.removeItem('profehoracio_invitado'); }catch(e){}
+      alEntrar(); iniciarHeartbeatTiempo();
+    } catch(err){ console.error(err); errEl.textContent = 'Error de conexión. Intenta de nuevo.'; }
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  };
+  document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnLoginEntrar').click(); });
+  document.getElementById('btnSinLogin').onclick = () => { try{ sessionStorage.setItem('profehoracio_invitado','1'); }catch(e){} alEntrar(); };
+}
+function arrancar(alEntrar){
+  configurarLogin(alEntrar);
+  const g = sesionGuardada();
+  if(g){ AlumnoActual = g; alEntrar(); iniciarHeartbeatTiempo(); }
+  else if(esInvitado()){ alEntrar(); }
+}
+
+
+
+let sonidoOn = true, ctx;
+function tono(f=880, dur=.15, tipo='sine'){
+  if(!sonidoOn) return;
+  try{
+    ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=tipo; o.frequency.value=f; g.gain.setValueAtTime(.15,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+const tintineo = ()=>{ tono(988,.12); setTimeout(()=>tono(1319,.2),110); };
+const errorSnd = ()=> tono(220,.25,'triangle');
+$('#bSon').onclick = e => { sonidoOn=!sonidoOn; e.currentTarget.textContent = sonidoOn?'🔊':'🔇'; };
+$('#bFull').onclick = ()=> document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+function aviso(html, tipo=''){ const m=$('#msg'); m.className='msg '+tipo; m.innerHTML=html; }
+function setConsigna(html){ $('#consigna').innerHTML='<span>'+html+'</span>'; }
+/* XP según lo que demanda cada actividad (1 punto ≈ 15 s de trabajo) */
+const PESO_ACT_PATRONES = { detectives:2, constructores:4, maquinas:3, reglas:5, crea:4 };
+function registrarCompletado(){
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function')
+    window.reportarProgresoPractica(AlumnoActual.id, 'patrones-en-accion', 1, 0, PESO_ACT_PATRONES[actual] || 2);
+}
+function reportar(ok){ try{ if(window.TallerOnline && window.TallerOnline.activo) window.TallerOnline.resultado(ok); }catch(e){} }
+
+/* Recientes: evita repetir el mismo ejercicio */
+function recienteOk(lista, clave, ventana){ return !lista.slice(-ventana).includes(clave); }
+function anotar(lista, clave){ lista.push(clave); if(lista.length>30) lista.shift(); }
+
+/* =========================================================
+   PIEZAS (figura + color)
+   ========================================================= */
+const PALETA=['#38bdf8','#fb7185','#34d399','#fbbf24','#c084fc','#fb923c'];
+const FORMAS=['circulo','cuadrado','triangulo','estrella','rombo','hexagono'];
+function poly(cx,cy,r,n,rot){ let p=[]; for(let i=0;i<n;i++){ const a=rot+i*2*Math.PI/n; p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1)); } return p.join(' '); }
+function pieza(t,cx,cy,r){
+  const at=`fill="${t.c}" stroke="rgba(255,255,255,.75)" stroke-width="2" stroke-linejoin="round"`;
+  switch(t.f){
+    case 'circulo': return `<circle cx="${cx}" cy="${cy}" r="${r}" ${at}/>`;
+    case 'cuadrado': return `<rect x="${cx-r*.88}" y="${cy-r*.88}" width="${r*1.76}" height="${r*1.76}" rx="5" ${at}/>`;
+    case 'triangulo': return `<polygon points="${cx},${cy-r*1.05} ${cx+r*1.0},${cy+r*.8} ${cx-r*1.0},${cy+r*.8}" ${at}/>`;
+    case 'estrella':{ let p=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.48:r*1.1; p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1)); } return `<polygon points="${p.join(' ')}" ${at}/>`; }
+    case 'rombo': return `<polygon points="${cx},${cy-r*1.1} ${cx+r*.82},${cy} ${cx},${cy+r*1.1} ${cx-r*.82},${cy}" ${at}/>`;
+    default: return `<polygon points="${poly(cx,cy,r*1.02,6,0)}" ${at}/>`;
+  }
+}
+const piezaMini = (t,r=24)=> `<svg viewBox="0 0 60 60">${pieza(t,30,30,r)}</svg>`;
+const claveT = t => t.f+'|'+t.c;
+
+/* =========================================================
+   NIVEL (lo elige la persona; se recuerda solo en este dispositivo)
+   ========================================================= */
+const memNiv = {};
+let nivFijo = null;     // en el Desafío Online lo fija el profesor
+const Niv = {
+  get(a){ if(nivFijo) return nivFijo; try{ const v=+localStorage.getItem('pat_niv_'+a); if(v>=1&&v<=3) return v; }catch(e){} return memNiv[a]||1; },
+  set(a,v){ memNiv[a]=v; try{ localStorage.setItem('pat_niv_'+a, v); }catch(e){} }
+};
+const DESC_NIV = {
+  detectives:['Patrones de 2 y 3 piezas','Patrones de 3 y 4 piezas','Patrones de 4 piezas, color y figura a la vez'],
+  constructores:['Figuras sencillas: hasta la figura 5','Más tipos de figuras: tablas hasta la figura 10','Figuras que crecen más: hasta la figura 20'],
+  maquinas:['Solo multiplica o solo suma','Multiplica y suma o resta','Reglas con dos pasos y números mayores'],
+  reglas:['Tablas y reglas en palabras','Se agregan reglas con letras (2n + 1)','Tablas que bajan y reglas como 3(n + 2)']
+};
+
+/* =========================================================
+   CONTROLADOR COMÚN
+   ========================================================= */
+const ACT = {};   // se llena abajo: {titulo, gen, pintar, zona, pista}
+let actual=null, ex=null, pistas=0, fallo1=false, bloqueado=false, tSig=null;
+const NOMBRES = {detectives:'🔍 Detectives', constructores:'🧱 Constructores', maquinas:'🎰 Máquinas', reglas:'📐 Reglas', crea:'✏️ Crea tu patrón'};
+function pintarPill(){ $('#actPill').textContent = NOMBRES[actual]; }
+function pintarMenu(){ document.querySelectorAll('.menu-niv').forEach(e=>{ e.textContent = 'Nivel '+Niv.get(e.dataset.niv); }); }
+const TITULOS = {detectives:'🔍 Detectives de regularidades', constructores:'🧱 Constructores de patrones', maquinas:'🎰 Máquinas misteriosas', reglas:'📐 El lenguaje de las reglas'};
+/* Elegir actividad → primero se elige el nivel, ANTES de empezar */
+function abrir(act){
+  if(ACT[act].libre || ACT[act].sinNivel){ jugar(act); return; }
+  $('#nvTitulo').textContent = TITULOS[act];
+  const m=$('#nvMenu'); const clases=['easy','mid','hard'];
+  m.innerHTML=[1,2,3].map(n=>`<button class="level-btn ${clases[n-1]}" data-n="${n}" type="button"><span class="level-star">${'⭐'.repeat(n)}</span><span class="level-name">Nivel ${n}</span><span class="level-desc">${DESC_NIV[act][n-1]}</span></button>`).join('');
+  m.querySelectorAll('.level-btn').forEach(b=> b.onclick=()=>{ Niv.set(act,+b.dataset.n); jugar(act); });
+  switchScreen('screen-nivel');
+}
+$('#nvVolver').onclick = ()=> switchScreen('screen-home');
+function jugar(act){
+  actual=act; clearTimeout(tSig);
+  switchScreen('screen-juego'); pintarPill();
+  if(ACT[act].libre) ACT[act].iniciar(); else siguiente();
+}
+function siguiente(){
+  clearTimeout(tSig);
+  bloqueado=false; pistas=0; fallo1=false; aviso('');
+  ex = ACT[actual].gen(Niv.get(actual));
+  ACT[actual].pintar(ex);
+}
+function malo(html){
+  if(bloqueado) return;
+  if(!fallo1){ fallo1=true; reportar(false); }
+  errorSnd(); aviso(html,'mal');
+}
+/* Al acertar: un mensaje breve y se pasa solo al siguiente ejercicio */
+function bueno(html, ms=1200){
+  if(bloqueado) return; bloqueado=true;
+  tintineo(); registrarCompletado(); reportar(true);
+  aviso(html, 'bien');
+  clearTimeout(tSig); tSig=setTimeout(()=>{ if(bloqueado) siguiente(); }, ms);
+}
+function botonPista(){
+  const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='💡 Pista';
+  b.onclick=()=>{ if(bloqueado) return; pistas++; ACT[actual].pista(ex, pistas); };
+  return b;
+}
+$('#bVolver').onclick = ()=>{ clearTimeout(tSig); bloqueado=false; if(actual && !ACT[actual].libre && !ACT[actual].sinNivel) abrir(actual); else switchScreen('screen-home'); pintarMenu(); aviso(''); };
+document.querySelectorAll('#menu .level-btn').forEach(b=> b.onclick = ()=> abrir(b.dataset.act));
+
+/* Compartido: fila de opciones (botones) */
+function filaOpciones(opts, render, alElegir, clase=''){
+  const d=document.createElement('div'); d.className='opciones';
+  opts.forEach((o,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='op '+clase; b.innerHTML=render(o,i);
+    b.onclick=()=>{ if(bloqueado||b.classList.contains('mal')) return; alElegir(o,b); }; d.appendChild(b); });
+  return d;
+}
+function entradaNum(id, alComprobar, texto='Comprobar'){
+  const d=document.createElement('div'); d.className='fila-in';
+  d.innerHTML=`<input class="entrada ancha" id="${id}" type="text" inputmode="numeric" autocomplete="off" maxlength="5"><button class="btn verde" type="button">${texto}</button>`;
+  const inp=d.querySelector('input'), b=d.querySelector('button');
+  const go=()=>{ if(bloqueado) return; const v=inp.value.trim(); if(v===''||!/^-?\d+$/.test(v)){ aviso('Escribe un número.','casi'); return; } alComprobar(parseInt(v,10), inp); };
+  b.onclick=go; inp.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  return d;
+}
+
+/* =========================================================
+   1) DETECTIVES DE REGULARIDADES
+   ========================================================= */
+const DET_UNI = {
+  1:['AB','AB','AAB','ABB'],
+  2:['ABC','AABB','ABAC','AAB','ABB','ABC'],
+  3:['AABC','ABCB','ABCD','ABBC','DUAL','DUAL']
+};
+const Det = {
+  rec:[], recTipo:[],
+  simbolos(){ const f=barajar([0,1,2,3,4,5]), c=barajar([0,1,2,3,4,5]); return f.map((fi,i)=>({f:FORMAS[fi],c:PALETA[c[i]]})); },
+  unidad(clave){
+    const S=this.simbolos();
+    if(clave==='DUAL'){   // la figura se repite cada 4 y el color cada 2 → todo el patrón cada 4
+      const sh=S.slice(0,4).map(s=>s.f), co=S.slice(4,6).map(s=>s.c);
+      const unit=[]; for(let i=0;i<4;i++) unit.push({f:sh[i],c:co[i%2]});
+      const todos=[]; sh.forEach(f=>co.forEach(c=>todos.push({f,c})));
+      return {unit, pool:todos, dual:true};
+    }
+    const letras=[...new Set(clave.split(''))];
+    const map={}; letras.forEach((l,i)=>map[l]=S[i]);
+    return {unit:clave.split('').map(l=>map[l]), pool:S, dual:false};
+  },
+  opciones(correcta, unit, pool){
+    const dist=[], vistos=new Set([claveT(correcta)]);
+    [...barajar(unit),...barajar(pool)].forEach(t=>{ if(dist.length<3 && !vistos.has(claveT(t))){ vistos.add(claveT(t)); dist.push(t); } });
+    return barajar([correcta,...dist]);
+  },
+  gen(nivel, forzarTipo){
+    let clave, tipo, intentos=0;
+    do{
+      clave=pick(DET_UNI[nivel]);
+      const ts = nivel===1?[['siguiente',.55],['faltante',.45]]:[['siguiente',.5],['faltante',.5]];
+      let r=Math.random(), a=0; tipo=ts[ts.length-1][0]; for(const [t,p] of ts){ a+=p; if(r<a){ tipo=t; break; } }
+      if(forzarTipo) tipo=forzarTipo;
+      if(!forzarTipo && this.recTipo.length>=2 && this.recTipo.slice(-2).every(t=>t===tipo)) { intentos++; continue; }
+      if(recienteOk(this.rec, clave+tipo, 4)) break;
+      intentos++;
+    } while(intentos<30);
+    anotar(this.rec, clave+tipo); anotar(this.recTipo, tipo);
+    const {unit,pool,dual}=this.unidad(clave); const P=unit.length;
+    // Siempre se ve la unidad completa al menos 2 veces; todo cabe en una sola fila (máx. 11 piezas)
+    const r = rnd(1, Math.max(1, Math.min(P-1, 10-2*P))), L=2*P+r;
+    const seq = n => Array.from({length:n},(_,i)=>unit[i%P]);
+    let items=seq(L), ans, idx=null, opciones=null;
+    if(tipo==='siguiente'){ ans=unit[L%P]; idx=L; opciones=this.opciones(ans,unit,pool); }
+    else if(tipo==='faltante'){ idx=rnd(1,L-2); ans=unit[idx%P]; opciones=this.opciones(ans,unit,pool); }
+    else {
+      // la pieza equivocada tiene al menos 2 "copias" correctas en otras vueltas, así que solo una respuesta es posible
+      const cand=[]; for(let i=0;i<L;i++) if(i%P<r) cand.push(i);
+      idx=pick(cand); const bien=unit[idx%P];
+      ans=bien; items[idx]=barajar(pool.filter(t=>claveT(t)!==claveT(bien)))[0];
+    }
+    return {tipo, clave, unit, P, L, items, idx, ans, opciones, hl:null, primero:false, mal:new Set(), dual, fase:0};
+  },
+  pintar(e){
+    setConsigna(e.tipo==='siguiente'?'¿Qué pieza <b>sigue</b> en el patrón?': e.tipo==='faltante'?'¿Qué pieza <b>falta</b> en el patrón?':'Una pieza <b>rompe</b> el patrón. ¡Tócala!');
+    const h=$('#herram'); h.innerHTML='';
+    if(e.fase===0){   // paso previo: descubrir de cuántas piezas se compone el patrón
+      setConsigna('Antes de empezar: ¿de cuántas piezas se compone la parte que <b>se repite</b>?');
+      h.appendChild(filaOpciones([2,3,4,5], n=>String(n), (n,b)=>{
+        if(n===e.P){ b.classList.add('bien'); e.fase=1; e.primero=true; e.hl=null; pistas=0; tono(740,.1); Det.pintar(e); aviso(`¡Sí! El patrón se forma con <b>${e.P}</b> piezas que se repiten.`,'bien'); }
+        else { b.classList.add('mal'); malo(n<e.P?'Son más piezas. Mira dónde vuelve a aparecer la primera pieza.':'Son menos piezas. Mira dónde vuelve a aparecer la primera pieza.'); }
+      },'mat'));
+      h.appendChild(botonPista());
+      Det.zona(e); return;
+    }
+    if(e.opciones){
+      h.appendChild(filaOpciones(e.opciones, t=>piezaMini(t), (t,b)=>{
+        if(claveT(t)===claveT(e.ans)){ b.classList.add('bien'); bueno('¡Correcto!'); }
+        else { b.classList.add('mal'); malo('Esa no encaja. Fíjate qué parte se repite y compara con la vuelta anterior.'); }
+      }));
+    }
+    h.appendChild(botonPista());
+    Det.zona(e);
+  },
+  zona(e){
+    const n=e.items.length+(e.tipo==='siguiente'?1:0), S=62, RH=84;
+    let s=`<svg viewBox="0 0 ${n*S+16} ${RH+8}" id="seq" role="img" aria-label="Secuencia de piezas">`;
+    for(let i=0;i<n;i++){
+      const cx=8+i*S+S/2, cy=4+RH/2;
+      const fill = (e.primero && i<e.P) ? 'rgba(251,191,36,.22)' : 'rgba(255,255,255,.05)';
+      s+=`<rect x="${cx-S/2+2}" y="${cy-RH/2+4}" width="${S-4}" height="${RH-8}" rx="12" fill="${fill}"/>`;
+      const esQ = (e.tipo==='siguiente' && i===e.items.length) || (e.tipo==='faltante' && i===e.idx);
+      if(esQ){ s+=`<rect x="${cx-23}" y="${cy-23}" width="46" height="46" rx="11" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="7 6"/><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="32" fill="#fbbf24">?</text>`; }
+      else s+=`<g data-i="${i}" style="cursor:${e.tipo==='error'?'pointer':'default'}">${pieza(e.items[i],cx,cy,22)}<rect x="${cx-S/2+4}" y="${cy-RH/2+6}" width="${S-8}" height="${RH-12}" fill="transparent"/></g>`;
+      if(e.hl===i) s+=`<rect x="${cx-S/2+3}" y="${cy-RH/2+5}" width="${S-6}" height="${RH-10}" rx="12" fill="none" stroke="#fbbf24" stroke-width="4"/>`;
+      if(e.mal.has(i)) s+=`<rect x="${cx-S/2+3}" y="${cy-RH/2+5}" width="${S-6}" height="${RH-10}" rx="12" fill="rgba(251,113,133,.25)" stroke="#fb7185" stroke-width="3"/>`;
+    }
+    s+='</svg>';
+    $('#zona').innerHTML=s;
+    if(e.tipo==='error'){
+      $('#seq').onclick = ev=>{
+        const g=ev.target.closest('[data-i]'); if(!g||bloqueado) return;
+        const i=+g.dataset.i;
+        if(i===e.idx){ bueno('¡Lo encontraste!'); }
+        else { e.mal.add(i); Det.zona(e); malo('Esa pieza sí sigue el patrón. Compárala con la vuelta anterior.'); }
+      };
+    }
+  },
+  pista(e,n){
+    if(e.fase===0){
+      if(n===1) aviso('Busca qué parte <b>se repite</b> una y otra vez.','casi');
+      else if(n===2){ e.hl=e.P; Det.zona(e); aviso('Cuenta cuántas piezas hay desde el inicio hasta justo antes de la pieza marcada: ahí empieza la segunda vuelta.','casi'); }
+      else aviso(`La primera pieza vuelve a aparecer en el lugar ${e.P+1}. ¿Cuántas piezas hay antes?`,'casi');
+      return;
+    }
+    if(n===1){ aviso('Busca qué parte <b>se repite</b> una y otra vez.','casi'); }
+    else if(n===2){ e.primero=true; Det.zona(e); aviso(`Esta es la parte que se repite (${e.P} piezas). Mírala bien.`,'casi'); }
+    else { e.primero=true; e.hl = e.tipo==='siguiente'? e.L-e.P : (e.idx-e.P>=0? e.idx-e.P : e.idx+e.P); Det.zona(e);
+      aviso(e.tipo==='error'?'Compara cada pieza con la que está una vuelta antes.':'Mira la pieza marcada: está en el mismo lugar de la vuelta anterior.','casi'); }
+  }
+};
+ACT.detectives = Det;
+
+/* =========================================================
+   2) CONSTRUCTORES DE PATRONES (figuras que crecen)
+   ========================================================= */
+function celdas(fam,p,n){
+  const o=[];
+  if(fam==='col'){
+    for(let y=0;y<p.b;y++) o.push({x:0,y,k:1,n:0});
+    for(let j=1;j<=n;j++) for(let y=0;y<p.a;y++) o.push({x:j,y,k:0,n:j});
+  } else if(fam==='esc'){
+    for(let j=1;j<=n;j++) for(let y=0;y<j;y++) o.push({x:j-1,y,k:0,n:j});
+  } else {
+    for(let x=0;x<n;x++) for(let y=0;y<n;y++) o.push({x,y,k:0,n:Math.max(x,y)+1});
+  }
+  return o;
+}
+function Tfig(fam,p,n){ return fam==='col'? p.a*n+p.b : fam==='esc'? n*(n+1)/2 : n*n; }
+function dimsC(c){ let mx=1e9,Mx=-1e9,My=-1; c.forEach(q=>{ if(q.x<mx)mx=q.x; if(q.x>Mx)Mx=q.x; if(q.y>My)My=q.y; }); return {w:Mx-mx+1,h:My+1,mx}; }
+function celdasSVG(c,ox,oy,u,H,hlN,mx){
+  return c.map(q=>{
+    const x=ox+(q.x-mx)*u, y=oy+(H-1-q.y)*u, nuevo = hlN!=null && q.n===hlN;
+    const fill = nuevo?'#fde047':(q.k?'#f472b6':'#38bdf8');
+    return `<rect x="${x+.75}" y="${y+.75}" width="${u-1.5}" height="${u-1.5}" rx="3" fill="${fill}" stroke="${nuevo?'#b45309':'#0c1b3a'}" stroke-width="${nuevo?3:1.4}"/>`;
+  }).join('');
+}
+const sigC = c => c.map(q=>q.x+','+q.y).sort().join(';');
+function miniFig(c, W, H){   // miniatura para opciones; W,H = tamaño de rejilla común
+  const u=24, d=dimsC(c);
+  return `<svg viewBox="0 0 ${W*u+4} ${H*u+4}" preserveAspectRatio="xMidYMax meet">${celdasSVG(c,2,2,u,H,null,d.mx)}</svg>`;
+}
+const fam_txt = {col:'', esc:'', cua:''};
+
+const Cons = {
+  rec:[],
+  params(nivel){
+    if(nivel===1){ const [a,b]=pick([[2,1],[2,0],[3,0],[3,1],[1,2],[2,2],[3,2]]); return {fam:'col',p:{a,b}}; }
+    if(nivel===2){ if(Math.random()<.6) return {fam:'col',p:{a:rnd(2,4),b:rnd(0,3)}}; return {fam:'esc',p:{}}; }
+    const r=Math.random(); if(r<.4) return {fam:'col',p:{a:rnd(3,6),b:rnd(1,4)}}; return {fam:r<.7?'esc':'cua',p:{}};
+  },
+  gen(nivel, forzar){
+    let par, tarea, N, m, clave, intentos=0;
+    do{
+      par=this.params(nivel);
+      const ts = nivel===1?[['elegir',.35],['cuantos',.4],['tabla',.25]]: nivel===2?[['cuantos',.35],['elegir',.2],['tabla',.45]]:[['cuantos',.4],['elegir',.1],['tabla',.5]];
+      let r=Math.random(),a=0; tarea=ts[ts.length-1][0]; for(const [t,p] of ts){ a+=p; if(r<a){ tarea=t; break; } }
+      if(forzar) tarea=forzar;
+      m = nivel===2 && par.fam==='col' && Math.random()<.4 ? 4 : 3;
+      if(nivel===3 && par.fam==='esc') m=4;
+      N = nivel===1? rnd(4,5) : nivel===2? rnd(m+2,m+5) : rnd(10,20);
+      if(par.fam!=='col' && nivel===3) N=rnd(8,12);
+      if(tarea==='elegir') N=m+1;
+      clave = [par.fam,par.p.a,par.p.b].join('-');
+      if(recienteOk(this.rec, clave, 3) || intentos>25) break;
+      intentos++;
+    } while(true);
+    anotar(this.rec, clave);
+    const e={nivel, fam:par.fam, p:par.p, tarea, m, N, hint:0, mal:0, extra:0};
+    if(tarea==='elegir') e.opciones=this.opcionesFig(e);
+    if(tarea==='tabla'){   // completar la tabla paso a paso: figuras siguientes y, en niveles 2 y 3, una figura lejana
+      const kmax = nivel===1? m+2 : m+3; e.ks=[]; for(let n=m+1;n<=kmax;n++) e.ks.push(n);
+      if(nivel>1){ let L = nivel===2? rnd(8,10) : (par.fam==='col'? rnd(10,20) : rnd(8,12)); if(L<=kmax+1) L=kmax+2; e.ks.push(L); e.N=L; }
+      else e.N=kmax;
+    }
+    if(tarea==='cuantos') e.ans=Tfig(e.fam,e.p,e.N);
+    return e;
+  },
+  opcionesFig(e){
+    const n=e.m+1, bien=celdas(e.fam,e.p,n), sb=sigC(bien);
+    const cand=[];
+    const add=(c,etq)=>{ if(c.length) cand.push({c,etq}); };
+    add(celdas(e.fam,e.p,n-1),'ant'); add(celdas(e.fam,e.p,n+1),'sig');
+    const sinUna=bien.slice(); sinUna.splice(sinUna.length-1,1); add(sinUna,'menos');
+    if(e.fam==='col'){
+      add(celdas('col',{a:e.p.a+1,b:e.p.b},n)); if(e.p.a>1) add(celdas('col',{a:e.p.a-1,b:e.p.b},n));
+      add(celdas('col',{a:e.p.a,b:e.p.b+1},n)); if(e.p.b>0) add(celdas('col',{a:e.p.a,b:e.p.b-1},n));
+    } else if(e.fam==='esc'){ add(celdas('cua',{},n-1)); add(celdas('esc',{},n+1)); }
+    else { add(celdas('esc',{},n)); add(celdas('cua',{},n+1)); }
+    const vistos=new Set([sb]), dist=[];
+    barajar(cand).forEach(q=>{ const s=sigC(q.c); if(dist.length<3 && !vistos.has(s)){ vistos.add(s); dist.push(q.c); } });
+    const todas=barajar([bien,...dist]);
+    let W=0,H=0; todas.forEach(c=>{ const d=dimsC(c); W=Math.max(W,d.w); H=Math.max(H,d.h); });
+    return {lista:todas.map(c=>({c,ok:sigC(c)===sb})), W, H};
+  },
+  pintar(e){
+    const h=$('#herram'); h.innerHTML='';
+    if(e.tarea==='elegir'){
+      setConsigna(`¿Cómo será la <b>figura ${e.N}</b>?`);
+      h.appendChild(filaOpciones(e.opciones.lista, o=>miniFig(o.c,e.opciones.W,e.opciones.H), (o,b)=>{
+        if(o.ok){ b.classList.add('bien'); bueno('¡Correcto!'); }
+        else { b.classList.add('mal'); malo('Esa figura no sigue el crecimiento. Mira qué cambia de la figura 1 a la 2 y a la 3.'); }
+      }, 'fig'));
+    } else if(e.tarea==='cuantos'){
+      setConsigna(`¿Cuántos cuadritos tendrá la <b>figura ${e.N}</b>?`);
+      const bm=document.createElement('button'); bm.className='btn azul'; bm.type='button'; bm.id='bMas'; bm.textContent='➕ Ver la figura que sigue';
+      bm.onclick=()=>{ if(bloqueado) return; if(e.m+e.extra<e.N-1 && e.m+e.extra<6){ e.extra++; tono(600,.08); Cons.zona(e); } };
+      h.appendChild(bm);
+      h.appendChild(entradaNum('cIn', v=>Cons.revisar(e,v)));
+    } else {
+      setConsigna('Completa la tabla: ¿cuántos cuadritos tiene cada figura?');
+      const bt=document.createElement('button'); bt.className='btn verde'; bt.type='button'; bt.textContent='Comprobar'; bt.onclick=()=>Cons.revisarTabla(e); h.appendChild(bt);
+    }
+    h.appendChild(botonPista());
+    Cons.zona(e);
+    const i=$('#cIn'); if(i && matchMedia('(pointer:fine)').matches) i.focus();
+  },
+  zona(e){
+    const u=40, gap=u*1.1;
+    const nver = e.m+(e.extra||0);
+    const ms = Array.from({length:nver},(_,i)=>i+1);
+    const hayGap = e.tarea==='cuantos' && e.N-1>nver;
+    const figs = ms.map(m=>({m,c:celdas(e.fam,e.p,m)})); figs.forEach(f=>f.d=dimsC(f.c));
+    const H=Math.max(...figs.map(f=>f.d.h));
+    let x=10, s='';
+    const SL=nver>3?88:110;
+    figs.forEach(f=>{
+      const nuevo = e.hint>=3 ? f.m : null, sw=Math.max(SL,f.d.w*u), ox=x+(sw-f.d.w*u)/2;
+      s+=celdasSVG(f.c,ox,10,u,H,nuevo,f.d.mx);
+      s+=`<text x="${x+sw/2}" y="${10+H*u+26}" text-anchor="middle" font-size="19" fill="#c9bdf0">Figura ${f.m}</text>`;
+      if(e.tarea!=='tabla') s+=`<text x="${x+sw/2}" y="${10+H*u+46}" text-anchor="middle" font-size="15" fill="#8f7fc4">${Tfig(e.fam,e.p,f.m)} cuadritos</text>`;
+      x+=sw+gap*.5;
+    });
+    if(hayGap){   // puntos suspensivos: hay figuras que no se ven entre medio
+      s+=` <text x="${x+34}" y="${10+H*u/2+10}" text-anchor="middle" font-size="46" fill="#fbbf24">…</text><text x="${x+34}" y="${10+H*u+26}" text-anchor="middle" font-size="15" fill="#fbbf24">faltan</text>`;
+      x+=76;
+    }
+    if(e.tarea==='cuantos'){
+      s+=`<rect x="${x+(SL-u*2)/2}" y="10" width="${u*2}" height="${H*u}" rx="12" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="8 7"/><text x="${x+SL/2}" y="${10+H*u/2+14}" text-anchor="middle" font-size="40" fill="#fbbf24">?</text><text x="${x+SL/2}" y="${10+H*u+26}" text-anchor="middle" font-size="19" fill="#fbbf24">Figura ${e.N}</text>`;
+      x+=SL+gap*.5;
+    } else if(e.tarea==='elegir'){
+      s+=`<rect x="${x+(SL-u*2)/2}" y="10" width="${u*2}" height="${H*u}" rx="12" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="8 7"/><text x="${x+SL/2}" y="${10+H*u/2+14}" text-anchor="middle" font-size="40" fill="#fbbf24">?</text><text x="${x+SL/2}" y="${10+H*u+26}" text-anchor="middle" font-size="19" fill="#fbbf24">Figura ${e.N}</text>`;
+      x+=SL+gap*.5;
+    }
+    const svg=`<svg viewBox="0 0 ${x+6} ${H*u+62}" role="img" aria-label="Figuras que crecen">${s}</svg>`;
+    let extra='';
+    if(e.hint>=2 && e.tarea!=='elegir'){
+      const sh = e.m;
+      const chips=[]; for(let i=1;i<sh;i++) chips.push(`<span class="chip nuevo">${i} → ${i+1}: +${Tfig(e.fam,e.p,i+1)-Tfig(e.fam,e.p,i)}</span>`);
+      extra=`<div class="maq-tabla">${chips.join('')}</div>`;
+    }
+    if(e.hint>=4 && e.tarea==='cuantos'){
+      let t='<table class="tabla"><tr><th>Figura</th>'+ms.map(m=>`<td>${m}</td>`).join('')+'</tr><tr><th>Cuadritos</th>'+ms.map(m=>`<td>${Tfig(e.fam,e.p,m)}</td>`).join('')+'</tr></table>';
+      extra+=t;
+    }
+    if(e.tarea==='tabla'){
+      const guardado={}; document.querySelectorAll('#zona input[data-n]').forEach(i=>guardado[i.dataset.n]=[i.value,i.style.borderColor]);
+      const cols=[]; for(let n=1;n<=e.m;n++) cols.push(['v',n]);
+      e.ks.forEach((n,i)=>{ if(i>0 && n>e.ks[i-1]+1) cols.push(['gap']); cols.push(['i',n]); });
+      let t='<table class="tabla tcons"><tr><th>Figura</th>'+cols.map(c=>c[0]==='gap'?'<td class="dif">…</td>':`<td>${c[1]}</td>`).join('')+'</tr><tr><th>Cuadritos</th>'+
+        cols.map(c=>c[0]==='gap'?'<td class="dif">…</td>':c[0]==='v'?`<td>${Tfig(e.fam,e.p,c[1])}</td>`:`<td class="hueco"><input class="entrada" data-n="${c[1]}" type="text" inputmode="numeric" maxlength="4" autocomplete="off"></td>`).join('')+'</tr></table>';
+      $('#zona').innerHTML=svg+extra+t;
+      document.querySelectorAll('#zona input[data-n]').forEach(i=>{ const g=guardado[i.dataset.n]; if(g){ i.value=g[0]; i.style.borderColor=g[1]; } i.addEventListener('keydown',ev=>{ if(ev.key==='Enter') Cons.revisarTabla(e); }); });
+      return;
+    }
+    $('#zona').innerHTML=svg+extra;
+  },
+  revisarTabla(e){
+    if(bloqueado) return;
+    const inp=[...document.querySelectorAll('#zona input[data-n]')]; let todo=true, vacio=false, mal1=null;
+    inp.forEach(i=>{ const v=i.value.trim(), n=+i.dataset.n;
+      if(v===''||!/^\d+$/.test(v)){ vacio=true; todo=false; i.style.borderColor='var(--accent)'; return; }
+      if(parseInt(v,10)===Tfig(e.fam,e.p,n)) i.style.borderColor='var(--primary)'; else { todo=false; if(mal1===null) mal1=n; i.style.borderColor='var(--error)'; } });
+    if(todo) return bueno('¡Tabla completa!'+(e.fam==='col'?` Cada figura tiene ${e.p.a} cuadritos más${e.p.b?`, y siempre hay ${e.p.b} fijos`:''}.`:''),1800);
+    e.mal++;
+    if(mal1===null){ aviso('Completa todos los espacios de la tabla.','casi'); return; }
+    let m = mal1===e.N && e.N>e.m+3 ? `Revisa la figura ${mal1}: piensa cuánto crece cada vez y cuántas veces ocurre.` : `Revisa la figura ${mal1}: mira cuánto sube de una figura a la siguiente.`;
+    if(e.mal>=2) m+=' Usa la 💡 Pista.';
+    malo(m);
+  },
+  revisar(e,v){
+    if(v===e.ans){
+      return bueno(`¡Correcto! La figura ${e.N} tiene <b>${e.ans}</b> cuadritos${e.fam==='col'?` (${e.p.a} por cada una de las ${e.N} columnas${e.p.b?`, más ${e.p.b} que no cambian`:''})`:e.fam==='esc'?' (1 + 2 + … + '+e.N+')':` (${e.N} filas de ${e.N})`}.`,2200);
+    }
+    e.mal++;
+    let m='No es ese. Mira cómo crece de una figura a la siguiente.';
+    if(e.tarea==='cuantos'){
+      if(v===Tfig(e.fam,e.p,e.N-1)) m=`Ese número es el de la figura ${e.N-1}. Falta la figura ${e.N}.`;
+      else if(e.fam==='col' && e.p.b && v===e.p.a*e.N) m='Casi: no olvides los cuadritos que <b>no cambian</b> y están en todas las figuras.';
+      else if(e.fam==='col' && Math.abs(v-e.ans)%e.p.a===0 && Math.abs(v-e.ans)<=e.p.a) m='Muy cerca: revisa cuántas columnas iguales tiene esa figura.';
+      else if(v<Tfig(e.fam,e.p,e.m)) m=`La figura ${e.N} es más grande que la figura ${e.m}, que ya tiene ${Tfig(e.fam,e.p,e.m)}.`;
+    }
+    if(e.mal>=2) m+=' Usa la 💡 Pista.';
+    malo(m);
+  },
+  pista(e,n){
+    e.hint=Math.min(4,n);
+    if(e.tarea==='elegir') e.hint=Math.min(e.hint,3);
+    Cons.zona(e);
+    const t=[null,e.tarea==='cuantos'?'Compara las figuras: ¿qué cambia y qué se queda igual? (Con ➕ puedes ver las figuras que siguen.)':'Compara las figuras: ¿qué cambia y qué se queda igual?','Fíjate en cuántos cuadritos se suman cada vez: así llenas la tabla de a una.','Los cuadritos amarillos son los que se agregaron en cada figura.','Mira la tabla: ¿cuánto sube cada vez? Sigue ese ritmo hasta la figura que te piden.'];
+    aviso(t[Math.min(e.hint,4)],'casi');
+  }
+};
+ACT.constructores = Cons;
+
+/* =========================================================
+   3) MÁQUINAS MISTERIOSAS
+   ========================================================= */
+function textoRegla(A,B,dos){
+  if(dos) return `Suma <b>${B/A}</b> y luego multiplica por <b>${A}</b>`;
+  if(A===1) return B>=0? `Suma <b>${B}</b>` : `Resta <b>${-B}</b>`;
+  if(B===0) return `Multiplica por <b>${A}</b>`;
+  return B>0? `Multiplica por <b>${A}</b> y luego suma <b>${B}</b>` : `Multiplica por <b>${A}</b> y luego resta <b>${-B}</b>`;
+}
+const Maq = {
+  rec:[], sinNivel:true,
+  gen(){
+    let A,B,dos=false,k=0,clave;
+    do{
+      const r=Math.random(); dos=false;
+      if(r<.28){ A=rnd(2,6); B=0; }                       // solo multiplica
+      else if(r<.5){ A=1; B=rnd(2,9); }                   // solo suma
+      else if(r<.82){ A=rnd(2,5); B=rnd(1,6); }           // multiplica y suma
+      else { A=rnd(2,5); B=-rnd(1,Math.min(A,4)); }       // multiplica y resta
+      clave=A+','+B; k++;
+    } while(!recienteOk(this.rec,clave,6) && k<30);
+    anotar(this.rec,clave);
+    return {A,B,dos,txt:textoRegla(A,B,dos),probados:[],hint:0,signo:1};
+  },
+  f(e,x){ return e.A*x+e.B; },
+  pintar(e){
+    setConsigna('Descubre la <b>regla secreta</b> de la máquina');
+    const h=$('#herram'); h.innerHTML='';
+    const fi=document.createElement('div'); fi.className='fila-in';
+    fi.innerHTML=`<span>Probar entrada</span><input class="entrada ancha" id="mIn" type="text" inputmode="numeric" maxlength="2" autocomplete="off"><button class="btn azul" type="button" id="mProbar">Probar</button>`;
+    h.appendChild(fi);
+    const fr=document.createElement('div'); fr.className='fila-in';
+    fr.innerHTML=`<span>Mi regla: salida = entrada ×</span><input class="entrada" id="fA" type="text" inputmode="numeric" maxlength="2" autocomplete="off" style="width:56px"><button class="btn" type="button" id="fS" title="Cambiar entre sumar y restar" style="min-width:42px;font-size:1.1rem">+</button><input class="entrada" id="fB" type="text" inputmode="numeric" maxlength="2" autocomplete="off" style="width:56px"><button class="btn verde" type="button" id="fOk">Comprobar regla</button>`;
+    h.appendChild(fr);
+    h.appendChild(botonPista());
+    const go=()=>{
+      if(bloqueado) return;
+      const v=$('#mIn').value.trim(), x=parseInt(v,10);
+      if(!/^\d+$/.test(v)||x<1||x>30){ aviso('Escribe un número del 1 al 30.','casi'); return; }
+      if(e.probados.some(q=>q.x===x)){ aviso('Ese número ya lo probaste. Prueba otro distinto.','casi'); return; }
+      if(e.probados.length>=5){ aviso('Ya hiciste 5 pruebas, ¡con eso alcanza! Ahora escribe la regla.','casi'); return; }
+      e.probados.push({x,y:Maq.f(e,x)}); tono(660,.1); aviso(''); $('#mIn').value=''; Maq.zona(e); $('#mIn').focus?.();
+    };
+    $('#mProbar').onclick=go; $('#mIn').addEventListener('keydown',ev=>{ if(ev.key==='Enter') go(); });
+    $('#fS').onclick=()=>{ e.signo=-e.signo; $('#fS').textContent=e.signo>0?'+':'−'; };
+    const ok=()=>Maq.revisar(e);
+    $('#fOk').onclick=ok; ['fA','fB'].forEach(id=>$('#'+id).addEventListener('keydown',ev=>{ if(ev.key==='Enter') ok(); }));
+    Maq.zona(e);
+    if(matchMedia('(pointer:fine)').matches) $('#mIn').focus();
+  },
+  /* Relaciones uno a uno: conjunto A (entradas) → conjunto B (salidas) */
+  zona(e){
+    const ps=[...e.probados].sort((p,q)=>p.x-q.x), ult=e.probados[e.probados.length-1];
+    const filas=5, RH=44, top=58, W=520, H=top+filas*RH+14;
+    const xa=118, xb=402;
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Relaciones entre entradas y salidas">
+      <defs><marker id="pf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c9bdf0"/></marker><marker id="pfn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#fbbf24"/></marker></defs>
+      <rect x="${xa-56}" y="${top-4}" width="112" height="${filas*RH+8}" rx="16" fill="rgba(56,189,248,.10)" stroke="#38bdf8" stroke-width="2.5"/>
+      <rect x="${xb-56}" y="${top-4}" width="112" height="${filas*RH+8}" rx="16" fill="rgba(251,191,36,.10)" stroke="#fbbf24" stroke-width="2.5"/>
+      <text x="${xa}" y="24" text-anchor="middle" font-size="20" fill="#38bdf8">Entradas</text>
+      <text x="${xb}" y="24" text-anchor="middle" font-size="20" fill="#fbbf24">Salidas</text>
+      <text x="${W/2}" y="30" text-anchor="middle" font-size="34">⚙️</text>`;
+    for(let i=0;i<filas;i++){
+      const y=top+i*RH+RH/2, p=ps[i];
+      if(p){
+        const nuevo = p===ult;
+        s+=`<line x1="${xa+42}" y1="${y}" x2="${xb-44}" y2="${y}" stroke="${nuevo?'#fbbf24':'#c9bdf0'}" stroke-width="${nuevo?3:2}" marker-end="url(#${nuevo?'pfn':'pf'})" opacity="${nuevo?1:.8}"/>
+          <rect x="${xa-40}" y="${y-18}" width="80" height="36" rx="9" fill="#0c1b3a" stroke="#38bdf8" stroke-width="2"/><text x="${xa}" y="${y+7}" text-anchor="middle" font-size="21" fill="#f6f3ff">${p.x}</text>
+          <rect x="${xb-40}" y="${y-18}" width="80" height="36" rx="9" fill="#0c1b3a" stroke="#fbbf24" stroke-width="2"/><text x="${xb}" y="${y+7}" text-anchor="middle" font-size="21" fill="#f6f3ff">${p.y}</text>`;
+      } else {
+        s+=`<rect x="${xa-40}" y="${y-18}" width="80" height="36" rx="9" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="4 4"/><rect x="${xb-40}" y="${y-18}" width="80" height="36" rx="9" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="4 4"/>`;
+      }
+    }
+    s+='</svg>';
+    const falta=Math.max(0,2-e.probados.length);
+    $('#zona').innerHTML=s+`<div class="cons-nota">${falta?`Prueba ${falta===2?'al menos 2 entradas distintas':'1 entrada más'} (del 1 al 30; máximo 5 pruebas).`:'Cada entrada tiene una sola salida. ¿Qué hace la máquina?'}</div>`;
+  },
+  revisar(e){
+    if(bloqueado) return;
+    const sa=$('#fA').value.trim(), sb=$('#fB').value.trim();
+    if(!/^\d+$/.test(sa)||!/^\d+$/.test(sb)){ aviso('Completa los dos números de tu regla (si no suma nada, escribe 0).','casi'); return; }
+    if(e.probados.length<2){ aviso('Antes de decir la regla, prueba al menos 2 entradas distintas.','casi'); return; }
+    const a=parseInt(sa,10), b=e.signo*parseInt(sb,10);
+    const falla=e.probados.find(q=>a*q.x+b!==q.y);
+    if(falla){ malo(`Con tu regla, si entra <b>${falla.x}</b> saldría <b>${a*falla.x+b}</b>, pero la máquina dio <b>${falla.y}</b>.`); return; }
+    if(a===e.A && b===e.B) bueno(`¡Regla descubierta! ${e.txt}.`, 2300);
+    else aviso('Tu regla coincide con lo que probaste, pero prueba otras entradas para asegurarte.','casi');
+  },
+  pista(e,n){
+    const t=[null,'Prueba el 1 y el 2 (o el 3) y mira cómo cambian las salidas.',
+      'Cuando la entrada sube de 1 en 1, ¿cuánto sube la salida cada vez?',
+      `Cada vez que la entrada sube 1, la salida sube <b>${e.A}</b>: ese es el número por el que multiplicas. Después mira cuánto sobra o falta.`];
+    aviso(t[Math.min(n,3)],'casi');
+  }
+};
+ACT.maquinas = Maq;
+
+/* =========================================================
+   4) EL LENGUAJE DE LAS REGLAS (tabla, palabras, letras)
+   ========================================================= */
+function expr(A,B){
+  if(A<0) return `${B} − ${-A}n`;
+  const a = A===1?'':A;
+  return B>0? `${a}n + ${B}` : B===0? `${a}n` : `${a}n − ${-B}`;
+}
+function palabras(A,B){   // forma corta: × 2 + 2
+  if(A===1) return `+ ${B}`;
+  return B===0? `× ${A}` : `× ${A} + ${B}`;
+}
+const Reg = {
+  rec:[],
+  gen(nivel, forzar){
+    let tipo, A, B, dec=false, k=0, clave;
+    do{
+      const ts = nivel===1?[['tabla',.5],['palabras',.5]]: nivel===2?[['tabla',.34],['palabras',.33],['simbolos',.33]]:[['tabla',.3],['palabras',.2],['simbolos',.5]];
+      let r=Math.random(),a=0; tipo=ts[ts.length-1][0]; for(const [t,p] of ts){ a+=p; if(r<a){ tipo=t; break; } }
+      if(forzar) tipo=forzar;
+      dec=false;
+      if(nivel===1){ A=rnd(2,4); B=rnd(0,3); }
+      else if(nivel===2){ A=rnd(2,6); B=rnd(0,6); }
+      else { A=rnd(2,6); B=rnd(1,6);
+        if(tipo==='tabla' && Math.random()<.35){ dec=true; const D=rnd(2,5); A=-D; B=D*6+rnd(0,4); } }
+      clave=tipo+A+','+B; k++;
+    } while(!recienteOk(this.rec,clave,5) && k<30);
+    anotar(this.rec,clave);
+    const e={tipo,A,B,dec,nivel,hint:0,mal:0};
+    e.T = n => A*n+B;
+    if(tipo==='tabla'){ const cant = nivel===1?2:3; e.blancos = barajar([3,4,5,6]).slice(0,cant).sort(); }
+    if(tipo==='palabras') e.opciones=this.opcionesPal(e);
+    if(tipo==='simbolos') e.opciones=this.opcionesSim(e);
+    return e;
+  },
+  opcionesPal(e){
+    const {A,B}=e, c=[], add=(a,b)=>{ if(a>=1&&b>=0&&!(a===A&&b===B)&&!c.some(q=>q.A===a&&q.B===b)) c.push({A:a,B:b}); };
+    add(A,B+1); add(A,B+2); if(B>0) add(A,B-1); add(A+1,B); if(A>1) add(A-1,B); if(B>0) add(B,A); if(B>0) add(A+B,0); add(A,A);
+    const d=barajar(c).slice(0,3);
+    return barajar([{A,B,ok:true,txt:palabras(A,B)},...d.map(q=>({A:q.A,B:q.B,ok:false,txt:palabras(q.A,q.B)}))]);
+  },
+  opcionesSim(e){
+    const {A,B,nivel}=e, usarPar = nivel===3 && B>0 && B%A===0 && Math.random()<.7;
+    const c=[], add=(a,b,t)=>{ if(!(a===A&&b===B) && !c.some(q=>q.A===a&&q.B===b) && !c.some(q=>q.txt===t)) c.push({A:a,B:b,txt:t}); };
+    const E=(a,b)=>expr(a,b);
+    add(A,B+1,E(A,B+1)); if(B>0) add(A,B-1,E(A,B-1)); add(A+1,B,E(A+1,B));
+    if(B>0 && A!==B) add(B,A,E(B,A));
+    if(B>0) add(A+B,0,E(A+B,0));
+    if(usarPar){ const cc=B/A; add(A,cc,E(A,cc)); add(cc,A,`${A} + ${cc}n`.replace(/^(\d+) \+ (\d+)n$/,(m,x,y)=>`${x} + ${y}n`)); add(1,B,E(1,B)); }
+    else if(A!==1) add(1,B,E(1,B));
+    const d=barajar(c).slice(0,3);
+    const verdad = usarPar? {A,B,ok:true,txt:`${A}(n + ${B/A})`} : {A,B,ok:true,txt:E(A,B)};
+    return barajar([verdad,...d.map(q=>({...q,ok:false}))]);
+  },
+  figs(e){
+    if(e.dec) return '';
+    const u=26, ms=[1,2,3], fs=ms.map(m=>({m,c:celdas('col',{a:e.A,b:e.B},m)})); fs.forEach(f=>f.d=dimsC(f.c));
+    const H=Math.max(...fs.map(f=>f.d.h)); let x=6, s='';
+    fs.forEach(f=>{ const sw=Math.max(78,f.d.w*u); s+=celdasSVG(f.c,x+(sw-f.d.w*u)/2,6,u,H,e.hint>=3&&e.tipo!=='tabla'?f.m:null,f.d.mx); s+=`<text x="${x+sw/2}" y="${6+H*u+20}" text-anchor="middle" font-size="16" fill="#c9bdf0">Figura ${f.m}</text>`; x+=sw+14; });
+    return `<svg viewBox="0 0 ${x} ${H*u+30}" style="max-height:130px">${s}</svg>`;
+  },
+  tablaHTML(e, conHuecos){
+    const ns=[1,2,3,4,5,6];
+    let t='<table class="tabla"><tr><th>n</th>'+ns.map(n=>`<td>${n}</td>`).join('')+'</tr><tr><th>Resultado</th>';
+    ns.forEach(n=>{ if(conHuecos && e.blancos.includes(n)) t+=`<td class="hueco"><input class="entrada" data-n="${n}" type="text" inputmode="numeric" maxlength="3" autocomplete="off"></td>`; else t+=`<td>${e.T(n)}</td>`; });
+    t+='</tr>';
+    if(e.hint>=2){ t+='<tr><th></th>'; ns.forEach((n,i)=>{ t+= i<5? `<td class="dif">${(e.T(n+1)-e.T(n))>=0?'+':''}${e.T(n+1)-e.T(n)}</td>`:'<td class="dif"></td>'; }); t+='</tr>'; }
+    return t+'</table>';
+  },
+  pintar(e){
+    const h=$('#herram'); h.innerHTML='';
+    if(e.tipo==='tabla'){
+      setConsigna('Completa la tabla: <b>descubre la regla</b>');
+      Reg.zona(e);
+      const b=document.createElement('button'); b.className='btn verde'; b.type='button'; b.textContent='Comprobar'; b.onclick=()=>Reg.revisarTabla(e); h.appendChild(b);
+    } else {
+      setConsigna(e.tipo==='palabras'?'¿Qué regla da <b>los cuadritos</b> a partir del número de figura <b>n</b>?':'¿Qué <b>expresión</b> da el resultado para cualquier <b>n</b>?');
+      Reg.zona(e);
+      h.appendChild(filaOpciones(e.opciones,o=>o.txt,(o,b)=>{
+        if(o.ok){ b.classList.add('bien'); bueno(`¡Correcto! La regla es <b>${expr(e.A,e.B)}</b>${e.tipo==='simbolos'?' (n es el número de la figura)':''}.`,1800); }
+        else { const n=[1,2,3,4].find(n=>o.A*n+o.B!==e.T(n)); b.classList.add('mal');
+          malo(`Prueba con <b>n = ${n}</b>: esa regla daría <b>${o.A*n+o.B}</b>, pero en la tabla hay <b>${e.T(n)}</b>.`); }
+      },'mat'));
+    }
+    h.appendChild(botonPista());
+  },
+  zona(e){
+    let html='';
+    if(e.tipo==='tabla'){
+      const guardados={}; document.querySelectorAll('#zona input[data-n]').forEach(i=>guardados[i.dataset.n]=i.value);
+      html = Reg.figs(e)+Reg.tablaHTML(e,true);
+      $('#zona').innerHTML=html;
+      document.querySelectorAll('#zona input[data-n]').forEach(i=>{ if(guardados[i.dataset.n]!==undefined) i.value=guardados[i.dataset.n]; i.addEventListener('keydown',ev=>{ if(ev.key==='Enter') Reg.revisarTabla(e); }); });
+      return;
+    }
+    const ns=[1,2,3,4];
+    const t='<table class="tabla"><tr><th>n</th>'+ns.map(n=>`<td>${n}</td>`).join('')+'</tr><tr><th>Cuadritos</th>'+ns.map(n=>`<td>${e.T(n)}</td>`).join('')+'</tr>'+
+      (e.hint>=2?'<tr><th></th>'+ns.map((n,i)=>i<3?`<td class="dif">+${e.T(n+1)-e.T(n)}</td>`:'<td class="dif"></td>').join('')+'</tr>':'')+'</table>';
+    $('#zona').innerHTML=Reg.figs(e)+t;
+  },
+  revisarTabla(e){
+    if(bloqueado) return;
+    const inp=[...document.querySelectorAll('#zona input[data-n]')]; let todo=true, alguno=false;
+    inp.forEach(i=>{ const v=i.value.trim(); if(v===''||!/^-?\d+$/.test(v)){ todo=false; i.style.borderColor='var(--accent)'; return; } alguno=true;
+      if(parseInt(v,10)===e.T(+i.dataset.n)) i.style.borderColor='var(--primary)'; else { todo=false; i.style.borderColor='var(--error)'; } });
+    if(todo){
+      bueno(`¡Correcto! La regla es <b>${expr(e.A,e.B)}</b>${e.dec?` (parte de ${e.B} y baja ${-e.A} en cada paso)`:''}.`,1800);
+    } else {
+      e.mal++;
+      malo(alguno? 'Hay números que no encajan. Mira cuánto cambia el resultado de un paso al siguiente.' : 'Completa los espacios con números.');
+      if(e.mal>=2) aviso($('#msg').innerHTML+' Usa la 💡 Pista.', 'mal');
+    }
+  },
+  pista(e,n){
+    e.hint=Math.min(3,n);
+    if(e.tipo==='tabla' || e.hint>=2) Reg.zona(e);
+    const dif = e.dec? -e.A : e.A;
+    const t=[null,e.tipo==='tabla'?'Mira cuánto cambia el resultado cada vez que <b>n</b> sube 1.':'Reemplaza <b>n</b> por 1, 2 y 3 en cada opción y compara con la tabla.',
+      `Los números de abajo muestran cuánto ${e.dec?'baja':'sube'} el resultado en cada paso.`,
+      e.dec? `Baja ${dif} en cada paso. Si n=1 el resultado es ${e.T(1)}: ¿cuánto había en n=0?` : `Sube ${dif} en cada paso, así que n se multiplica por ${dif}. Mira n=1: ¿cuánto sobra?`];
+    aviso(t[Math.min(e.hint,3)],'casi');
+  }
+};
+ACT.reglas = Reg;
+
+/* =========================================================
+   5) CREA TU PROPIO PATRÓN (libre, sin puntaje)
+   ========================================================= */
+const CreaSimb = FORMAS.map((f,i)=>({f,c:PALETA[i]}));
+const Crea = {
+  libre:true, seq:[], modo:'crear', reto:null,
+  periodo(seq){
+    const L=seq.length;
+    for(let P=1;P<=Math.floor(L/2);P++){ let ok=true; for(let i=P;i<L;i++) if(claveT(seq[i])!==claveT(seq[i-P])){ ok=false; break; } if(ok) return P; }
+    return 0;
+  },
+  casi(seq){
+    const L=seq.length;
+    for(let P=2;P<=Math.floor(L/3);P++){ const mal=[]; for(let i=P;i<L;i++) if(claveT(seq[i])!==claveT(seq[i-P])) mal.push(i); if(mal.length===1) return {P,i:mal[0]}; }
+    return null;
+  },
+  iniciar(){ Crea.seq=[]; Crea.modo='crear'; Crea.reto=null; bloqueado=false; setConsigna('Inventa un patrón: toca las piezas para ponerlas en fila'); aviso(''); Crea.pintar(); },
+  pintar(opts={}){
+    const h=$('#herram'); h.innerHTML='';
+    const z=$('#zona');
+    const L=Crea.seq.length, P=Crea.periodo(Crea.seq);
+    if(Crea.modo==='reto'){
+      const r=Crea.reto;
+      const items=Crea.seq.map((t,i)=>i===r.idx?{q:1}:t);
+      z.innerHTML=Crea.svg(Crea.seq,{P:r.P,ciclos:true,q:r.idx});
+      h.appendChild(filaOpciones(r.ops,t=>piezaMini(t),(t,b)=>{
+        if(claveT(t)===claveT(r.ans)){ b.classList.add('bien'); tintineo(); aviso('¡Muy bien! Descubriste la pieza que faltaba en tu propio patrón.','bien'); bloqueado=true;
+          h.innerHTML=''; const s=document.createElement('button'); s.className='btn siguiente'; s.type='button'; s.textContent='Seguir creando'; s.onclick=()=>{ bloqueado=false; Crea.modo='crear'; aviso(''); setConsigna('Inventa un patrón: toca las piezas para ponerlas en fila'); Crea.pintar(); }; h.appendChild(s);
+          z.innerHTML=Crea.svg(Crea.seq,{P:r.P,ciclos:true}); }
+        else { b.classList.add('mal'); errorSnd(); aviso('Esa no. Mira qué parte se repite.','mal'); }
+      }));
+      return;
+    }
+    z.innerHTML = L? Crea.svg(Crea.seq,{P:opts.P||0,ciclos:!!opts.P,hl:opts.hl}) : '<div class="cons-nota" style="font-size:1.05rem">Tu fila está vacía. Toca una pieza de abajo para empezar.</div>';
+    const pal=document.createElement('div'); pal.className='pal';
+    CreaSimb.forEach(t=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=piezaMini(t); b.onclick=()=>{ if(Crea.seq.length>=12){ aviso('Ya tienes 12 piezas. Comprueba tu patrón.','casi'); return; } Crea.seq.push(t); tono(520,.07); aviso(''); Crea.pintar(); }; pal.appendChild(b); });
+    h.appendChild(pal);
+    const c=document.createElement('div'); c.className='herram';
+    const bb=(txt,cls,fn)=>{ const b=document.createElement('button'); b.className='btn '+cls; b.type='button'; b.textContent=txt; b.onclick=fn; c.appendChild(b); return b; };
+    bb('⌫ Borrar','',()=>{ Crea.seq.pop(); aviso(''); Crea.pintar(); });
+    bb('🗑','',()=>{ Crea.seq=[]; aviso(''); Crea.pintar(); });
+    bb('🔎 ¿Es patrón?','verde',()=>Crea.analizar());
+    if(opts.P) bb('🎯 Retarme','azul',()=>Crea.retar(opts.P));
+    h.appendChild(c);
+  },
+  svg(seq,o){
+    const n=seq.length, S=60, RH=84;
+    let s=`<svg viewBox="0 0 ${Math.max(n,5)*S+16} ${RH+8}">`;
+    for(let i=0;i<n;i++){
+      const cx=8+i*S+S/2, cy=4+RH/2;
+      const fill = o.ciclos&&o.P ? (Math.floor(i/o.P)%2?'rgba(255,255,255,.11)':'rgba(255,255,255,.035)') : 'transparent';
+      s+=`<rect x="${cx-S/2+2}" y="${cy-RH/2+4}" width="${S-4}" height="${RH-8}" rx="12" fill="${fill}"/>`;
+      if(o.q===i) s+=`<rect x="${cx-26}" y="${cy-26}" width="52" height="52" rx="12" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="7 6"/><text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="36" fill="#fbbf24">?</text>`;
+      else s+=pieza(seq[i],cx,cy,22);
+      if(o.hl===i) s+=`<rect x="${cx-S/2+3}" y="${cy-RH/2+5}" width="${S-6}" height="${RH-10}" rx="12" fill="rgba(251,113,133,.25)" stroke="#fb7185" stroke-width="3"/>`;
+    }
+    return s+'</svg>';
+  },
+  analizar(){
+    const seq=Crea.seq, L=seq.length;
+    if(L<4){ aviso('Pon al menos 4 piezas para ver si se repite algo.','casi'); return; }
+    const P=Crea.periodo(seq);
+    if(P){
+      Crea.pintar({P});
+      const nota = P===1? 'Siempre es la misma pieza: es un patrón, ¡pero muy simple!' : `La parte que se repite tiene <b>${P}</b> piezas.`;
+      aviso(`✅ ¡Es un patrón! ${nota}`,'bien'); tintineo();
+    } else {
+      const c=Crea.casi(seq);
+      if(c){ Crea.pintar({hl:c.i}); aviso(`Casi: parece que se repite cada ${c.P} piezas, pero la pieza <b>${c.i+1}</b> rompe el patrón.`,'casi'); }
+      else { Crea.pintar(); aviso('Todavía no veo una parte que se repita al menos dos veces. Prueba con una unidad corta y repítela.','casi'); }
+      errorSnd();
+    }
+  },
+  retar(P){
+    const seq=Crea.seq, L=seq.length;
+    const idx=rnd(1,L-2), ans=seq[idx];
+    const unit=seq.slice(0,P);
+    const ops=Det.opciones(ans,unit,CreaSimb);
+    Crea.reto={P,idx,ans,ops}; Crea.modo='reto';
+    setConsigna('¿Qué pieza <b>falta</b> en tu patrón?'); aviso('');
+    Crea.pintar();
+  }
+};
+ACT.crea = Crea;
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+arrancar(() => { switchScreen('screen-home'); pintarMenu(); });
+// Desafío Online: el profesor elige la actividad; solo cuenta aciertos y errores.
+window.PatronesOnlineListo = function(O){
+  const a = ACT[O.actividad] && !ACT[O.actividad].libre ? O.actividad : 'detectives';
+  O.nivelFijo = true;
+  if(/^[123]$/.test(String(O.sub||''))) nivFijo = +O.sub;
+  document.getElementById('bVolver').style.visibility='hidden';
+  jugar(a); O.iniciar();
+};
+window.PAT = { Det, Cons, Maq, Reg, Crea, celdas, Tfig, ACT, expr };
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script type="module" src="online-patrones.js"></script>
+</body>
+</html>
