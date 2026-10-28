@@ -1,0 +1,17 @@
+{
+  "name": "Recursos Matemáticos · Profe Horacio",
+  "short_name": "Profe Horacio",
+  "description": "Explora, practica y desafía tu mente con matemáticas.",
+  "lang": "es-CL",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e0b4d",
+  "theme_color": "#2e1065",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
