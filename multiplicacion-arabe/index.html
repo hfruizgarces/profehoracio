@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Multiplicación Árabe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS DE DISEÑO
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147;
+  --bg-2:#3b1785;
+  --bg-3:#5b21b6;
+  --surface:rgba(255,255,255,.07);
+  --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.14);
+
+  --primary:#34d399;
+  --primary-dark:#0f9d70;
+  --accent:#fbbf24;
+  --accent-soft:#fde68a;
+  --pink:#f472b6;
+  --blue:#38bdf8;
+  --error:#fb7185;
+  --error-soft:#3b0f1f;
+
+  --text:#f6f3ff;
+  --text-dim:#c9bdf0;
+  --text-faint:#8f7fc4;
+
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+
+  --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+  --tap-min: 48px;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100%; overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button, input{ -webkit-user-select:none; user-select:none; }
+input{font-family:inherit;}
+
+.hidden{display:none !important;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* Foco visible para accesibilidad con teclado */
+:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+  padding: clamp(10px, 2.5vw, 24px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 56px 14px 2px;
+  flex-wrap:wrap;
+}
+.app-header .side{
+  display:flex; align-items:center; gap:6px;
+  flex:1 1 auto;
+  min-width:70px;
+}
+.app-header .side.right{ justify-content:flex-end; }
+
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  padding:9px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:clamp(.75rem, 2vw, .9rem);
+  cursor:pointer;
+  min-height:var(--tap-min);
+  transition: background .15s, transform .1s;
+  white-space:nowrap;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.icon-btn:active{ transform:scale(.96); }
+
+.brand{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.2vw, 1.6rem);
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+.brand .plus{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.5em; height:1.5em;
+  background:linear-gradient(135deg, var(--primary), var(--blue));
+  border-radius:10px;
+  color:#0b1a12;
+  font-size:1em;
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+.screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation: fadeSlideIn .35s ease both;
+}
+@keyframes fadeSlideIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.card{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(16px, 4vw, 32px);
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px);
+}
+
+/* =========================================================
+   PANTALLA INICIAL
+   ========================================================= */
+.home-title{
+  text-align:center;
+  font-size:clamp(1.4rem, 5vw, 2.2rem);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.home-sub{
+  text-align:center;
+  color:var(--text-dim);
+  font-size:clamp(.9rem, 2.4vw, 1.05rem);
+  margin:0 auto clamp(18px,4vw,28px);
+  max-width:46ch;
+}
+footer.credits{ text-align:center; color: var(--text-faint); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
+.level-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:clamp(10px, 2.5vw, 16px);
+  width:100%;
+}
+@media (max-width:420px){
+  .level-grid{ grid-template-columns:1fr; }
+}
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:clamp(16px,4vw,22px) 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  cursor:pointer;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1rem, 2.6vw, 1.15rem);
+  min-height:96px;
+  transition:transform .15s, box-shadow .15s;
+}
+.level-btn:hover{ transform:translateY(-3px); }
+.level-btn:active{ transform:scale(.97); }
+.level-btn .emoji{ font-size:clamp(1.6rem, 5vw, 2.1rem); }
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+
+/* =========================================================
+   PANTALLA "CREA TU EJERCICIO"
+   ========================================================= */
+.form-title{ font-size:clamp(1.2rem,3.6vw,1.5rem); font-weight:800; text-align:center; margin-bottom:4px; }
+.form-sub{ color:var(--text-dim); text-align:center; margin-bottom:18px; font-size:.95rem; }
+
+.addend-row{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:12px;
+}
+.addend-index{
+  width:26px; text-align:right; color:var(--text-faint); font-weight:700; flex:0 0 auto;
+}
+.addend-input{
+  flex:0 1 180px;
+  min-width:0;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1.1rem, 3.2vw, 1.35rem);
+  text-align:center;
+  padding:12px 10px;
+  min-height:var(--tap-min);
+  letter-spacing:1px;
+}
+.addend-input::placeholder{ color:var(--text-faint); font-family:var(--font-body); font-weight:600; font-size:.85em;}
+.addend-remove{
+  flex:0 0 auto;
+  width:var(--tap-min); height:var(--tap-min);
+  border-radius:50%;
+  background:rgba(251,113,133,.18);
+  border:1px solid var(--error);
+  color:var(--error);
+  font-size:1.2rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.dashed-btn{
+  width:100%;
+  max-width:220px;
+  margin-left:auto; margin-right:auto;
+  display:block;
+  padding:12px;
+  border-radius:var(--r-sm);
+  border:2px dashed var(--border-soft);
+  background:transparent;
+  color:var(--text-dim);
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap-min);
+  margin-bottom:18px;
+}
+.dashed-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+.dashed-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.primary-btn{
+  width:100%;
+  padding:14px;
+  border-radius:var(--r-md);
+  border:none;
+  background:linear-gradient(135deg, var(--primary), #10b981);
+  color:#062b1c;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1rem, 2.8vw, 1.15rem);
+  cursor:pointer;
+  min-height:52px;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.primary-btn:hover{ transform:translateY(-2px); }
+.primary-btn:active{ transform:scale(.98); }
+.primary-btn:disabled{
+  background:#4b4b5a; color:#9a9aab; box-shadow:none; cursor:not-allowed; transform:none;
+}
+.form-error{
+  color:var(--error);
+  text-align:center;
+  font-weight:700;
+  font-size:.9rem;
+  min-height:1.4em;
+  margin-bottom:10px;
+}
+
+/* =========================================================
+   PANTALLA DE EJERCICIO
+   ========================================================= */
+.hint-box{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:16px;
+  width:100%;
+  font-size:clamp(.82rem, 2.1vw, .95rem);
+  line-height:1.45;
+}
+.hint-box .bulb{ font-size:1.2em; flex:0 0 auto; }
+.hint-box b{ color:var(--accent); }
+.hint-box .ok{ color:var(--primary); }
+
+/* leyenda estática de sumandos (ya no son fichas arrastrables) */
+#chip-pool{
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  margin-bottom:14px; width:100%;
+}
+.legend-pill{
+  background:var(--surface-strong);
+  border:2px solid var(--accent);
+  color:var(--accent-soft);
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(.85rem, 2.6vw, 1.05rem);
+  padding:6px 12px;
+  border-radius:var(--r-sm);
+  display:flex; align-items:center; gap:5px;
+}
+.legend-pill.done{ opacity:.4; }
+.legend-pill.active{
+  border-color:var(--primary);
+  background:rgba(52,211,153,.22);
+  color:var(--primary);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(52,211,153,.35);
+  transition: transform .12s, background .12s, border-color .12s;
+}
+
+/* tabla de valor posicional */
+.table-wrap{
+  width:100%;
+  max-width: var(--table-max-w, 460px);
+  margin:0 auto 16px;
+  overflow:hidden; /* nunca scroll horizontal */
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  background:rgba(0,0,0,.15);
+}
+.pv-grid{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+}
+/* Cada fila = [etiqueta fija] + [cuadrícula de columnas], para que la
+   etiqueta (número de fila / valor del sumando) no desalinee las columnas
+   entre encabezado, llevadas, sumandos y resultado — todas comparten el
+   mismo --col-template dentro de su .row-grid. */
+.row-flex{ display:flex; align-items:stretch; width:100%; min-width:0; }
+.row-label{
+  flex:0 0 var(--label-w, 34px);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(.7rem, 2.2vw, .9rem);
+  color:var(--text-faint);
+}
+.pv-header, .carry-row, .addend-grid-row, .result-row{
+  flex:1 1 auto;
+  min-width:0;
+  display:grid;
+  grid-template-columns: var(--col-template, repeat(7, 1fr));
+}
+.pv-header div{
+  text-align:center;
+  font-weight:800;
+  font-family:var(--font-display);
+  font-size:clamp(.65rem, 2.4vw, .95rem);
+  padding:8px 2px;
+  border-bottom:2px solid var(--border-soft);
+  color:var(--col-color, var(--text-dim));
+}
+.col-M{ color:#9ca3af; } .col-CM{ color:#9ca3af; } .col-DM{ color:#9ca3af; }
+.col-UM{ color:var(--pink); } .col-C{ color:var(--blue); } .col-D{ color:var(--primary); } .col-U{ color:var(--accent); }
+
+.cell{
+  min-height:clamp(38px, 8.5vw, 50px);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(.95rem, 3.6vw, 1.4rem);
+  border-right:1px solid rgba(255,255,255,.16);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;
+}
+.cell:last-child{ border-right:none; }
+
+/* Fila de sumando SIN colocar: cada celda es un botón grande tocable */
+.addend-grid-row.pending .cell{
+  cursor:pointer;
+  min-height:clamp(44px, 10vw, 54px);
+}
+.addend-grid-row.pending .cell:hover,
+.addend-grid-row.pending .cell:focus-visible{
+  background:rgba(255,255,255,.08);
+}
+.cell.preview-ok{
+  background:rgba(52,211,153,.22);
+  color:var(--primary);
+  border-radius:6px;
+  box-shadow: inset 0 0 0 2px rgba(52,211,153,.55);
+}
+.cell.preview-bad{
+  background:rgba(251,113,133,.16);
+  color:var(--error);
+  border-radius:6px;
+  box-shadow: inset 0 0 0 2px rgba(251,113,133,.5);
+}
+/* Resalta la columna del encabezado sobre la que pasa el mouse (equipos con puntero) */
+.pv-header div.col-hover{
+  background:rgba(255,255,255,.14);
+  border-radius:6px 6px 0 0;
+}
+
+.carry-row .cell{ min-height:clamp(26px, 5vw, 34px); font-size:clamp(.7rem, 2.6vw, .95rem); color:var(--accent); border-bottom:none; }
+.carry-row .cell.slot::before{
+  content:'';
+  width:60%; max-width:26px; aspect-ratio:1;
+  border:2px dashed rgba(251,191,36,.5);
+  border-radius:6px;
+}
+.carry-row .cell.filled::before{ display:none; }
+.carry-row .cell.filled{
+  background:rgba(251,191,36,.16);
+  border-radius:8px;
+  animation: pop .35s ease;
+}
+
+.addend-grid-row .cell{ color:var(--text); }
+.addend-grid-row.valid-align{ outline:2px solid var(--primary); outline-offset:-2px; border-radius:8px; }
+.addend-grid-row.invalid-align{ outline:2px solid var(--error); outline-offset:-2px; border-radius:8px; }
+.addend-grid-row.valid-align .row-label{ color:var(--primary); }
+
+/* Fila activa de colocación: se resalta ENTERA para que en celular quede
+   claro dónde tocar; el resto de las filas pendientes se atenúa. */
+.row-flex.row-active .row-label{ color:var(--accent); font-size:1.1em; }
+.row-flex.row-active .addend-grid-row{
+  border-radius:8px;
+  box-shadow: inset 0 0 0 2px rgba(251,191,36,.45);
+  animation: readyPulse 1.4s ease-in-out infinite;
+}
+.row-flex.row-waiting{ opacity:.32; }
+.row-flex.row-waiting .addend-grid-row .cell{ cursor:default; }
+
+/* Las celdas de llevada se atenúan mientras aún se están alineando los
+   sumandos, para que no parezcan un lugar donde tocar en esta fase. */
+.carry-row.dim{ opacity:.18; }
+.carry-row{ transition: opacity .25s; }
+
+.result-row .cell{ border-bottom:none; }
+.result-row{ border-top:3px solid var(--border-soft); }
+.result-row.ready{
+  border-top-color:var(--accent);
+  border-radius:0 0 8px 8px;
+  animation: readyPulse 1.4s ease-in-out infinite;
+}
+@keyframes readyPulse{
+  0%,100%{ background:rgba(251,191,36,.05); }
+  50%{ background:rgba(251,191,36,.18); }
+}
+.result-cell{
+  min-height:clamp(40px, 9vw, 54px);
+  display:flex; align-items:center; justify-content:center;
+}
+.result-cell input{
+  width:88%;
+  max-width:60px;
+  text-align:center;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(.9rem, 3.3vw, 1.25rem);
+  padding:6px 1px;
+  min-height:40px;
+}
+.result-cell input:disabled{
+  background:transparent; border-color:transparent; color:var(--primary);
+}
+.result-cell.active-col input{ border-color:var(--accent); background:rgba(251,191,36,.12); }
+.result-cell input::placeholder{ color:var(--text-faint); }
+
+.col-active-highlight{ background:rgba(251,191,36,.06); }
+
+/* ficha de llevada deslizante (animación firma del recurso) */
+.carry-capsule{
+  position:fixed;
+  z-index:600;
+  display:flex; align-items:center; justify-content:center;
+  min-width:34px; height:34px; padding:0 8px;
+  border-radius:999px;
+  background:linear-gradient(135deg, var(--accent), #f59e0b);
+  color:#3b2405;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1rem;
+  box-shadow:0 6px 18px rgba(251,191,36,.5);
+  transition: left .7s cubic-bezier(.34,1.56,.64,1), top .7s cubic-bezier(.34,1.56,.64,1), transform .7s;
+  pointer-events:none;
+}
+
+/* Botones grandes de dígitos del modal de llevada — el estudiante hace clic,
+   nunca escribe, para máxima fluidez */
+.digit-tiles{
+  display:flex; gap:14px; justify-content:center; margin-bottom:14px;
+}
+.digit-tile{
+  width:72px; height:72px;
+  border-radius:var(--r-md);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:2rem;
+  cursor:pointer;
+  transition: transform .12s, background .15s, border-color .15s;
+}
+.digit-tile:hover{ transform:translateY(-2px); border-color:var(--accent); }
+.digit-tile:active{ transform:scale(.95); }
+.digit-tile.correct-flash{
+  background:rgba(52,211,153,.28); border-color:var(--primary); color:var(--primary);
+  animation: pop .3s ease;
+}
+.digit-tile.wrong-flash{
+  background:rgba(251,113,133,.22); border-color:var(--error); color:var(--error);
+}
+
+.modo-opciones{ display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+.modo-btn{
+  padding:16px 14px; border-radius:var(--r-md); border:2px solid var(--border-soft);
+  background:var(--surface-strong); color:var(--text); cursor:pointer;
+  font-family:var(--font-display); font-weight:800; font-size:1rem; line-height:1.6;
+  transition: transform .12s, border-color .15s, background .15s;
+}
+.modo-btn:hover{ transform:translateY(-2px); border-color:var(--accent); }
+.modo-btn:active{ transform:scale(.97); }
+.modo-desc{ font-size:.75rem; font-weight:600; color:var(--text-dim); }
+
+.login-input{
+  width:100%; padding:12px 14px; border-radius:var(--r-md); border:2px solid var(--border-soft);
+  background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:700;
+  font-size:1rem; text-align:center; margin-top:10px;
+}
+.login-error{ color:var(--error); font-weight:700; font-size:.82rem; min-height:1.2em; margin:6px 0 0; }
+.btn-login-primario{
+  padding:13px 20px; border-radius:999px; border:none; cursor:pointer;
+  background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c;
+  font-family:var(--font-display); font-weight:800; font-size:1rem;
+}
+.btn-login-fantasma{
+  padding:10px 16px; border-radius:999px; border:1px solid var(--border-soft); cursor:pointer;
+  background:var(--surface); color:var(--text-faint); font-family:var(--font-display); font-weight:700; font-size:.78rem;
+}
+
+/* ecuación en texto plano bajo la tabla */
+.equation-strip{
+  width:100%;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(.85rem, 2.6vw, 1.05rem);
+  color:var(--text-dim);
+  padding:10px;
+  border-radius:var(--r-sm);
+  background:rgba(0,0,0,.15);
+  margin-bottom:16px;
+  word-break:break-word;
+}
+.equation-strip .answer{ color:var(--accent); }
+
+.feedback-msg{
+  width:100%;
+  text-align:center;
+  font-weight:700;
+  min-height:1.6em;
+  margin-bottom:8px;
+  font-size:clamp(.85rem, 2.3vw, 1rem);
+}
+.feedback-msg.ok{ color:var(--primary); }
+.feedback-msg.err{ color:var(--error); }
+
+.shake{ animation: shake .4s; }
+@keyframes shake{
+  10%,90%{ transform:translateX(-2px); }
+  20%,80%{ transform:translateX(4px); }
+  30%,50%,70%{ transform:translateX(-8px); }
+  40%,60%{ transform:translateX(8px); }
+}
+@keyframes pop{
+  0%{ transform:scale(.4); opacity:0; }
+  70%{ transform:scale(1.15); }
+  100%{ transform:scale(1); opacity:1; }
+}
+
+/* =========================================================
+   MODAL (llevada / totales de columna)
+   ========================================================= */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,4,30,.6);
+  backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  z-index:700;
+}
+.modal-box{
+  width:100%; max-width:400px;
+  background:linear-gradient(160deg, #2c1468, #4c1d95);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(18px,4vw,26px);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.modal-close-x{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:var(--surface); color:var(--text);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:5;
+}
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes monedaFlota{
+  0%{ transform:translateY(0); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translateY(-24px); opacity:0; }
+}
+.modal-eyebrow{
+  font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:6px; text-align:center;
+}
+.modal-title{
+  font-size:clamp(1.05rem, 3.2vw, 1.25rem);
+  text-align:center;
+  margin-bottom:14px;
+  line-height:1.4;
+}
+.modal-title b{ color:var(--accent-soft); }
+.modal-fields{
+  display:flex; gap:12px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;
+}
+.modal-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.modal-field label{ font-size:.8rem; color:var(--text-dim); font-weight:700; text-align:center; max-width:11em; }
+.modal-field input{
+  width:80px;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.3rem;
+  padding:10px 6px;
+  border-radius:var(--r-sm);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  min-height:var(--tap-min);
+}
+.modal-feedback{
+  text-align:center; min-height:1.6em; font-weight:700; margin-bottom:10px; font-size:.9rem;
+}
+.modal-feedback.err{ color:var(--error); }
+.modal-feedback.ok{ color:var(--primary); }
+.modal-actions{ display:flex; gap:10px; }
+.modal-actions button{ flex:1; }
+.secondary-btn{
+  padding:12px; border-radius:var(--r-md); border:1px solid var(--border-soft);
+  background:transparent; color:var(--text-dim); font-weight:700; cursor:pointer;
+  min-height:48px;
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO / CELEBRACIÓN
+   ========================================================= */
+.result-hero{
+  font-size:clamp(2.2rem, 9vw, 3.4rem);
+  text-align:center;
+}
+.result-title{
+  font-size:clamp(1.3rem, 4vw, 1.8rem);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.result-eq{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.6vw, 1.6rem);
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:20px;
+  word-break:break-word;
+}
+.result-actions{
+  display:flex; gap:12px; width:100%; flex-wrap:wrap;
+}
+.result-actions button{ flex:1 1 160px; }
+
+.confetti-piece{
+  position:fixed; top:-10px; z-index:800;
+  border-radius:2px;
+  animation: fall linear forwards;
+  pointer-events:none;
+}
+@keyframes fall{
+  to{ transform:translateY(105vh) rotate(360deg); opacity:.9; }
+}
+
+/* =========================================================
+   BARRA DE PROGRESO DE COLUMNAS
+   ========================================================= */
+.progress-track{
+  display:flex; gap:6px; width:100%; margin-bottom:16px;
+}
+.progress-seg{
+  flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progress-seg .fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--blue));
+  transition:width .4s ease;
+}
+
+/* utilidad de botón de sonido */
+.sound-icon{ font-size:1.1em; }
+
+/* =========================================================
+   MULTIPLICACIÓN ÁRABE — retícula (propio del recurso)
+   ========================================================= */
+:root{
+  --ink:var(--text); --ink-soft:var(--text-dim); --ink-faint:var(--text-faint);
+  --brass:#fbbf24; --brass-dark:#f59e0b; --success:#34d399; --success-bg:rgba(52,211,153,.15);
+  --error-bg:rgba(251,113,133,.15); --radius-s:10px; --radius-m:16px; --radius-l:22px;
+  --font-num:var(--font-display); --font-ui:var(--font-body);
+  --cell-size:calc(var(--cell-base,56px) * var(--f,1));
+}
+#vista{ width:100%; display:flex; flex-direction:column; }
+.hero{ text-align:center; }
+.problema-pill{
+  align-self:center; font-family:var(--font-num); font-weight:800; letter-spacing:.04em;
+  font-size:calc(clamp(1.3rem,4.4vw,1.9rem) * var(--f,1)); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.35); border-radius:16px;
+  padding:calc(6px * var(--f,1)) calc(22px * var(--f,1)); margin:0 0 calc(12px * var(--f,1));
+}
+.lattice-card{ width:100%; display:flex; flex-direction:column; align-items:center; padding:calc(4px * var(--f,1)) 0 0; }
+.lattice-row{ display:flex; align-items:flex-start; gap:6px; }
+.lattice-left{ display:flex; flex-direction:column; }
+.top-digits, .side-digits{ display:flex; }
+.top-digits{ justify-content:flex-end; margin-bottom:5px; gap:4px; }
+.side-digits{ flex-direction:column; margin-top:calc(var(--cell-size) * .62 + 5px); gap:4px; margin-left:4px; }
+.digit-box{
+  width:var(--cell-size); height:calc(var(--cell-size) * .62); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .46); color:#fff;
+  background:linear-gradient(150deg, rgba(124,58,237,.45), rgba(44,20,104,.7)); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45);
+  border:none; border-radius:12px; text-shadow:0 2px 6px rgba(0,0,0,.45);
+}
+.side-digits .digit-box{ width:calc(var(--cell-size) * .72); height:var(--cell-size); }
+.grid-boxes{ display:grid; gap:4px; }
+.lcell{
+  width:var(--cell-size); height:var(--cell-size); position:relative; overflow:hidden; border-radius:10px;
+  border:2px solid rgba(196,181,253,.75); background:rgba(30,17,71,.55); box-shadow:0 0 14px rgba(124,58,237,.25);
+}
+.lcell .tri{ position:absolute; inset:0; transition:background-color .35s ease, opacity .35s ease; }
+.tri-tens{ clip-path:polygon(0 0,100% 0,0 100%); background:rgba(255,255,255,.05); }
+.tri-ones{ clip-path:polygon(100% 0,100% 100%,0 100%); background:rgba(255,255,255,.1); }
+.tri.diag-dim{ opacity:.35; } .tri.diag-active{ opacity:1; }
+.cell-num{
+  position:absolute; z-index:2; font-family:var(--font-num); font-weight:800; line-height:1; pointer-events:none;
+  font-size:calc(var(--cell-size) * .36); color:#fff; text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.cell-num.tens-pos{ top:12%; left:12%; } .cell-num.ones-pos{ bottom:10%; right:12%; }
+.lcell input.cell-input{
+  position:absolute; z-index:2; width:42%; height:42%; border:none; border-radius:7px; padding:0; outline:none;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.5); text-align:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .32); color:#fff; user-select:text; -webkit-user-select:text;
+}
+.lcell input.cell-input.tens-pos{ top:6%; left:6%; } .lcell input.cell-input.ones-pos{ bottom:6%; right:6%; }
+.lcell input.cell-input:focus{ background:rgba(124,58,237,.5); box-shadow:0 0 0 2.5px var(--brass), 0 0 14px rgba(251,191,36,.6); }
+.lcell input.cell-input.wrong-flash{ background:var(--error-bg); box-shadow:0 0 0 2.5px var(--error); }
+
+.diag-section{ margin-top:calc(22px * var(--f,1)); width:100%; display:flex; flex-direction:column; align-items:center; }
+.diag-section h3{ font-size:calc(.86rem * var(--f,1)); font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:calc(30px * var(--f,1)); text-align:center; }
+.diag-row{ display:flex; gap:calc(8px * var(--f,1)); align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.diag-box-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; }
+.carry-badge{
+  position:absolute; top:calc(-24px * var(--f,1)); left:50%; transform:translateX(-50%) scale(0); opacity:0;
+  font-family:var(--font-num); font-weight:800; font-size:.8rem; color:#3b2405; background:var(--brass);
+  border-radius:999px; padding:2px 9px; white-space:nowrap; box-shadow:0 0 10px rgba(251,191,36,.7);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+.carry-badge.show{ transform:translateX(-50%) scale(1); opacity:1; }
+.diag-box{
+  width:calc(clamp(48px,11vw,64px) * var(--f,1)); min-height:calc(clamp(48px,11vw,64px) * var(--f,1));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1));
+  border:2.5px solid var(--border-soft); background:rgba(8,3,26,.4); color:var(--text-faint); transition:all .25s ease;
+}
+.diag-box.pending{ opacity:.55; }
+.diag-box input{ width:100%; height:100%; border:none; background:transparent; text-align:center; font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1)); color:#fff; outline:none; user-select:text; -webkit-user-select:text; }
+.diag-box.wrong{ animation:shake .32s ease; }
+.carry-fly{
+  position:fixed; z-index:3000; font-family:var(--font-num); font-weight:800; font-size:.95rem; color:#3b2405;
+  background:var(--brass); border-radius:999px; padding:4px 10px; pointer-events:none;
+  transition:transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+}
+.final-banner{
+  margin-top:calc(16px * var(--f,1)); text-align:center; background:var(--success-bg); border:2px solid var(--success);
+  color:var(--success); border-radius:16px; padding:calc(10px * var(--f,1)) 20px; font-weight:800;
+  font-family:var(--font-num); font-size:calc(clamp(1.1rem,3.8vw,1.5rem) * var(--f,1));
+}
+.arabe-final{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.arabe-final .mv-fila-chip{ margin-top:calc(8px * var(--f,1)); }
+.arabe-final .result-actions{ margin-top:calc(14px * var(--f,1)); }
+.setup-box{ width:100%; max-width:480px; margin:0 auto; text-align:center; }
+.setup-box label{ display:block; font-weight:700; font-size:.95rem; color:var(--text-dim); margin-bottom:16px; }
+.factor-input-row{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,3vw,18px); }
+.factor-input{
+  width:100%; max-width:150px; font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,7vw,2.2rem);
+  text-align:center; color:#fff; border:none; border-radius:16px; padding:14px 6px; background:rgba(8,3,26,.5);
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); user-select:text;
+}
+.factor-input:focus{ outline:none; box-shadow:0 0 0 3px var(--brass), 0 0 16px rgba(251,191,36,.5); }
+.factor-input::placeholder{ color:var(--text-faint); font-weight:600; }
+.factor-x{ font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,6vw,2.2rem); color:var(--brass); flex-shrink:0; }
+.setup-error{ margin-top:12px; padding:9px 14px; border-radius:10px; background:var(--error-bg); color:var(--error); font-weight:700; font-size:.9rem; display:none; }
+.setup-error.show{ display:block; }
+.mv-universo #screen-custom .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; }
+@media (min-width:900px) and (orientation:landscape){ .mv-universo .mv-home .home-title{ padding:0; } }
+
+.lattice-card[data-fase="diagonales"] .digit-box{ opacity:.4; transition:opacity .25s; }
+.lcell input.cell-input, .diag-box input, .factor-input{ -webkit-touch-callout:none; }
+.lcell input.cell-input::selection, .diag-box input::selection{ background:transparent; }
+.diag-row{ margin-top:calc(26px * var(--f,1)); }
+.result-eq{ font-size:clamp(1.6rem,6vw,2.4rem) !important; }
+
+.lattice-card[data-fase="diagonales"] .cell-num{ opacity:.38; transition:opacity .25s; }
+.lattice-card[data-fase="diagonales"] .cell-num.num-act{ opacity:1; }
+.tri.diag-dim{ opacity:.7 !important; }
+.tri.diag-active{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.55); }
+button, input{ -webkit-user-select:text; user-select:text; }
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+
+#vista .screen{ animation:none; }
+.mv-universo #screen-exercise .hint-box{ margin-bottom:calc(10px * var(--f,1)); }
+.mv-universo #screen-exercise .hint-box{ font-size:calc(.95rem * var(--f,1)); }
+body[data-pantalla="result"] #screen-exercise .hint-box{ display:none; }
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="st3d" viewBox="-11 -11 22 22" overflow="visible"><polygon points="0.00,-10.00 2.53,-3.48 9.51,-3.09 4.09,1.33 5.88,8.09 0.00,4.30 -5.88,8.09 -4.09,1.33 -9.51,-3.09 -2.53,-3.48" fill="#92400e" stroke="#92400e" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0,0 -2.53,-3.48 0.00,-10.00" fill="#fff6c2"/><polygon points="0,0 0.00,-10.00 2.53,-3.48" fill="#f59e0b"/><polygon points="0,0 2.53,-3.48 9.51,-3.09" fill="#fcd34d"/><polygon points="0,0 9.51,-3.09 4.09,1.33" fill="#b45309"/><polygon points="0,0 4.09,1.33 5.88,8.09" fill="#fcd34d"/><polygon points="0,0 5.88,8.09 0.00,4.30" fill="#b45309"/><polygon points="0,0 0.00,4.30 -5.88,8.09" fill="#fcd34d"/><polygon points="0,0 -5.88,8.09 -4.09,1.33" fill="#f59e0b"/><polygon points="0,0 -4.09,1.33 -9.51,-3.09" fill="#fff6c2"/><polygon points="0,0 -9.51,-3.09 -2.53,-3.48" fill="#f59e0b"/><ellipse cx="-2.6" cy="-3.6" rx="1.7" ry="1" fill="#fff" opacity=".85" transform="rotate(-30 -2.6 -3.6)"/></symbol>
+<linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1ecff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+<linearGradient id="gXp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+<linearGradient id="gInf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<radialGradient id="gCara" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></radialGradient>
+<filter id="fSombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="fIco" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.1" flood-color="#000" flood-opacity=".55"/></filter>
+</defs></svg>
+
+<div id="app">
+  <header class="app-header hidden" id="app-header">
+    <div class="side left">
+      <button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button>
+    </div>
+    <div class="mv-centro" id="mvChipHeader"></div>
+    <div class="brand">Árabe</div>
+    <div class="side right">
+      <span class="icon-btn hidden" id="timer-pill" style="cursor:default; color:var(--accent); border-color:rgba(251,191,36,.4);"></span>
+      <span class="icon-btn hidden" id="contador-pill" style="cursor:default; color:var(--primary); border-color:rgba(52,211,153,.4);"></span>
+      <button class="icon-btn btn-orbita v-rosa" id="btn-reset" type="button" aria-label="Reiniciar"><span class="bola"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span></button>
+      <a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+    </div>
+  </header>
+  <main id="main"><div id="vista"></div></main>
+</div>
+<div id="monedasPill" class="hidden" style="position:fixed; bottom:12px; right:12px; z-index:99998; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(251,191,36,.4); border-radius:20px; padding:8px 14px; font-family:var(--font-display); font-weight:800; font-size:.85rem; color:var(--accent); box-shadow:0 4px 14px rgba(0,0,0,.35);">🪙 0</div>
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================================
+   MULTIPLICACIÓN EN RETÍCULA (ÁRABE) — reimplementación completa
+   ----------------------------------------------------------------------------
+   Índice de secciones:
+     1. Utilidades
+     2. Parser de la entrada ("347x28")
+     3. Motor matemático (diagonales, acarreos, algoritmo tradicional)
+     4. Estado global
+     5. Render: pantalla de inicio (niveles + crea tu ejercicio)
+     6. Render: pantalla "crea tu ejercicio" (factores libres)
+     7. Render: laboratorio (retícula + fases)
+     8. Fase opcional: productos parciales a cargo del alumno
+     9. Fase central: suma de diagonales con acarreo
+    10. Panel "Mostrar desarrollo"
+    11. Transformación final al algoritmo tradicional
+    12. Arranque
+
+   El motor matemático (secciones 2-3) fue validado por separado con 20.000
+   casos aleatorios antes de integrarlo aquí.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1. UTILIDADES
+   ------------------------------------------------------------------------- */
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+function prefersReducedMotion(){
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/* Paleta categórica para las diagonales — se reutiliza en la celda, la ficha
+   de suma y el acarreo, para reforzar la asociación visual pedida. */
+const PALETA_DIAGONALES = [
+  '#38bdf8','#f472b6','#34d399','#fbbf24','#a78bfa','#2dd4bf',
+  '#fb923c','#818cf8','#e879f9','#a3e635','#60a5fa','#f87171',
+];
+function colorDiagonal(i){ return PALETA_DIAGONALES[i % PALETA_DIAGONALES.length]; }
+
+/* ---------------------------------------------------------------------------
+   2. PARSER DE LA ENTRADA
+   Acepta "347x28", "347×28", "347*28", con o sin espacios.
+   ------------------------------------------------------------------------- */
+function parseFactores(aStrRaw, bStrRaw){
+  let aStr = (aStrRaw || '').trim();
+  let bStr = (bStrRaw || '').trim();
+  if(!aStr || !bStr){
+    return { error: 'Escribe un número en cada casillero.' };
+  }
+  if(!/^\d+$/.test(aStr) || !/^\d+$/.test(bStr)){
+    return { error: 'Usa solo dígitos (0-9) en cada casillero.' };
+  }
+  aStr = aStr.replace(/^0+(?=\d)/, '');
+  bStr = bStr.replace(/^0+(?=\d)/, '');
+  if(aStr.length > 6 || bStr.length > 6){
+    return { error: 'Por ahora, máximo 6 cifras por factor.' };
+  }
+  return {
+    aDigits: aStr.split('').map(Number),
+    bDigits: bStr.split('').map(Number),
+    aVal: parseInt(aStr, 10),
+    bVal: parseInt(bStr, 10),
+  };
+}
+
+/* ---------------------------------------------------------------------------
+   3. MOTOR MATEMÁTICO
+   ------------------------------------------------------------------------- */
+
+/* Para cada celda (r,c) — columna c = dígito del multiplicando (arriba),
+   fila r = dígito del multiplicador (lateral) — el producto parcial se separa
+   en decena/unidad. Cada una pertenece a una diagonal de igual valor
+   posicional: la unidad de la celda pertenece a la diagonal D=(cols-1-c)+
+   (rows-1-r), y la decena a la diagonal D+1 (un orden de magnitud mayor).
+   Esto da exactamente cols+rows diagonales (0 = unidades del resultado). */
+function construirDiagonales(cols, rows, topDigits, sideDigits){
+  const numDiagonales = cols + rows;
+  const diagonales = Array.from({ length: numDiagonales }, () => []);
+  for(let r = 0; r < rows; r++){
+    for(let c = 0; c < cols; c++){
+      const prod = topDigits[c] * sideDigits[r];
+      const tens = Math.floor(prod / 10), ones = prod % 10;
+      const D = (cols - 1 - c) + (rows - 1 - r);
+      diagonales[D].push({ r, c, tipo: 'ones', valor: ones });
+      diagonales[D + 1].push({ r, c, tipo: 'tens', valor: tens });
+    }
+  }
+  return diagonales;
+}
+
+/* Resuelve la suma de cada diagonal (de la 0 en adelante) arrastrando el
+   acarreo. Se precalcula TODO el resultado correcto de una vez: así, tanto
+   en modo "paso a paso" como en modo "libre", cada casilla puede validarse
+   de forma independiente sin depender del orden en que el alumno la resuelva. */
+function resolverDiagonales(diagonales){
+  let carry = 0;
+  const resultados = [];
+  for(let i = 0; i < diagonales.length; i++){
+    const rawSum = diagonales[i].reduce((s, x) => s + x.valor, 0);
+    const total = rawSum + carry;
+    const digito = total % 10;
+    const carryOut = Math.floor(total / 10);
+    resultados.push({ rawSum, carryIn: carry, total, digito, carryOut });
+    carry = carryOut;
+  }
+  return resultados;
+}
+
+/* ---------------------------------------------------------------------------
+   4. ESTADO GLOBAL
+   ------------------------------------------------------------------------- */
+const state = {
+  screen: 'home',              // 'home' | 'setup' | 'lab'
+  aDigits: [], bDigits: [], aVal: 0, bVal: 0, cols: 0, rows: 0,
+  diagonales: [], resultados: [], numDiagonales: 0,
+  fase: 'productos',           // 'productos' | 'diagonales' | 'final'
+  celdaResuelta: [],           // [r][c] boolean (fase productos)
+  diagResuelto: [],            // [i] boolean (fase diagonales)
+  diagonalActiva: null,
+  ultimaFactorA: '', ultimaFactorB: '',
+};
+
+const PESO_XP_NIVEL = {facil:1, intermedio:3, dificil:5, custom:1};
+function reaccion(t){ if(window.reaccionCompanero) window.reaccionCompanero(t); }
+function montarChipsVista(n){
+  n = n || 0;
+  if(typeof window.montarChipCompanero === 'function'){
+    const h = document.getElementById('mvChipHome'); if(h && !h.dataset.mv){ h.dataset.mv='1'; window.montarChipCompanero(h, { grande:true }); }
+    const r = document.getElementById('mvChipResult'); if(r && !r.dataset.mv){ r.dataset.mv='1'; window.montarChipCompanero(r, { grande:true, celebra:true }); }
+    const c = document.getElementById('mvChipHeader'); if(c && !c.dataset.mv){ c.dataset.mv='1'; window.montarChipCompanero(c, { grande:false }); }
+  } else if(n < 100){ setTimeout(() => montarChipsVista(n + 1), 100); }
+}
+function render(){
+  const v = document.getElementById('vista');
+  v.innerHTML = '';
+  let nodo, pant;
+  if(state.screen === 'home'){ nodo = renderHome(); pant = 'home'; }
+  else if(state.screen === 'setup'){ nodo = renderSetup(); pant = 'custom'; }
+  else { nodo = renderLab(); pant = (state.fase === 'final' && !Contrarreloj.activo) ? 'result' : 'exercise'; }
+  v.appendChild(nodo);
+  ajustarCelda();
+  v.querySelectorAll('input').forEach(i => { i.setAttribute('autocomplete','off'); i.setAttribute('autocorrect','off'); i.setAttribute('autocapitalize','off'); i.setAttribute('enterkeyhint','done'); i.spellcheck = false; });
+  document.body.dataset.pantalla = pant;
+  document.getElementById('app-header').classList.toggle('hidden', state.screen === 'home' || EMBEBIDO);
+  montarChipsVista();
+}
+function ajustarCelda(){
+  const cols = Math.max(state.cols || 3, 2);
+  const disp = Math.min(window.innerWidth - 64, 760);
+  const c = Math.max(34, Math.min(92, Math.floor((disp - 30) / (cols + 0.72))));
+  document.documentElement.style.setProperty('--cell-base', c + 'px');
+}
+window.addEventListener('resize', ajustarCelda);
+const EMBEBIDO = (function(){ const p = new URLSearchParams(window.location.search); return !!(p.get('a') && p.get('b') && window.parent !== window); })();
+
+/* ---------------------------------------------------------------------------
+   5. PANTALLA: INICIO (niveles + crea tu ejercicio)
+   ------------------------------------------------------------------------- */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+/* Genera un número aleatorio con una cantidad exacta de cifras (nunca con
+   cero a la izquierda). */
+function generarFactorAleatorio(digitos){
+  let s = String(randInt(1, 9));
+  for(let i = 1; i < digitos; i++) s += String(randInt(0, 9));
+  return s;
+}
+
+/* Fácil: 3 cifras × 1 cifra. Intermedio: 2 × 2 cifras. Difícil: combina al
+   azar 2×3, 3×2 o 3×3 cifras. */
+function generarFactoresPorNivel(nivel){
+  let da, db;
+  if(nivel === 'facil'){ da = 3; db = 1; }
+  else if(nivel === 'intermedio'){ da = 2; db = 2; }
+  else {
+    const opciones = [[2,3],[3,2],[3,3]];
+    [da, db] = opciones[randInt(0, opciones.length - 1)];
+  }
+  return parseFactores(generarFactorAleatorio(da), generarFactorAleatorio(db));
+}
+
+function irAHomeORetoDelDia(){
+  const params = new URLSearchParams(window.location.search);
+  const nivelReto = params.get('retoDia');
+  if(nivelReto && (nivelReto==='facil' || nivelReto==='intermedio')){
+    comenzarNivel(nivelReto);
+  } else {
+    state.screen = 'home';
+    render();
+  }
+}
+
+function comenzarNivel(nivel){
+  state.nivelActual = nivel;
+  const datos = generarFactoresPorNivel(nivel);
+  if(datos.error) return; // no debería ocurrir; red de seguridad
+  iniciarProblema(datos);
+}
+
+function renderHome(){
+  const sec = el('section', 'screen'); sec.id = 'screen-home';
+  const card = el('div', 'card mv-home');
+  card.innerHTML = `
+    <a <a class="icon-btn btn-orbita v-azul mv-atras-home" data-atras href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+    <a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+    <h1 class="home-title" style="font-size:clamp(1.6rem,6.2vw,2.8rem)">Multiplicación Árabe</h1>
+    <p id="indicadorOnline" class="hidden" style="text-align:center; margin:-10px 0 14px; font-size:.85rem; font-weight:800; color:var(--primary);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p>
+    <div class="mv-fila-chip" id="mvChipHome"></div>
+    <div class="mv-niveles level-grid">
+      <div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+      <button class="level-btn easy mv-nivel n1" data-level="facil" type="button" aria-label="Fácil, +1 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p1t" d="M 11 58 Q 50 72 89 58"/><path id="p1x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="39.5" y="21.5" width="21" height="21" transform="rotate(0.0 50.0 32.0)" filter="url(#fIco)"/><text class="sv-t" font-size="17.5"><textPath href="#p1t" startOffset="50%" text-anchor="middle">Fácil</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p1x" startOffset="50%" text-anchor="middle">+1 XP</textPath></text></svg></button>
+      <button class="level-btn mid mv-nivel n2" data-level="intermedio" type="button" aria-label="Intermedio, +3 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p2t" d="M 11 58 Q 50 72 89 58"/><path id="p2x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="29.3" y="20.9" width="21" height="21" transform="rotate(6.5 39.8 31.4)" filter="url(#fIco)"/><use href="#st3d" x="49.7" y="20.9" width="21" height="21" transform="rotate(-6.5 60.2 31.4)" filter="url(#fIco)"/><text class="sv-t" font-size="14.2"><textPath href="#p2t" startOffset="50%" text-anchor="middle">Intermedio</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p2x" startOffset="50%" text-anchor="middle">+3 XP</textPath></text></svg></button>
+      <button class="level-btn hard mv-nivel n3" data-level="dificil" type="button" aria-label="Difícil, +5 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p3t" d="M 11 58 Q 50 72 89 58"/><path id="p3x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="21.5" y="19.7" width="21" height="21" transform="rotate(11.3 32.0 30.2)" filter="url(#fIco)"/><use href="#st3d" x="39.5" y="21.5" width="21" height="21" transform="rotate(0.0 50.0 32.0)" filter="url(#fIco)"/><use href="#st3d" x="57.5" y="19.7" width="21" height="21" transform="rotate(-11.3 68.0 30.2)" filter="url(#fIco)"/><text class="sv-t" font-size="17.5"><textPath href="#p3t" startOffset="50%" text-anchor="middle">Difícil</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p3x" startOffset="50%" text-anchor="middle">+5 XP</textPath></text></svg></button>
+    </div>
+    <button class="level-btn custom mv-crear btn-orbita v-oro" data-level="custom" type="button">
+      <span class="bola"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/></svg></span><span>Crea tu ejercicio</span>
+    </button>`;
+  card.querySelectorAll('.level-btn.mv-nivel').forEach(b => { b.onclick = () => abrirSelectorModo(b.dataset.level); });
+  card.querySelector('.mv-crear').onclick = () => { state.screen = 'setup'; render(); };
+  sec.appendChild(card);
+  sec.appendChild(el('footer', 'credits', 'Multiplicación Árabe · Material interactivo para Educación Básica'));
+  return sec;
+}
+
+/* ---------------------------------------------------------------------------
+   6. PANTALLA: CREA TU EJERCICIO (factores libres)
+   ------------------------------------------------------------------------- */
+function renderSetup(){
+  const sec = el('section', 'screen'); sec.id = 'screen-custom';
+  const card = el('div', 'card');
+  card.innerHTML = `<h2 class="form-title">Crea tu ejercicio</h2>
+    <p class="form-sub">Escribe los dos factores, resuelve la cuadrícula y suma las diagonales con acarreo.</p>`;
+  const box = el('div', 'setup-box');
+  box.innerHTML = `<label>Escribe los dos factores</label>`;
+
+  const factorRow = el('div', 'factor-input-row');
+  const inputA = document.createElement('input');
+  inputA.id = 'factorA'; inputA.type = 'text'; inputA.inputMode = 'numeric';
+  inputA.autocomplete = 'off'; inputA.placeholder = '347'; inputA.className = 'factor-input';
+  inputA.value = state.ultimaFactorA || '';
+  const inputB = document.createElement('input');
+  inputB.id = 'factorB'; inputB.type = 'text'; inputB.inputMode = 'numeric';
+  inputB.autocomplete = 'off'; inputB.placeholder = '28'; inputB.className = 'factor-input';
+  inputB.value = state.ultimaFactorB || '';
+  factorRow.appendChild(inputA);
+  factorRow.appendChild(el('span', 'factor-x', '×'));
+  factorRow.appendChild(inputB);
+  box.appendChild(factorRow);
+
+  const errBox = el('div', 'setup-error'); errBox.id = 'setupError';
+  box.appendChild(errBox);
+  card.appendChild(box);
+
+  const btn = el('button', 'primary-btn', 'Comenzar →');
+  btn.type = 'button';
+  btn.onclick = intentarComenzar;
+  card.appendChild(btn);
+  sec.appendChild(card);
+
+  [inputA, inputB].forEach(inp => {
+    inp.addEventListener('keydown', (e) => { if(e.key === 'Enter') intentarComenzar(); });
+  });
+  setTimeout(() => inputA.focus(), 30);
+  return sec;
+}
+
+function intentarComenzar(){
+  const inputA = document.getElementById('factorA');
+  const inputB = document.getElementById('factorB');
+  const errBox = document.getElementById('setupError');
+  const resultado = parseFactores(inputA.value, inputB.value);
+  if(resultado.error){
+    errBox.textContent = resultado.error;
+    errBox.classList.add('show');
+    return;
+  }
+  errBox.classList.remove('show');
+  state.nivelActual = null;
+  iniciarProblema(resultado);
+}
+
+function iniciarProblema(datos){
+  state.aDigits = datos.aDigits; state.bDigits = datos.bDigits;
+  state.aVal = datos.aVal; state.bVal = datos.bVal;
+  state.cols = datos.aDigits.length; state.rows = datos.bDigits.length;
+
+  state.diagonales = construirDiagonales(state.cols, state.rows, state.aDigits, state.bDigits);
+  state.resultados = resolverDiagonales(state.diagonales);
+  state.numDiagonales = state.diagonales.length;
+
+  // El alumno siempre completa los productos parciales y siempre resuelve
+  // las diagonales paso a paso (sin opciones de modo profesor).
+  state.celdaResuelta = Array.from({ length: state.rows }, () => new Array(state.cols).fill(false));
+  state.diagResuelto = new Array(state.numDiagonales).fill(false);
+  state.diagonalActiva = null;
+
+  state.fase = 'productos';
+  state.screen = 'lab';
+  render();
+
+  // Apenas se dibuja la retícula nueva, el cursor ya queda listo en la
+  // primera casilla (fila 1, columna 1, decena) -- sin que el estudiante
+  // tenga que tocarla primero.
+  const primerInput = document.querySelector('.cell-input.tens-pos');
+  if(primerInput) primerInput.focus();
+}
+
+function volverAlInicio(){
+  state.ultimaFactorA = state.aDigits.join('');
+  state.ultimaFactorB = state.bDigits.join('');
+  if(Contrarreloj.activo) detenerContrarreloj();
+  state.screen = 'home';
+  render();
+}
+
+/* ---------------------------------------------------------------------------
+   6b. MODO: PRÁCTICA LIBRE vs CONTRARRELOJ
+   --------------------------------------------------------------------- */
+const NOMBRES_NIVEL_CR = { facil:'Fácil', intermedio:'Intermedio', dificil:'Difícil' };
+const DURACION_CONTRARRELOJ = 7*60; // 7 minutos, en segundos
+const Contrarreloj = { activo:false, restante:0, completados:0, errores:0, intervalo:null, nivel:null };
+let modalCierreCallback = null;
+function cerrarModal(){ document.getElementById('modal-root').innerHTML = ''; modalCierreCallback = null; }
+function cerrarModalConX(){ const cb = modalCierreCallback; cerrarModal(); if(cb) cb(); }
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('modal-root').innerHTML !== '') cerrarModalConX();
+});
+
+function abrirSelectorModo(nivel){
+  const root = document.getElementById('modal-root');
+  const peso = PESO_XP_NIVEL[nivel] || 1;
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay-modo">
+      <div class="modal-box">
+        <button type="button" class="modal-close-x" onclick="cerrarModalConX()">✕</button>
+        <div class="modal-eyebrow">Nivel ${NOMBRES_NIVEL_CR[nivel]}</div>
+        <h3 class="modal-title">¿Cómo quieres practicar?</h3>
+        <div class="modo-opciones mv-modo">
+          <button class="modo-btn" id="btn-modo-libre" aria-label="Práctica libre"><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="mlt" d="M 6 57 Q 50 71 94 57"/><path id="mld" d="M 12 70 Q 50 80 88 70"/><path id="mlx" d="M 22 82 Q 50 89 78 82"/></defs><g filter="url(#fIco)" transform="translate(50 36) scale(.8) translate(-50 -30)"><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="#064e3b" stroke-width="8" stroke-linejoin="round" opacity=".5" transform="translate(0 1.6)"/><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="url(#gInf)" stroke-width="7.2" stroke-linejoin="round"/><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" opacity=".7" transform="translate(-.6 -1.7)"/></g><text class="sv-t" font-size="12.8"><textPath href="#mlt" startOffset="50%" text-anchor="middle">Práctica libre</textPath></text><text class="sv-d" font-size="9.4"><textPath href="#mld" startOffset="50%" text-anchor="middle">sin límite</textPath></text><text class="sv-x" font-size="9.4"><textPath href="#mlx" startOffset="50%" text-anchor="middle">+${peso} XP c/u</textPath></text></svg></button>
+          <button class="modo-btn" id="btn-modo-contrarreloj" aria-label="Contrarreloj"><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="mct" d="M 6 57 Q 50 71 94 57"/><path id="mcd" d="M 12 70 Q 50 80 88 70"/><path id="mcx" d="M 22 82 Q 50 89 78 82"/></defs><g filter="url(#fIco)" transform="translate(50 33) scale(.8) translate(-50 -32)"><rect x="46" y="9" width="8" height="5" rx="1.5" fill="url(#gMet)"/><rect x="47.8" y="13" width="4.4" height="4" fill="#94a3b8"/><rect x="66" y="16" width="4.5" height="6" rx="1.5" fill="url(#gMet)" transform="rotate(40 68 19)"/><circle cx="50" cy="32" r="15.5" fill="url(#gMet)"/><circle cx="50" cy="32" r="12.6" fill="url(#gCara)"/><circle cx="50" cy="32" r="12.6" fill="none" stroke="#92400e" stroke-opacity=".35" stroke-width=".8"/><g stroke="#92400e" stroke-width="1.1" stroke-linecap="round"><path d="M50 21.2v2.4M50 40.4v2.4M39.2 32h2.4M58.4 32h2.4"/></g><path d="M50 32V23.6" stroke="#b45309" stroke-width="1.9" stroke-linecap="round"/><path d="M50 32L56 36" stroke="#7c2d12" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="32" r="1.8" fill="#7c2d12"/><path d="M41 25a12 12 0 0 1 6-4" stroke="#fff" stroke-width="1.3" stroke-linecap="round" fill="none" opacity=".8"/></g><text class="sv-t" font-size="12.8"><textPath href="#mct" startOffset="50%" text-anchor="middle">Contrarreloj</textPath></text><text class="sv-d" font-size="9.4"><textPath href="#mcd" startOffset="50%" text-anchor="middle">7 minutos</textPath></text><text class="sv-x" font-size="9.4"><textPath href="#mcx" startOffset="50%" text-anchor="middle">+${peso} XP c/u</textPath></text></svg></button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-modo-libre').onclick = () => { cerrarModal(); comenzarNivel(nivel); };
+  document.getElementById('btn-modo-contrarreloj').onclick = () => { cerrarModal(); startContrarreloj(nivel); };
+}
+
+function startContrarreloj(nivel){
+  Contrarreloj.activo = true;
+  Contrarreloj.restante = DURACION_CONTRARRELOJ;
+  Contrarreloj.completados = 0;
+  Contrarreloj.errores = 0;
+  Contrarreloj.nivel = nivel;
+  document.getElementById('timer-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').textContent = '✓ 0';
+  actualizarTimerPill();
+  if(Contrarreloj.intervalo) clearInterval(Contrarreloj.intervalo);
+  Contrarreloj.intervalo = setInterval(tickContrarreloj, 1000);
+  comenzarNivel(nivel);
+}
+function tickContrarreloj(){
+  Contrarreloj.restante--;
+  actualizarTimerPill();
+  if(Contrarreloj.restante <= 0){
+    clearInterval(Contrarreloj.intervalo);
+    Contrarreloj.intervalo = null;
+    Contrarreloj.activo = false;
+    mostrarFinContrarreloj();
+  }
+}
+function actualizarTimerPill(){
+  const m = Math.floor(Contrarreloj.restante/60), s = Contrarreloj.restante%60;
+  const pill = document.getElementById('timer-pill');
+  pill.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  pill.style.setProperty('--p', (Contrarreloj.restante / DURACION_CONTRARRELOJ * 100).toFixed(1));
+  pill.classList.toggle('urgente', Contrarreloj.restante <= 30);
+}
+function detenerContrarreloj(){
+  if(Contrarreloj.intervalo){ clearInterval(Contrarreloj.intervalo); Contrarreloj.intervalo=null; }
+  Contrarreloj.activo = false;
+  document.getElementById('timer-pill').classList.add('hidden');
+  document.getElementById('contador-pill').classList.add('hidden');
+}
+function mostrarFinContrarreloj(){
+  modalCierreCallback = () => { detenerContrarreloj(); volverAlInicio(); };
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box" style="text-align:center;">
+        <button type="button" class="modal-close-x" onclick="cerrarModalConX()">✕</button>
+        <div class="modal-eyebrow">⏱️ Contrarreloj</div>
+        <h3 class="modal-title">¡Se acabó el tiempo!</h3>
+        <p style="font-size:1.05rem; margin-bottom:16px; color:var(--text-dim);">
+          Completaste <b style="color:var(--primary); font-size:1.3em; font-family:var(--font-display);">${Contrarreloj.completados}</b> ejercicio(s)${Contrarreloj.errores ? `, con ${Contrarreloj.errores} error(es) en el camino` : ''}.
+        </p>
+        <div class="modo-opciones">
+          <button class="modo-btn" id="btn-cr-otra">➜ Otra ronda</button>
+          <button class="modo-btn" id="btn-cr-inicio">🏠 Inicio</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-cr-otra').onclick = () => { cerrarModal(); startContrarreloj(Contrarreloj.nivel); };
+  document.getElementById('btn-cr-inicio').onclick = () => { cerrarModal(); detenerContrarreloj(); volverAlInicio(); };
+}
+
+/* ---------------------------------------------------------------------------
+   6c. DESAFÍO ONLINE
+   --------------------------------------------------------------------- */
+let AlumnoActual = null;
+function obtenerFechaHoy(){
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+}
+function obtenerDesafioDelDia(){
+  const fechaStr = obtenerFechaHoy();
+  let hash = 0;
+  for(let i=0;i<fechaStr.length;i++){ hash = (hash*31 + fechaStr.charCodeAt(i)) % 100000; }
+  const RECURSOS = ['adicion','sustraccion','multiplicacion-arabe','division-algoritmo'];
+  const NIVELES = ['facil','intermedio'];
+  return { recurso: RECURSOS[hash % RECURSOS.length], nivel: NIVELES[Math.floor(hash/RECURSOS.length) % NIVELES.length], fecha: fechaStr };
+}
+function verificarRetoDelDia(recurso, nivel){
+  const reto = obtenerDesafioDelDia();
+  if(reto.recurso === recurso && reto.nivel === nivel && window.reportarRetoDiario){
+    window.reportarRetoDiario(AlumnoActual.id, reto.fecha);
+  }
+}
+
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse === 'function'){
+    window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'multiplicacion-arabe');
+  } else {
+    setTimeout(iniciarHeartbeatTiempo, 100);
+  }
+}
+
+const Online = { activo:false, codigo:null, uid:null, nombre:null, docId:null };
+
+// Se llama UNA vez, justo al unirse a la sesión -- sin esto, si el
+// profesor eligió "Práctica libre" (no Contrarreloj), el alumno nunca
+// aparecía en el panel ni se guardaba su avance.
+function registrarInicioOnline(){
+  if(!Online.activo) return;
+  Online.docId = Online.uid + '_' + Date.now();
+  if(window.iniciarNuevoIntentoOnline) window.iniciarNuevoIntentoOnline(Online.codigo, Online.docId, Online.nombre, Online.uid);
+}
+
+
+/* ---------------------------------------------------------------------------
+   7. LABORATORIO
+   ------------------------------------------------------------------------- */
+function renderLab(){
+  if(state.fase === 'final' && !Contrarreloj.activo && !EMBEBIDO) return renderResultado();
+  const sec = el('section', 'screen'); sec.id = 'screen-exercise';
+  const wrap = el('div', 'card');
+  wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.alignItems = 'center';
+
+  wrap.appendChild(el('div', 'problema-pill', `${state.aDigits.join('')} × ${state.bDigits.join('')}`));
+
+  let txt;
+  if(state.fase === 'productos'){
+    txt = 'Escribe la <b>decena</b> (arriba a la izquierda) y la <b>unidad</b> (abajo a la derecha) de cada producto.';
+  } else if(state.fase === 'diagonales'){
+    txt = 'Suma la diagonal resaltada, de derecha a izquierda. Si pasa de 9, escribe todo el número.';
+  } else {
+    txt = '¡Multiplicación resuelta!';
+  }
+  const hint = el('div', 'hint-box', `<span class="bulb">💡</span><span>${txt}</span>`);
+  hint.style.width = '100%';
+  wrap.appendChild(hint);
+
+  const lat = el('div', 'lattice-card'); lat.dataset.fase = state.fase;
+  lat.appendChild(renderReticula());
+  wrap.appendChild(lat);
+
+  if(state.fase === 'diagonales' || state.fase === 'final'){
+    wrap.appendChild(renderSeccionDiagonales());
+  }
+  if(state.fase === 'final'){
+    wrap.appendChild(renderTransformacionFinal());
+  }
+  sec.appendChild(wrap);
+  return sec;
+}
+
+/* Construye la retícula: dígitos superiores, cuadrícula de celdas, dígitos
+   laterales. Las celdas muestran texto estático (si ya están resueltas) o
+   inputs (durante la fase de productos, para las que faltan). */
+function renderReticula(){
+  const row = el('div', 'lattice-row');
+  const left = el('div', 'lattice-left');
+
+  const topDigits = el('div', 'top-digits');
+  state.aDigits.forEach(d => topDigits.appendChild(el('div', 'digit-box', String(d))));
+  left.appendChild(topDigits);
+
+  const grid = el('div', 'grid-boxes');
+  grid.style.gridTemplateColumns = `repeat(${state.cols}, var(--cell-size))`;
+
+  for(let r = 0; r < state.rows; r++){
+    for(let c = 0; c < state.cols; c++){
+      grid.appendChild(construirCelda(r, c));
+    }
+  }
+  left.appendChild(grid);
+  row.appendChild(left);
+
+  const sideDigits = el('div', 'side-digits');
+  state.bDigits.forEach(d => sideDigits.appendChild(el('div', 'digit-box', String(d))));
+  row.appendChild(sideDigits);
+
+  return row;
+}
+
+function diagonalesDeCelda(r, c){
+  const D = (state.cols - 1 - c) + (state.rows - 1 - r);
+  return { onesDiag: D, tensDiag: D + 1 };
+}
+
+function construirCelda(r, c){
+  const cell = el('div', 'lcell');
+  cell.dataset.r = r; cell.dataset.c = c;
+
+  const prod = state.aDigits[c] * state.bDigits[r];
+  const tens = Math.floor(prod / 10), ones = prod % 10;
+  const { onesDiag, tensDiag } = diagonalesDeCelda(r, c);
+
+  const triTens = el('div', 'tri tri-tens'); triTens.dataset.diag = tensDiag;
+  const triOnes = el('div', 'tri tri-ones'); triOnes.dataset.diag = onesDiag;
+  aplicarTintaDiagonal(triTens, tensDiag);
+  aplicarTintaDiagonal(triOnes, onesDiag);
+  cell.appendChild(triTens); cell.appendChild(triOnes);
+
+  const resuelta = state.celdaResuelta[r][c];
+
+  if(resuelta){
+    const nT = el('div', 'cell-num tens-pos', String(tens)); nT.dataset.diag = tensDiag;
+    const nO = el('div', 'cell-num ones-pos', String(ones)); nO.dataset.diag = onesDiag;
+    cell.appendChild(nT); cell.appendChild(nO);
+  } else {
+    const tensInput = document.createElement('input');
+    tensInput.type = 'text'; tensInput.inputMode = 'numeric'; tensInput.maxLength = 1;
+    tensInput.className = 'cell-input tens-pos';
+    tensInput.setAttribute('aria-label', `Decena del producto de la fila ${r + 1}, columna ${c + 1}`);
+    tensInput.addEventListener('input', () => manejarEntradaCelda(r, c, 'tens', tensInput, tens, ones));
+
+    const onesInput = document.createElement('input');
+    onesInput.type = 'text'; onesInput.inputMode = 'numeric'; onesInput.maxLength = 1;
+    onesInput.className = 'cell-input ones-pos';
+    onesInput.setAttribute('aria-label', `Unidad del producto de la fila ${r + 1}, columna ${c + 1}`);
+    onesInput.addEventListener('input', () => manejarEntradaCelda(r, c, 'ones', onesInput, tens, ones));
+
+    cell.appendChild(tensInput); cell.appendChild(onesInput);
+  }
+
+  return cell;
+}
+
+function aplicarTintaDiagonal(triEl, diagIndex){
+  triEl.classList.remove('diag-dim', 'diag-active');
+  triEl.style.background = ''; triEl.style.borderColor = '';
+  if(state.fase === 'productos') return;
+  const activo = state.diagonalActiva;
+  const col = colorDiagonal(diagIndex);
+  if(activo === diagIndex){
+    triEl.style.background = col + '99';
+    triEl.classList.add('diag-active');
+  } else {
+    triEl.style.background = col + '3a';
+    if(activo !== null) triEl.classList.add('diag-dim');
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   8. FASE OPCIONAL: PRODUCTOS PARCIALES A CARGO DEL ALUMNO
+   Cada mini-input (decena / unidad) se valida solo, al estilo del resto de
+   la app: si es correcto, avanza automáticamente; si no, se limpia y se
+   avisa sin revelar la respuesta.
+   ------------------------------------------------------------------------- */
+function manejarEntradaCelda(r, c, tipo, inputEl, tensCorrecta, onesCorrecta){
+  const val = inputEl.value.replace(/\D/g, '').slice(-1);
+  inputEl.value = val;
+  if(val === '') return;
+
+  const correcto = tipo === 'tens' ? (parseInt(val, 10) === tensCorrecta) : (parseInt(val, 10) === onesCorrecta);
+
+  if(!correcto){
+    if(Contrarreloj.activo){
+      Contrarreloj.errores++;
+      if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.docId, 0, 1);
+    }
+    reaccion('mal');
+    inputEl.classList.add('wrong-flash');
+    mostrarToast('Revisa esta casilla: ese dígito no es correcto.');
+    inputEl.value = '';
+    setTimeout(() => { inputEl.classList.remove('wrong-flash'); }, 260);
+    return;
+  }
+
+  reaccion('bien');
+  if(tipo === 'tens'){
+    // Avanza a la unidad de la misma celda
+    const cell = inputEl.closest('.lcell');
+    const onesInput = cell.querySelector('.ones-pos');
+    if(onesInput) onesInput.focus();
+  } else {
+    // Unidad correcta: la celda queda resuelta
+    state.celdaResuelta[r][c] = true;
+    const siguiente = siguienteCeldaRaster(r, c);
+    if(siguiente){
+      render();
+      setTimeout(() => {
+        const nextCell = document.querySelector(`.lcell[data-r="${siguiente.r}"][data-c="${siguiente.c}"] .tens-pos`);
+        if(nextCell) nextCell.focus();
+      }, 30);
+    } else {
+      // Todas las celdas resueltas: pasar a la fase de diagonales
+      state.fase = 'diagonales';
+      render();
+    }
+  }
+}
+
+function siguienteCeldaRaster(r, c){
+  if(c + 1 < state.cols) return { r, c: c + 1 };
+  if(r + 1 < state.rows) return { r: r + 1, c: 0 };
+  return null;
+}
+
+let toastTimer = null;
+function mostrarToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#2c1468;border:1px solid rgba(255,255,255,.18);color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;font-family:"Nunito",sans-serif;font-size:.9rem;z-index:2000;box-shadow:0 10px 24px rgba(0,0,0,0.4);max-width:90vw;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.transition = 'opacity .4s ease'; t.style.opacity = '0'; }, 2200);
+}
+
+/* ---------------------------------------------------------------------------
+   9. FASE CENTRAL: SUMA DE DIAGONALES CON ACARREO
+   Las fichas se muestran de izquierda a derecha en el mismo orden en que se
+   leerá el resultado (más significativa primero), pero se resuelven de
+   derecha a izquierda (unidades primero), como la suma real.
+   ------------------------------------------------------------------------- */
+function indiceSiguientePendiente(){
+  for(let i = 0; i < state.numDiagonales; i++){
+    if(!state.diagResuelto[i]) return i;
+  }
+  return -1;
+}
+
+function renderSeccionDiagonales(){
+  const section = el('div', 'diag-section');
+
+  const row = el('div', 'diag-row');
+  const siguiente = indiceSiguientePendiente();
+
+  // De más significativa (izquierda) a menos significativa (derecha)
+  for(let i = state.numDiagonales - 1; i >= 0; i--){
+    row.appendChild(construirFichaDiagonal(i, siguiente));
+  }
+  section.appendChild(row);
+  return section;
+}
+
+function construirFichaDiagonal(i, siguientePendiente){
+  const wrapEl = el('div', 'diag-box-wrap');
+  const r = state.resultados[i];
+  const habilitada = (i === siguientePendiente);
+  const color = colorDiagonal(i);
+
+  // El acarreo se muestra en cuanto la diagonal es interactiva (o ya resuelta).
+  const mostrarAcarreo = r.carryIn > 0 && (state.diagResuelto[i] || habilitada);
+  const carryBadge = el('div', 'carry-badge' + (mostrarAcarreo ? ' show' : ''), '+' + r.carryIn);
+  wrapEl.appendChild(carryBadge);
+
+  if(state.diagResuelto[i]){
+    const box = el('div', 'diag-box', String(r.digito));
+    box.style.borderColor = color; box.style.background = color + '22'; box.style.color = color;
+    wrapEl.appendChild(box);
+  } else if(habilitada){
+    const box = el('div', 'diag-box');
+    box.style.borderColor = color;
+    const input = document.createElement('input');
+    input.type = 'text'; input.inputMode = 'numeric'; input.maxLength = 3;
+    input.dataset.diag = i;
+    input.setAttribute('aria-label', 'Suma de la diagonal ' + (i + 1));
+    input.addEventListener('focus', () => { state.diagonalActiva = i; refrescarTintaCeldas(); });
+    input.addEventListener('input', () => manejarEntradaDiagonal(i, input, box));
+    box.appendChild(input);
+    box.addEventListener('pointerdown', (e) => { if(e.target !== input){ e.preventDefault(); input.focus(); } });
+    wrapEl.appendChild(box);
+    if(i === siguientePendiente){ setTimeout(() => input.focus(), 30); }
+  } else {
+    wrapEl.appendChild(el('div', 'diag-box pending', '?'));
+  }
+
+  return wrapEl;
+}
+
+/* Actualiza solo el tinte de las celdas (sin reconstruir toda la retícula)
+   cuando cambia la diagonal activa, para no perder el foco del input. */
+function refrescarTintaCeldas(){
+  document.querySelectorAll('.tri').forEach(triEl => {
+    aplicarTintaDiagonal(triEl, parseInt(triEl.dataset.diag, 10));
+  });
+  document.querySelectorAll('.cell-num').forEach(n => n.classList.toggle('num-act', state.diagonalActiva !== null && parseInt(n.dataset.diag, 10) === state.diagonalActiva));
+}
+
+function manejarEntradaDiagonal(i, inputEl, boxEl){
+  const val = inputEl.value.replace(/\D/g, '');
+  inputEl.value = val;
+  if(val === '') return;
+
+  const objetivo = state.resultados[i].total;
+  const longitudObjetivo = String(objetivo).length;
+
+  if(parseInt(val, 10) === objetivo){
+    reaccion('bien');
+    resolverDiagonal(i);
+    return;
+  }
+  if(val.length >= longitudObjetivo){
+    if(Contrarreloj.activo){
+      Contrarreloj.errores++;
+      if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.docId, 0, 1);
+    }
+    reaccion('mal');
+    boxEl.classList.add('wrong');
+    mostrarToast('Esa diagonal no está correcta todavía. Revísala.');
+    inputEl.value = '';
+    setTimeout(() => { boxEl.classList.remove('wrong'); }, 420);
+  }
+}
+
+function resolverDiagonal(i){
+  state.diagResuelto[i] = true;
+  state.diagonalActiva = null;
+
+  const cajaActual = document.querySelector(`.diag-box input[data-diag="${i}"]`)?.closest('.diag-box');
+  const rectActual = cajaActual ? cajaActual.getBoundingClientRect() : null;
+
+  const esUltima = (i === state.numDiagonales - 1);
+  render();
+
+  // Animación de acarreo volando hacia la siguiente diagonal (a la izquierda)
+  const carryOut = state.resultados[i].carryOut;
+  if(carryOut > 0 && !esUltima && rectActual && !prefersReducedMotion()){
+    const wrapSiguiente = document.querySelectorAll('.diag-box-wrap')[state.numDiagonales - 1 - (i + 1)];
+    if(wrapSiguiente){
+      const rectSig = wrapSiguiente.getBoundingClientRect();
+      const fly = document.createElement('div');
+      fly.className = 'carry-fly';
+      fly.textContent = '+' + carryOut;
+      fly.style.left = (rectActual.left + rectActual.width / 2 - 20) + 'px';
+      fly.style.top = (rectActual.top) + 'px';
+      fly.style.opacity = '1';
+      document.body.appendChild(fly);
+      requestAnimationFrame(() => {
+        const dx = (rectSig.left + rectSig.width / 2 - 20) - (rectActual.left + rectActual.width / 2 - 20);
+        const dy = rectSig.top - rectActual.top - 22;
+        fly.style.transform = `translate(${dx}px, ${dy}px)`;
+        fly.style.opacity = '0.1';
+      });
+      setTimeout(() => fly.remove(), 600);
+    }
+  }
+
+  if(esUltima){
+    setTimeout(() => {
+      state.fase = 'final';
+      render();
+      const _nivXp = Contrarreloj.activo ? Contrarreloj.nivel : (state.nivelActual || 'custom');
+      if(AlumnoActual) window.reportarProgresoPractica(AlumnoActual.id, 'multiplicacion-arabe', 1, 0, PESO_XP_NIVEL[_nivXp] || 1);
+      if(AlumnoActual) verificarRetoDelDia('multiplicacion-arabe', Contrarreloj.activo ? Contrarreloj.nivel : state.nivelActual);
+      if(_aArranque && _bArranque && window.parent !== window){
+        window.parent.postMessage({ tipo:'multiplicacion-resuelta', producto: state.aVal*state.bVal }, '*');
+      }
+      if(Contrarreloj.activo){
+        Contrarreloj.completados++;
+        document.getElementById('contador-pill').textContent = '✓ '+Contrarreloj.completados;
+        if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.docId, 1, 0);
+        setTimeout(() => {
+          if(!Contrarreloj.activo) return;
+          comenzarNivel(Contrarreloj.nivel);
+        }, 900);
+      }
+    }, prefersReducedMotion() ? 0 : 500);
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   11. TRANSFORMACIÓN FINAL: ALGORITMO TRADICIONAL EQUIVALENTE
+   ------------------------------------------------------------------------- */
+function renderTransformacionFinal(){
+  const container = el('div', 'arabe-final');
+  const total = state.aVal * state.bVal;
+  container.appendChild(el('div', 'final-banner', `¡Muy bien! ${state.aDigits.join('')} × ${state.bDigits.join('')} = ${total}`));
+  if(Contrarreloj.activo || EMBEBIDO) return container;
+
+  container.appendChild(el('div', 'mv-fila-chip mv-celebra', '')).id = 'mvChipResult';
+  const acciones = el('div', 'result-actions');
+  acciones.innerHTML = `
+    <button class="btn-orbita v-azul" id="btn-change-level" type="button"><span class="bola"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><path d="M3 15.5c-1.2-2.2 3-6.2 9-8M21 8.5c1.2 2.2-3 6.2-9 8"/></svg></span><span>Cambiar nivel</span></button>
+    <button class="btn-orbita v-verde" id="btn-again" type="button"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Siguiente</span></button>`;
+  acciones.querySelector('#btn-change-level').onclick = volverAlInicio;
+  acciones.querySelector('#btn-again').onclick = () => {
+    if(state.nivelActual) comenzarNivel(state.nivelActual);
+    else { state.ultimaFactorA = ''; state.ultimaFactorB = ''; state.screen = 'setup'; render(); }
+  };
+  container.appendChild(acciones);
+  return container;
+}
+
+/* ---------------------------------------------------------------------------
+   12. ARRANQUE
+   Si la URL trae ?a=X&b=Y (por ejemplo, incrustado dentro de un iframe
+   desde Proporciones), arranca directo con esa multiplicación en vez de
+   mostrar la portada -- para eso sirve, no se pide elegir nada más.
+   ------------------------------------------------------------------------- */
+const _paramsArranque = new URLSearchParams(window.location.search);
+const _aArranque = _paramsArranque.get('a'), _bArranque = _paramsArranque.get('b');
+if(_aArranque && _bArranque){
+  const _resultadoArranque = parseFactores(_aArranque, _bArranque);
+  if(!_resultadoArranque.error){
+    iniciarProblema(_resultadoArranque);
+  } else {
+    render();
+  }
+} else {
+  // Sin login propio: la sesión viene del acceso central (index del sitio).
+  // Si no hay sesión, se entra como invitado (se puede practicar, sin XP).
+  try{
+    const _guardado = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null');
+    if(_guardado && _guardado.id && _guardado.nombre){
+      AlumnoActual = _guardado;
+      iniciarHeartbeatTiempo();
+    }
+  } catch(e){}
+  state.screen = 'home';
+  const _nivelRetoInicio = new URLSearchParams(window.location.search).get('retoDia');
+  if(_nivelRetoInicio && (_nivelRetoInicio==='facil' || _nivelRetoInicio==='intermedio')) comenzarNivel(_nivelRetoInicio);
+  else render();
+}
+
+/* Botones del encabezado */
+document.getElementById('btn-back').addEventListener('click', () => {
+  if(state.screen === 'lab') volverAlInicio();
+  else if(state.screen === 'setup'){ state.screen = 'home'; render(); }
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if(state.screen === 'lab'){
+    if(state.nivelActual) comenzarNivel(state.nivelActual);
+    else iniciarProblema({ aDigits:state.aDigits.slice(), bDigits:state.bDigits.slice(), aVal:state.aVal, bVal:state.bVal });
+  } else if(state.screen === 'setup'){
+    const a = document.getElementById('factorA'), b = document.getElementById('factorB');
+    if(a) a.value = ''; if(b) b.value = '';
+    if(a) a.focus();
+  }
+});
+
+/* Ajuste a la altura: si la pantalla no cabe, se achican un poco los tamaños (--f) para evitar el scroll */
+(function(){
+  const raiz = document.documentElement; let pend = false;
+  function ajustar(){
+    pend = false;
+    let f = 1; raiz.style.setProperty('--f', '1');
+    const sobra = () => raiz.scrollHeight - window.innerHeight;
+    let guardia = 0;
+    while(sobra() > 1 && f > 0.5 && guardia++ < 16){ f = Math.max(0.5, f - 0.04); raiz.style.setProperty('--f', f.toFixed(2)); }
+  }
+  function pedir(){ if(!pend){ pend = true; requestAnimationFrame(ajustar); } }
+  window.addEventListener('resize', pedir);
+  window.addEventListener('load', () => { pedir(); setTimeout(pedir, 800); });
+  new MutationObserver(pedir).observe(document.getElementById('main'), { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
+  pedir();
+})();
+
+
+/* Pantalla final: limpia, solo lo esencial */
+function renderResultado(){
+  const sec = el('section', 'screen'); sec.id = 'screen-result';
+  const card = el('div', 'card');
+  const total = state.aVal * state.bVal;
+  card.innerHTML = `
+    <div class="mv-fila-chip mv-celebra" id="mvChipResult"></div>
+    <div class="result-hero" aria-hidden="true"><svg viewBox="-12 -12 24 24" width="120" height="120"><use href="#st3d" x="-11" y="-11" width="22" height="22" filter="url(#fIco)"/></svg></div>
+    <h2 class="result-title">¡Muy bien hecho!</h2>
+    <p class="result-eq">${state.aDigits.join('')} × ${state.bDigits.join('')} = ${total}</p>
+    <div class="result-actions">
+      <button class="btn-orbita v-azul" id="btn-change-level" type="button"><span class="bola"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><path d="M3 15.5c-1.2-2.2 3-6.2 9-8M21 8.5c1.2 2.2-3 6.2-9 8"/></svg></span><span>Cambiar nivel</span></button>
+      <button class="btn-orbita v-verde" id="btn-again" type="button"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Siguiente</span></button>
+    </div>`;
+  card.querySelector('#btn-change-level').onclick = volverAlInicio;
+  card.querySelector('#btn-again').onclick = () => {
+    if(state.nivelActual) comenzarNivel(state.nivelActual);
+    else { state.ultimaFactorA = ''; state.ultimaFactorB = ''; state.screen = 'setup'; render(); }
+  };
+  sec.appendChild(card);
+  return sec;
+}
+
+/* Mantiene el cursor: tocar fuera de un cuadro no lo pierde, y se puede recuperar siempre */
+function enfocarActivo(){
+  let t = document.querySelector('.diag-box input');
+  if(!t) t = Array.from(document.querySelectorAll('.lcell input.cell-input')).find(i => i.value === '');
+  if(t && document.activeElement !== t) t.focus();
+}
+['mousedown', 'touchstart'].forEach(ev => document.addEventListener(ev, (e) => {
+  if(state.screen !== 'lab' || state.fase === 'final') return;
+  if(e.target.closest && e.target.closest('input, button, a, .modal-overlay, #app-header')) return;
+  e.preventDefault();
+  enfocarActivo();
+}, { passive:false }));
+</script>
+<script>
+/* "Atrás": vuelve a la página desde la que llegaste (el eje); si entraste directo, va a la lista de ejes */
+document.addEventListener('click', function(e){
+  var a = e.target.closest && e.target.closest('[data-atras]'); if(!a) return;
+  e.preventDefault();
+  if(window.mvIrAtras) window.mvIrAtras(); else location.href = a.getAttribute('href');
+});
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script type="module">
+/* Desafío Online -- se queda acá, propio de este recurso, porque
+   valida el nombre exacto del recurso contra el código.
+   mathverse-core.js solo contiene lo 100% genérico entre los 18
+   recursos. Usa una segunda instancia de Firebase para no depender
+   del orden de carga entre los dos scripts. */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig, "onlineMultiplicacionArabe");
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+
+    const sessionRef = doc(db, 'sessions', codigo);
+    const sessionSnap = await getDoc(sessionRef);
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+    if(datos.recurso && datos.recurso !== 'multiplicacion-arabe') return { ok:false, error:`Ese código es para ${datos.recurso}, no para Multiplicación Árabe.` };
+
+    const duracionMinutos = datos.duracionMinutos || 180;
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos) return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+    }
+
+    return { ok:true, uid, nivelObjetivo: datos.nivelObjetivo, modoObjetivo: datos.modoObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+
+window.iniciarNuevoIntentoOnline = async function(codigo, docId, nombre, uid){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      name: nombre, uid: uid || null, startedAt: serverTimestamp(), completados: 0, errores: 0, mascota: (window.mascotaParaClase ? await window.mascotaParaClase() : null)
+    });
+  } catch(err){
+    console.error('No se pudo iniciar el intento online:', err);
+  }
+};
+
+window.reportarProgresoOnline = async function(codigo, docId, deltaCompletados, deltaErrores){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      completados: increment(deltaCompletados || 0),
+      errores: increment(deltaErrores || 0),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){
+    console.error('No se pudo reportar el progreso online:', err);
+  }
+};
+// Si se llega desde el inicio con un código de clase en el enlace
+// (?codigoClase=XXXX), se une solo, sin mostrar el botón ni el modal --
+// ya sea con la cuenta que ya tenía la sesión, o como invitado si vino
+// con ?invitado=Nombre (ese nombre ya pasó por el filtro en el inicio).
+try{
+  const parametrosUrl = new URLSearchParams(location.search);
+  const codigoDesdeUrl = parametrosUrl.get('codigoClase');
+  const invitadoDesdeUrl = parametrosUrl.get('invitado');
+  let nombreParaUnirse = null;
+  if(AlumnoActual) nombreParaUnirse = AlumnoActual.nombre;
+  else if(invitadoDesdeUrl && invitadoDesdeUrl.trim()) nombreParaUnirse = `👤 Invitado: ${invitadoDesdeUrl.trim()}`;
+
+  if(codigoDesdeUrl && nombreParaUnirse){
+    (async () => {
+      const resultado = await window.unirseClaseOnline(codigoDesdeUrl.toUpperCase(), nombreParaUnirse);
+      if(!resultado.ok){ alert(resultado.error); return; }
+      Online.activo = true; Online.codigo = codigoDesdeUrl.toUpperCase(); Online.uid = resultado.uid; Online.nombre = nombreParaUnirse;
+      registrarInicioOnline();
+      // Ojo: en algunos recursos este indicador recién se dibuja cuando se
+      // muestra la pantalla de niveles -- si un invitado llega sin sesión
+      // previa, puede que todavía no exista en el DOM.
+      const _indEl = document.getElementById('indicadorOnline');
+      if(_indEl){ _indEl.classList.remove('hidden'); document.getElementById('nombreOnline').textContent = nombreParaUnirse; }
+      if(resultado.modoObjetivo === 'contrarreloj'){ startContrarreloj(resultado.nivelObjetivo); }
+      else { comenzarNivel(resultado.nivelObjetivo); }
+    })();
+  }
+} catch(e){ console.error(e); }
+</script>
+</body>
+</html>
