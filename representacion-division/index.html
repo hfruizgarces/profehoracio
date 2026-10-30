@@ -1,0 +1,3594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <title>División</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS DE DISEÑO
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147;
+  --bg-2:#3b1785;
+  --bg-3:#5b21b6;
+  --surface:rgba(255,255,255,.07);
+  --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.14);
+
+  --primary:#34d399;
+  --primary-dark:#0f9d70;
+  --accent:#fbbf24;
+  --accent-soft:#fde68a;
+  --pink:#f472b6;
+  --blue:#38bdf8;
+  --error:#fb7185;
+  --error-soft:#3b0f1f;
+
+  --text:#f6f3ff;
+  --text-dim:#c9bdf0;
+  --text-faint:#8f7fc4;
+
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+
+  --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+  --tap-min: 48px;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100%; overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button, input{ -webkit-user-select:none; user-select:none; }
+input{font-family:inherit;}
+
+.hidden{display:none !important;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* Foco visible para accesibilidad con teclado */
+:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+  padding: clamp(10px, 2.5vw, 24px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 56px 14px 2px;
+  flex-wrap:wrap;
+}
+.app-header .side{
+  display:flex; align-items:center; gap:6px;
+  flex:1 1 auto;
+  min-width:70px;
+}
+.app-header .side.right{ justify-content:flex-end; }
+
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  padding:9px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:clamp(.75rem, 2vw, .9rem);
+  cursor:pointer;
+  min-height:var(--tap-min);
+  transition: background .15s, transform .1s;
+  white-space:nowrap;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.icon-btn:active{ transform:scale(.96); }
+
+.brand{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.2vw, 1.6rem);
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+.brand .plus{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.5em; height:1.5em;
+  background:linear-gradient(135deg, var(--primary), var(--blue));
+  border-radius:10px;
+  color:#0b1a12;
+  font-size:1em;
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+.screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation: fadeSlideIn .35s ease both;
+}
+@keyframes fadeSlideIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.card{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(16px, 4vw, 32px);
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px);
+}
+
+/* =========================================================
+   PANTALLA INICIAL
+   ========================================================= */
+.home-title{
+  text-align:center;
+  font-size:clamp(1.4rem, 5vw, 2.2rem);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.home-sub{
+  text-align:center;
+  color:var(--text-dim);
+  font-size:clamp(.9rem, 2.4vw, 1.05rem);
+  margin:0 auto clamp(18px,4vw,28px);
+  max-width:46ch;
+}
+footer.credits{ text-align:center; color: var(--text-faint); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
+.level-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:clamp(10px, 2.5vw, 16px);
+  width:100%;
+}
+@media (max-width:420px){
+  .level-grid{ grid-template-columns:1fr; }
+}
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:clamp(16px,4vw,22px) 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  cursor:pointer;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1rem, 2.6vw, 1.15rem);
+  min-height:96px;
+  transition:transform .15s, box-shadow .15s;
+}
+.level-btn:hover{ transform:translateY(-3px); }
+.level-btn:active{ transform:scale(.97); }
+.level-btn .emoji{ font-size:clamp(1.6rem, 5vw, 2.1rem); }
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+
+/* =========================================================
+   PANTALLA "CREA TU EJERCICIO"
+   ========================================================= */
+.form-title{ font-size:clamp(1.2rem,3.6vw,1.5rem); font-weight:800; text-align:center; margin-bottom:4px; }
+.form-sub{ color:var(--text-dim); text-align:center; margin-bottom:18px; font-size:.95rem; }
+
+.addend-row{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:12px;
+}
+.addend-index{
+  width:26px; text-align:right; color:var(--text-faint); font-weight:700; flex:0 0 auto;
+}
+.addend-input{
+  flex:0 1 180px;
+  min-width:0;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1.1rem, 3.2vw, 1.35rem);
+  text-align:center;
+  padding:12px 10px;
+  min-height:var(--tap-min);
+  letter-spacing:1px;
+}
+.addend-input::placeholder{ color:var(--text-faint); font-family:var(--font-body); font-weight:600; font-size:.85em;}
+.addend-remove{
+  flex:0 0 auto;
+  width:var(--tap-min); height:var(--tap-min);
+  border-radius:50%;
+  background:rgba(251,113,133,.18);
+  border:1px solid var(--error);
+  color:var(--error);
+  font-size:1.2rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.dashed-btn{
+  width:100%;
+  max-width:220px;
+  margin-left:auto; margin-right:auto;
+  display:block;
+  padding:12px;
+  border-radius:var(--r-sm);
+  border:2px dashed var(--border-soft);
+  background:transparent;
+  color:var(--text-dim);
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap-min);
+  margin-bottom:18px;
+}
+.dashed-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+.dashed-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.primary-btn{
+  width:100%;
+  padding:14px;
+  border-radius:var(--r-md);
+  border:none;
+  background:linear-gradient(135deg, var(--primary), #10b981);
+  color:#062b1c;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1rem, 2.8vw, 1.15rem);
+  cursor:pointer;
+  min-height:52px;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.primary-btn:hover{ transform:translateY(-2px); }
+.primary-btn:active{ transform:scale(.98); }
+.primary-btn:disabled{
+  background:#4b4b5a; color:#9a9aab; box-shadow:none; cursor:not-allowed; transform:none;
+}
+.form-error{
+  color:var(--error);
+  text-align:center;
+  font-weight:700;
+  font-size:.9rem;
+  min-height:1.4em;
+  margin-bottom:10px;
+}
+
+/* =========================================================
+   PANTALLA DE EJERCICIO
+   ========================================================= */
+.hint-box{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:16px;
+  width:100%;
+  font-size:clamp(.82rem, 2.1vw, .95rem);
+  line-height:1.45;
+}
+.hint-box .bulb{ font-size:1.2em; flex:0 0 auto; }
+.hint-box b{ color:var(--accent); }
+.hint-box .ok{ color:var(--primary); }
+
+/* =========================================================
+   MODAL (llevada / totales de columna)
+   ========================================================= */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,4,30,.6);
+  backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  z-index:700;
+}
+.modal-box{
+  width:100%; max-width:400px;
+  background:linear-gradient(160deg, #2c1468, #4c1d95);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(18px,4vw,26px);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.modal-close-x{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:var(--surface); color:var(--text);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:5;
+}
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes monedaFlota{
+  0%{ transform:translateY(0); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translateY(-24px); opacity:0; }
+}
+.modal-eyebrow{
+  font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:6px; text-align:center;
+}
+.modal-title{
+  font-size:clamp(1.05rem, 3.2vw, 1.25rem);
+  text-align:center;
+  margin-bottom:14px;
+  line-height:1.4;
+}
+.modal-title b{ color:var(--accent-soft); }
+.modal-fields{
+  display:flex; gap:12px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;
+}
+.modal-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.modal-field label{ font-size:.8rem; color:var(--text-dim); font-weight:700; text-align:center; max-width:11em; }
+.modal-field input{
+  width:80px;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.3rem;
+  padding:10px 6px;
+  border-radius:var(--r-sm);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  min-height:var(--tap-min);
+}
+.modal-feedback{
+  text-align:center; min-height:1.6em; font-weight:700; margin-bottom:10px; font-size:.9rem;
+}
+.modal-feedback.err{ color:var(--error); }
+.modal-feedback.ok{ color:var(--primary); }
+.modal-actions{ display:flex; gap:10px; }
+.modal-actions button{ flex:1; }
+.secondary-btn{
+  padding:12px; border-radius:var(--r-md); border:1px solid var(--border-soft);
+  background:transparent; color:var(--text-dim); font-weight:700; cursor:pointer;
+  min-height:48px;
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO / CELEBRACIÓN
+   ========================================================= */
+.result-hero{
+  font-size:clamp(2.2rem, 9vw, 3.4rem);
+  text-align:center;
+}
+.result-title{
+  font-size:clamp(1.3rem, 4vw, 1.8rem);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.result-eq{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.6vw, 1.6rem);
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:20px;
+  word-break:break-word;
+}
+.result-actions{
+  display:flex; gap:12px; width:100%; flex-wrap:wrap;
+}
+.result-actions button{ flex:1 1 160px; }
+
+.confetti-piece{
+  position:fixed; top:-10px; z-index:800;
+  border-radius:2px;
+  animation: fall linear forwards;
+  pointer-events:none;
+}
+@keyframes fall{
+  to{ transform:translateY(105vh) rotate(360deg); opacity:.9; }
+}
+
+/* =========================================================
+   BARRA DE PROGRESO DE COLUMNAS
+   ========================================================= */
+.progress-track{
+  display:flex; gap:6px; width:100%; margin-bottom:16px;
+}
+.progress-seg{
+  flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progress-seg .fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--blue));
+  transition:width .4s ease;
+}
+
+/* utilidad de botón de sonido */
+.sound-icon{ font-size:1.1em; }
+
+/* =========================================================
+   MULTIPLICACIÓN ÁRABE — retícula (propio del recurso)
+   ========================================================= */
+:root{
+  --ink:var(--text); --ink-soft:var(--text-dim); --ink-faint:var(--text-faint);
+  --brass:#fbbf24; --brass-dark:#f59e0b; --success:#34d399; --success-bg:rgba(52,211,153,.15);
+  --error-bg:rgba(251,113,133,.15); --radius-s:10px; --radius-m:16px; --radius-l:22px;
+  --font-num:var(--font-display); --font-ui:var(--font-body);
+  --cell-size:calc(var(--cell-base,56px) * var(--f,1));
+}
+#vista{ width:100%; display:flex; flex-direction:column; }
+.hero{ text-align:center; }
+.problema-pill{
+  align-self:center; font-family:var(--font-num); font-weight:800; letter-spacing:.04em;
+  font-size:calc(clamp(1.3rem,4.4vw,1.9rem) * var(--f,1)); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.35); border-radius:16px;
+  padding:calc(6px * var(--f,1)) calc(22px * var(--f,1)); margin:0 0 calc(12px * var(--f,1));
+}
+.lattice-card{ width:100%; display:flex; flex-direction:column; align-items:center; padding:calc(4px * var(--f,1)) 0 0; }
+.lattice-row{ display:flex; align-items:flex-start; gap:6px; }
+.lattice-left{ display:flex; flex-direction:column; }
+.top-digits, .side-digits{ display:flex; }
+.top-digits{ justify-content:flex-end; margin-bottom:5px; gap:4px; }
+.side-digits{ flex-direction:column; margin-top:calc(var(--cell-size) * .62 + 5px); gap:4px; margin-left:4px; }
+.digit-box{
+  width:var(--cell-size); height:calc(var(--cell-size) * .62); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .46); color:#fff;
+  background:linear-gradient(150deg, rgba(124,58,237,.45), rgba(44,20,104,.7)); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45);
+  border:none; border-radius:12px; text-shadow:0 2px 6px rgba(0,0,0,.45);
+}
+.side-digits .digit-box{ width:calc(var(--cell-size) * .72); height:var(--cell-size); }
+.grid-boxes{ display:grid; gap:4px; }
+.lcell{
+  width:var(--cell-size); height:var(--cell-size); position:relative; overflow:hidden; border-radius:10px;
+  border:2px solid rgba(196,181,253,.75); background:rgba(30,17,71,.55); box-shadow:0 0 14px rgba(124,58,237,.25);
+}
+.lcell .tri{ position:absolute; inset:0; transition:background-color .35s ease, opacity .35s ease; }
+.tri-tens{ clip-path:polygon(0 0,100% 0,0 100%); background:rgba(255,255,255,.05); }
+.tri-ones{ clip-path:polygon(100% 0,100% 100%,0 100%); background:rgba(255,255,255,.1); }
+.tri.diag-dim{ opacity:.35; } .tri.diag-active{ opacity:1; }
+.cell-num{
+  position:absolute; z-index:2; font-family:var(--font-num); font-weight:800; line-height:1; pointer-events:none;
+  font-size:calc(var(--cell-size) * .36); color:#fff; text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.cell-num.tens-pos{ top:12%; left:12%; } .cell-num.ones-pos{ bottom:10%; right:12%; }
+.lcell input.cell-input{
+  position:absolute; z-index:2; width:42%; height:42%; border:none; border-radius:7px; padding:0; outline:none;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.5); text-align:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .32); color:#fff; user-select:text; -webkit-user-select:text;
+}
+.lcell input.cell-input.tens-pos{ top:6%; left:6%; } .lcell input.cell-input.ones-pos{ bottom:6%; right:6%; }
+.lcell input.cell-input:focus{ background:rgba(124,58,237,.5); box-shadow:0 0 0 2.5px var(--brass), 0 0 14px rgba(251,191,36,.6); }
+.lcell input.cell-input.wrong-flash{ background:var(--error-bg); box-shadow:0 0 0 2.5px var(--error); }
+
+.diag-section{ margin-top:calc(22px * var(--f,1)); width:100%; display:flex; flex-direction:column; align-items:center; }
+.diag-section h3{ font-size:calc(.86rem * var(--f,1)); font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:calc(30px * var(--f,1)); text-align:center; }
+.diag-row{ display:flex; gap:calc(8px * var(--f,1)); align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.diag-box-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; }
+.carry-badge{
+  position:absolute; top:calc(-24px * var(--f,1)); left:50%; transform:translateX(-50%) scale(0); opacity:0;
+  font-family:var(--font-num); font-weight:800; font-size:.8rem; color:#3b2405; background:var(--brass);
+  border-radius:999px; padding:2px 9px; white-space:nowrap; box-shadow:0 0 10px rgba(251,191,36,.7);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+.carry-badge.show{ transform:translateX(-50%) scale(1); opacity:1; }
+.diag-box{
+  width:calc(clamp(48px,11vw,64px) * var(--f,1)); min-height:calc(clamp(48px,11vw,64px) * var(--f,1));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1));
+  border:2.5px solid var(--border-soft); background:rgba(8,3,26,.4); color:var(--text-faint); transition:all .25s ease;
+}
+.diag-box.pending{ opacity:.55; }
+.diag-box input{ width:100%; height:100%; border:none; background:transparent; text-align:center; font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1)); color:#fff; outline:none; user-select:text; -webkit-user-select:text; }
+.diag-box.wrong{ animation:shake .32s ease; }
+.carry-fly{
+  position:fixed; z-index:3000; font-family:var(--font-num); font-weight:800; font-size:.95rem; color:#3b2405;
+  background:var(--brass); border-radius:999px; padding:4px 10px; pointer-events:none;
+  transition:transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+}
+.final-banner{
+  margin-top:calc(16px * var(--f,1)); text-align:center; background:var(--success-bg); border:2px solid var(--success);
+  color:var(--success); border-radius:16px; padding:calc(10px * var(--f,1)) 20px; font-weight:800;
+  font-family:var(--font-num); font-size:calc(clamp(1.1rem,3.8vw,1.5rem) * var(--f,1));
+}
+.arabe-final{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.arabe-final .mv-fila-chip{ margin-top:calc(8px * var(--f,1)); }
+.arabe-final .result-actions{ margin-top:calc(14px * var(--f,1)); }
+.setup-box{ width:100%; max-width:480px; margin:0 auto; text-align:center; }
+.setup-box label{ display:block; font-weight:700; font-size:.95rem; color:var(--text-dim); margin-bottom:16px; }
+.factor-input-row{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,3vw,18px); }
+.factor-input{
+  width:100%; max-width:150px; font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,7vw,2.2rem);
+  text-align:center; color:#fff; border:none; border-radius:16px; padding:14px 6px; background:rgba(8,3,26,.5);
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); user-select:text;
+}
+.factor-input:focus{ outline:none; box-shadow:0 0 0 3px var(--brass), 0 0 16px rgba(251,191,36,.5); }
+.factor-input::placeholder{ color:var(--text-faint); font-weight:600; }
+.factor-x{ font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,6vw,2.2rem); color:var(--brass); flex-shrink:0; }
+.setup-error{ margin-top:12px; padding:9px 14px; border-radius:10px; background:var(--error-bg); color:var(--error); font-weight:700; font-size:.9rem; display:none; }
+.setup-error.show{ display:block; }
+.mv-universo #screen-custom .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; }
+@media (min-width:900px) and (orientation:landscape){ .mv-universo .mv-home .home-title{ padding:0; } }
+
+.lattice-card[data-fase="diagonales"] .digit-box{ opacity:.4; transition:opacity .25s; }
+.lcell input.cell-input, .diag-box input, .factor-input{ -webkit-touch-callout:none; }
+.lcell input.cell-input::selection, .diag-box input::selection{ background:transparent; }
+.diag-row{ margin-top:calc(26px * var(--f,1)); }
+.result-eq{ font-size:clamp(1.6rem,6vw,2.4rem) !important; }
+
+.lattice-card[data-fase="diagonales"] .cell-num{ opacity:.38; transition:opacity .25s; }
+.lattice-card[data-fase="diagonales"] .cell-num.num-act{ opacity:1; }
+.tri.diag-dim{ opacity:.7 !important; }
+.tri.diag-active{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.55); }
+button, input{ -webkit-user-select:text; user-select:text; }
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+
+#vista .screen{ animation:none; }
+.mv-universo #screen-exercise .hint-box{ margin-bottom:calc(10px * var(--f,1)); }
+.mv-universo #screen-exercise .hint-box{ font-size:calc(.95rem * var(--f,1)); }
+body[data-pantalla="result"] #screen-exercise .hint-box{ display:none; }
+
+:root{
+  --color-primary:#38bdf8; --color-primary-dark:#7dd3fc; --color-secondary:#fbbf24; --color-success:#34d399;
+  --color-card:rgba(255,255,255,.07); --color-text:#f6f3ff; --color-text-light:#c9bdf0; --surface-soft:rgba(255,255,255,.05);
+  --shadow:0 14px 34px rgba(0,0,0,.4); --shadow-hover:0 20px 44px rgba(0,0,0,.5); --radius:20px; --radius-sm:12px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+
+        .error-msg {
+            background: rgba(251,113,133,.16);
+            color: #fb7185;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            animation: shake 0.4s ease;
+            font-size: 0.95rem;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .success-msg {
+            background: rgba(52,211,153,.16);
+            color: #34d399;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 36px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            color: #062339;
+            background: var(--color-primary);
+            box-shadow: 0 3px 12px rgba(56, 189, 248, 0.35);
+        }
+
+        .btn:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            color: #3b2405;
+            background: var(--color-secondary);
+            box-shadow: 0 3px 12px rgba(251, 191, 36, 0.35);
+        }
+
+        .btn-secondary:hover {
+            background: #f59e0b;
+        }
+        .topbar-division {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 2.6rem;
+            color: #fbbf24;
+        }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+
+.strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .strategy-card {
+            background: var(--color-card);
+            border: 2px solid var(--border-soft);
+            backdrop-filter: blur(6px);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .strategy-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .strategy-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--color-primary-dark);
+            margin-bottom: 3px;
+        }
+        .strategy-desc {
+            font-size: 0.74rem;
+            color: var(--color-text-light);
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           PANTALLA REPARTO (original)
+           ============================================ */
+        .zones-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .bags-area { width: 100%; }
+        .zone-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .objects-pool {
+            background:
+                radial-gradient(ellipse at 50% -10%, rgba(56,189,248,.28), transparent 60%),
+                linear-gradient(180deg, rgba(91,33,182,.28), rgba(56,189,248,.1));
+            border-radius: 26px;
+            padding: 18px 14px;
+            min-height: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+            justify-content: center;
+            border: 2px solid rgba(56,189,248,.5);
+            box-shadow: inset 0 2px 10px rgba(255,255,255,.12), inset 0 -10px 18px rgba(0,0,0,.25), 0 6px 16px rgba(0,0,0,.25);
+            transition: var(--transition);
+        }
+        .objects-pool.highlight {
+            background: rgba(56,189,248,.16);
+            border-color: var(--color-primary);
+        }
+        .marble {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffd1a9, #ff8f5b, #c2410c);
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2), 1px 3px 6px rgba(0,0,0,0.12);
+            cursor: grab;
+            position: relative;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            flex-shrink: 0;
+            z-index: 10;
+            touch-action: none;
+        }
+        .marble::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 8px;
+            height: 5px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+        .marble:hover {
+            transform: scale(1.12);
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2), 3px 6px 12px rgba(0,0,0,0.2);
+        }
+        .marble.dragging {
+            cursor: grabbing;
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            transform: scale(1.25);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+        .marble.dropped {
+            animation: dropIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes dropIn {
+            0% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        .marble.c1 { background: radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46); }
+        .marble.c2 { background: radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af); }
+        .marble.c3 { background: radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d); }
+        .marble.c4 { background: radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e); }
+        .marble.c5 { background: radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6); }
+        .marble.c6 { background: radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b); }
+
+        .bags-container {
+            display: grid;
+            grid-template-columns: repeat(5, auto);
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .bags-container { grid-template-columns: repeat(5, auto); gap: 6px; }
+        }
+        .bag-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .bag {
+            width: 64px;
+            height: 64px;
+            position: relative;
+            transition: var(--transition);
+        }
+        .bag.highlight { transform: scale(1.06); }
+        .box-square {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            box-shadow: inset 0 -8px 12px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.2), 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .bag-content {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 1px;
+            padding: 2px 1px;
+            overflow: hidden;
+        }
+        .bag-content .marble {
+            width: 14px;
+            height: 14px;
+            cursor: default;
+            pointer-events: none;
+        }
+        .bag-content .marble:hover { transform: none; }
+        .bag-count {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(91, 140, 255, 0.25);
+            cursor: pointer;
+            transition: transform .12s ease;
+        }
+        .bag-count:hover { transform: scale(1.1); }
+        .bag-count:active { transform: scale(0.92); }
+        .status-area {
+            background: rgba(251,191,36,.14);
+            border: 2px solid #fbbf24;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+        #repartoStatus {
+            white-space: normal;
+        }
+        .status-area.ok {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+
+        /* ============================================
+           PANEL MATEMÁTICO
+           ============================================ */
+        .math-panel {
+            display: none;
+            background: rgba(56,189,248,.1);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 20px;
+            animation: slideUp 0.5s ease;
+        }
+        .math-panel.show { display: block; }
+        .math-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            margin-bottom: 14px;
+        }
+        .math-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .math-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .math-box {
+            width: 64px;
+            height: 54px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 10px;
+            background: var(--surface-soft);
+            color: var(--color-text);
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .math-box.filled {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .math-box.input-box {
+            cursor: text;
+            outline: none;
+            padding: 0;
+            font-family: inherit;
+        }
+        .math-box.input-box:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .math-box.input-box.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .math-box.input-box.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+            animation: shake 0.4s ease;
+        }
+        .math-symbol {
+            color: var(--color-primary);
+            font-size: 1.6rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .math-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 2px;
+        }
+        .math-label-question {
+            text-transform: none;
+            font-weight: 600;
+            max-width: 130px;
+            line-height: 1.25;
+        }
+        .math-division-title {
+            text-align: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(1.8rem, 6vw, 2.4rem);
+            color: #fbbf24;
+            margin-bottom: 16px;
+        }
+        .math-sentence {
+            text-align: center;
+            font-size: clamp(0.85rem, 4.2vw, 1.15rem);
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+        .math-inline-input {
+            width: clamp(38px, 12vw, 64px);
+            text-align: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(0.9rem, 4.5vw, 1.3rem);
+            border: 2.5px solid var(--border-soft);
+            border-radius: 10px;
+            padding: 6px 4px;
+            color: var(--color-text);
+            background: var(--surface-soft);
+            margin: 0 4px;
+            outline: none;
+        }
+        .math-inline-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(56,189,248,0.25); }
+        .math-inline-input.correct { border-color: var(--color-success); background: rgba(52,211,153,.16); color: #34d399; }
+        .math-inline-input:disabled { cursor: not-allowed; opacity: 0.9; }
+        .final-message {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 14px 0;
+            display: none;
+        }
+        .final-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        .final-message.correct { color: #34d399; }
+        .final-message.incorrect { color: #fb7185; }
+        .star-burst {
+            display: inline-block;
+            animation: starPop 0.6s ease infinite alternate;
+        }
+        @keyframes starPop {
+            from { transform: scale(1); }
+            to { transform: scale(1.25); }
+        }
+
+        /* ============================================
+           MODO AGRUPACIÓN
+           ============================================ */
+        .grouping-area {
+            background: var(--surface-soft);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            min-height: 220px;
+            position: relative;
+            border: 2px dashed var(--border-soft);
+            margin-bottom: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 4px;
+        }
+        .agrupacion-token {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            border: 2px solid #94a3b8;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15), 1px 3px 6px rgba(0,0,0,0.25);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #475569;
+            user-select: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+            margin: 4px;
+            position: relative;
+        }
+        .agrupacion-token::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 8px;
+            height: 5px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+        .agrupacion-token:hover { transform: scale(1.12); }
+        .agrupacion-token.selected {
+            transform: scale(1.18);
+            box-shadow: 0 0 0 3px var(--color-primary), inset -2px -2px 6px rgba(0,0,0,0.15), 2px 4px 10px rgba(0,0,0,0.2);
+        }
+        .agrupacion-token.grouped {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+        }
+        .agrupacion-groups-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .agrupacion-leftover-wrap {
+            flex-basis: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            margin: 6px;
+        }
+        .agrupacion-group {
+            display: inline-grid;
+            grid-template-rows: repeat(var(--rows, 1), auto);
+            grid-auto-flow: column;
+            gap: 4px;
+            align-items: center;
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            margin: 6px;
+            animation: groupIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes groupIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .agrupacion-group .agrupacion-token {
+            margin: 0;
+            cursor: default;
+            transform: none !important;
+        }
+        .agrupacion-group .agrupacion-token:hover { transform: none !important; }
+        .agrupacion-group-count {
+            grid-row: 1 / -1;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            margin-left: 6px;
+            padding-left: 8px;
+            border-left: 2px solid var(--border-soft);
+        }
+
+        .grouping-btn-area {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        /* ============================================
+           MODO TABLAS
+           ============================================ */
+        .table-wrapper {
+            margin-bottom: 16px;
+        }
+        .mult-table {
+            width: 100%;
+        }
+        .mult-table .tablas-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 6px;
+            align-items: stretch;
+        }
+        .mult-table .tablas-label {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 10px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+        .mult-table .tablas-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            padding: 8px 4px;
+            min-width: 56px;
+            flex: 0 1 56px;
+            max-width: 80px;
+        }
+        .mult-table .tablas-cell .tablas-header {
+            background: var(--color-primary);
+            color: #062339;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .table-cell {
+            background: var(--surface-soft);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            padding: 10px 4px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .table-cell .guide-text {
+            color: var(--color-text-light);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .table-cell input {
+            width: 64px;
+            height: 44px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            outline: none;
+            font-family: var(--font-display);
+            color: var(--color-text);
+        }
+        .table-cell input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .table-cell input.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .table-cell input.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+        }
+        .table-cell input.x-mark {
+            background: rgba(251,191,36,.16);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        .table-cell.locked {
+            background: rgba(255,255,255,.03);
+        }
+        .tablas-input {
+            width: 56px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            outline: none;
+            font-family: var(--font-display);
+            color: var(--color-text);
+        }
+        .tablas-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+        }
+        .tablas-input.correct {
+            background: rgba(52,211,153,.16);
+            border-color: var(--color-success);
+            color: #34d399;
+        }
+        .tablas-input.incorrect {
+            background: rgba(251,113,133,.16);
+            border-color: #fb7185;
+            color: #fb7185;
+        }
+        .tablas-input.x-mark {
+            background: rgba(251,191,36,.16);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        @media (max-width: 640px) {
+            .mult-table .tablas-cell {
+                padding: 6px 2px;
+                min-width: 40px;
+                flex: 0 1 40px;
+            }
+            .mult-table .tablas-cell .tablas-header {
+                padding: 3px 4px;
+                font-size: 0.75rem;
+            }
+            .mult-table .tablas-label {
+                padding: 6px 4px;
+                font-size: 0.8rem;
+                min-width: 40px;
+            }
+            .tablas-input {
+                width: 36px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+        }
+        /* ============================================
+           PANTALLA COMPARAR
+           ============================================ */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare-card {
+            background: var(--color-card);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+        }
+        .compare-card.completed {
+            border-color: var(--color-success);
+            background: rgba(52,211,153,.12);
+        }
+        .compare-card.available {
+            cursor: pointer;
+        }
+        .compare-card.available:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .compare-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .compare-check {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        .compare-pending {
+            font-size: 2.5rem;
+            color: var(--border-soft);
+            margin-bottom: 8px;
+        }
+
+        /* ============================================
+           PANTALLA COMPLETADO
+           ============================================ */
+        .complete-message {
+            text-align: center;
+            padding: 20px;
+        }
+        .complete-message h2 {
+            font-size: 1.8rem;
+            color: var(--color-primary-dark);
+            margin-bottom: 16px;
+        }
+        .complete-message p {
+            font-size: 1.1rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .complete-strategies {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .complete-strategy-item {
+            background: rgba(52,211,153,.14);
+            border: 1px solid var(--color-success);
+            color: #34d399;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+        }
+
+        /* ============================================
+           HISTORIAL
+           ============================================ */
+        /* ============================================
+           CELEBRACIÓN
+           ============================================ */
+        .table-choice-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,4,30,.6);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 1000;
+        }
+        .table-choice-overlay.hidden { display: none; }
+        .table-choice-card {
+            background: linear-gradient(160deg, #2c1468, #4c1d95);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,.5);
+            animation: groupIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .table-choice-question {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--color-text);
+            margin-bottom: 16px;
+        }
+        #tableChoiceInput { width: 90px; font-size: 1.6rem; }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+        .celebration.active { display: block; }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -20px;
+            animation: confettiFall 2.5s ease-out forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 640px) {
+
+            .bag { width: 46px; height: 46px; }
+            .bag-content { top: 6px; left: 6px; right: 6px; bottom: 6px; }
+            .bag-content .marble { width: 8px; height: 8px; box-shadow: none; }
+            .marble { width: 16px; height: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+            .marble::after { display: none; }
+            .math-box { width: 50px; height: 44px; font-size: 1.2rem; }
+            .math-symbol { font-size: 1.3rem; }
+            .strategy-grid { grid-template-columns: 1fr; }
+            .compare-grid { grid-template-columns: 1fr; }
+            .token { width: 32px; height: 32px; }
+            .grouping-area { min-height: 160px; }
+            .agrupacion-token { width: 18px; height: 18px; margin: 2px; box-shadow: none; }
+            .agrupacion-token::after { display: none; }
+            .agrupacion-group .agrupacion-token { width: 10px; height: 10px; }
+            .agrupacion-token.leftover-final { width: 10px; height: 10px; }
+            .agrupacion-group-count { font-size: 0.6rem; margin-left: 4px; padding-left: 5px; }
+        }
+        @media (min-width: 768px) {
+            .zones-wrapper { flex-direction: column; }
+            .objects-pool { min-height: 50px; }
+        }
+    /* Quitar las flechas nativas de subir/bajar en los inputs numéricos */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+input[type="number"]{ -moz-appearance:textfield; appearance:textfield; }
+
+/* REVISOR-AUTO */
+
+
+
+
+/* =========================================================
+   REPRESENTACIÓN DE DIVISIONES — capa Mathverse
+   ========================================================= */
+#vista{ --f:1; zoom:var(--fz,1); }
+#vista .screen{ display:none; min-height:0; padding:0; animation:none; }
+#vista .screen.active{ display:flex; flex-direction:column; align-items:center; }
+#vista .card{ max-width:960px; }
+.hidden{ display:none !important; }
+.app-topbar{ display:flex; justify-content:center; width:100%; margin-bottom:10px; }
+.app-topbar .icon-btn{ display:none; }
+.app-topbar .topbar-division, .problema-pill.topbar-division{
+  font-family:var(--font-display); font-weight:800; letter-spacing:.04em; font-size:clamp(1.4rem,4.4vw,1.9rem); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1.5px rgba(125,211,252,.55), 0 0 14px rgba(56,189,248,.25); border-radius:999px; padding:5px 22px; line-height:1.15;
+}
+.card > .problema-pill{ display:block; margin:0 auto 12px; width:max-content; }
+
+/* tarjetas de estrategia / comparación: anillo luminoso */
+.strategy-card, .compare-card{
+  border:3px solid transparent; border-radius:26px;
+  background:linear-gradient(160deg,rgba(18,10,52,.92),rgba(30,15,78,.9)) padding-box, linear-gradient(135deg,#22d3ee,#6366f1,#a855f7) border-box;
+  box-shadow:0 0 14px rgba(56,189,248,.28);
+}
+.strategy-card:hover, .compare-card.available:hover{ box-shadow:0 0 22px rgba(125,211,252,.55); border-color:transparent; }
+.strategy-title{ color:#fff; }
+.strategy-desc{ font-size:.82rem; }
+.compare-card.completed{
+  background:linear-gradient(160deg,rgba(8,40,36,.92),rgba(6,22,24,.94)) padding-box, linear-gradient(135deg,#6ee7b7,#059669) border-box;
+  box-shadow:0 0 14px rgba(52,211,153,.4);
+}
+.compare-card.disabled{ opacity:.85; }
+.compare-grid{ gap:12px; margin:12px 0; }
+.compare-card{ padding:10px 14px; }
+.compare-check, .compare-pending{ font-size:2rem; margin-bottom:4px; }
+.compare-pending{ color:rgba(196,181,253,.5); }
+
+/* zonas de juego */
+.objects-pool{ border-radius:26px; }
+.status-area{ border:none; border-radius:18px; box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.75); }
+.status-area.ok{ box-shadow:inset 0 0 0 1.5px var(--color-success); }
+.math-panel{ border:none; border-radius:24px; background:rgba(8,3,26,.45); box-shadow:inset 0 0 0 1.5px rgba(125,211,252,.35); }
+.math-inline-input, #tableChoiceInput{
+  background:rgba(8,3,26,.6); color:#fff; border:none; border-radius:12px;
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.5);
+}
+.math-inline-input:focus{ box-shadow:0 0 0 3px var(--accent), 0 0 14px rgba(251,191,36,.5); }
+.math-inline-input.correct, #tableChoiceInput.correct{ background:rgba(52,211,153,.16); box-shadow:inset 0 0 0 2.5px var(--color-success); color:#34d399; }
+.tablas-input, .table-cell input{ background:rgba(8,3,26,.6); border:none; box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); color:#fff; }
+.tablas-input:focus, .table-cell input:focus{ box-shadow:0 0 0 2.5px var(--accent), 0 0 12px rgba(251,191,36,.45); }
+.tablas-input.correct{ box-shadow:inset 0 0 0 2.5px var(--color-success); color:#34d399; background:rgba(52,211,153,.16); }
+.tablas-input.incorrect{ box-shadow:inset 0 0 0 2.5px #fb7185; color:#fb7185; background:rgba(251,113,133,.16); }
+.tablas-input.x-mark{ box-shadow:inset 0 0 0 2.5px #fbbf24; color:#fbbf24; background:rgba(251,191,36,.16); }
+.mult-table .tablas-cell{ border:none; box-shadow:inset 0 0 0 1.5px rgba(125,211,252,.3); border-radius:16px; }
+.mult-table .tablas-cell .tablas-header, .mult-table .tablas-label{ background:linear-gradient(180deg,#7dd3fc,#38bdf8); border-radius:12px; }
+.agrupacion-group{ border:none; box-shadow:inset 0 0 0 2px rgba(125,211,252,.4); }
+.grouping-area{ border:none; box-shadow:inset 0 0 0 2px rgba(196,181,253,.3); background:rgba(8,3,26,.35); border-radius:22px; }
+
+/* ventana de "¿Qué tabla?" */
+.table-choice-card{ background:linear-gradient(160deg,#2c1468,#3b1785); border:none; border-radius:28px; box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.4), 0 30px 60px rgba(0,0,0,.5); }
+.table-choice-card .math-division-title{ margin-bottom:6px; }
+
+/* formulario "Crea tu división" */
+.mv-universo #screen-manual .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+#error-welcome{ margin-top:12px; }
+
+/* resultado final */
+.mv-universo #screen-complete .card{ display:flex; flex-direction:column; align-items:center; }
+.mv-universo #screen-complete .complete-strategies{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:8px; margin:6px 0 10px; }
+.mv-universo #screen-complete .complete-strategy-item{ border:none; border-radius:999px; padding:7px 14px; font-size:.9rem; box-shadow:inset 0 0 0 1.5px rgba(52,211,153,.7); }
+.mv-universo #screen-complete .result-sub{ text-align:center; color:var(--text-dim); font-weight:700; margin:0 0 10px; }
+.btn-orbita.btn-fila{ margin:0 auto; }
+.grouping-btn-area, #tablasXBtnWrap, [id$="ContinueWrap"]{ display:flex; justify-content:center; }
+
+
+/* ===== Estilo planetario: esferas, planetas, órbitas ===== */
+.marble, .marble.c1, .marble.c2, .marble.c3, .marble.c4, .marble.c5, .marble.c6{
+  background:
+    radial-gradient(circle at 31% 26%, rgba(255,255,255,.95) 0 7%, rgba(255,255,255,0) 26%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,.42), rgba(0,0,0,0) 58%),
+    radial-gradient(circle at 50% 50%, var(--ma,#a7f3d0), var(--mb,#34d399) 62%, var(--mc,#065f46));
+  box-shadow: inset -2px -3px 6px rgba(0,0,0,.4), 0 3px 7px rgba(0,0,0,.4), 0 0 9px var(--mg, rgba(52,211,153,.5));
+}
+.marble::after{ display:none !important; }
+.marble.c1{ --ma:#d1fae5; --mb:#34d399; --mc:#065f46; --mg:rgba(52,211,153,.55); }
+.marble.c2{ --ma:#dbeafe; --mb:#60a5fa; --mc:#1e3a8a; --mg:rgba(96,165,250,.55); }
+.marble.c3{ --ma:#fce7f3; --mb:#f472b6; --mc:#831843; --mg:rgba(244,114,182,.55); }
+.marble.c4{ --ma:#fef3c7; --mb:#fbbf24; --mc:#78350f; --mg:rgba(251,191,36,.55); }
+.marble.c5{ --ma:#ede9fe; --mb:#a78bfa; --mc:#4c1d95; --mg:rgba(167,139,250,.55); }
+.marble.c6{ --ma:#fee2e2; --mb:#fb7185; --mc:#7f1d1d; --mg:rgba(251,113,133,.55); }
+.marble:hover{ box-shadow: inset -2px -3px 6px rgba(0,0,0,.4), 0 6px 12px rgba(0,0,0,.45), 0 0 14px var(--mg); }
+
+/* la bolsa/caja pasa a ser un planeta con anillo orbital */
+.bag{ overflow:visible; }
+.box-square{
+  border-radius:50% !important;
+  background-image:
+    radial-gradient(circle at 31% 25%, rgba(255,255,255,.75), rgba(255,255,255,0) 34%),
+    radial-gradient(circle at 72% 82%, rgba(0,0,0,.5), rgba(0,0,0,0) 62%) !important;
+  box-shadow: inset -7px -9px 16px rgba(0,0,0,.38), inset 3px 3px 8px rgba(255,255,255,.25), 0 6px 14px rgba(0,0,0,.4), 0 0 18px rgba(125,211,252,.35) !important;
+}
+.bag::after{
+  content:""; position:absolute; left:-16%; right:-16%; top:40%; height:22%; border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.55); border-bottom-color:rgba(255,255,255,.15); transform:rotate(-16deg); pointer-events:none; z-index:1;
+  box-shadow:0 0 10px rgba(196,181,253,.4);
+}
+.bag-content{ top:16% !important; left:16% !important; right:16% !important; bottom:16% !important; border-radius:50%; align-content:center; }
+.bag-count{
+  background:linear-gradient(180deg,#7dd3fc,#38bdf8); color:#04263a; border-radius:999px; font-weight:800;
+  box-shadow:0 0 10px rgba(56,189,248,.5), inset 0 -2px 4px rgba(0,0,0,.2);
+}
+.objects-pool{
+  background:
+    radial-gradient(1.5px 1.5px at 12% 30%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 78% 22%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 40% 78%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(ellipse at 50% -10%, rgba(56,189,248,.28), transparent 60%),
+    linear-gradient(180deg, rgba(91,33,182,.3), rgba(56,189,248,.1));
+  box-shadow: inset 0 2px 10px rgba(255,255,255,.1), inset 0 -10px 18px rgba(0,0,0,.25), 0 0 16px rgba(56,189,248,.3);
+}
+
+/* agrupación: perlas luminosas y órbitas */
+.agrupacion-token{
+  background:
+    radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,.4), rgba(0,0,0,0) 58%),
+    radial-gradient(circle at 50% 50%, #e0f2fe, #38bdf8 64%, #0c4a6e);
+  border:none; color:#04263a;
+  box-shadow: inset -2px -3px 6px rgba(0,0,0,.38), 0 3px 7px rgba(0,0,0,.4), 0 0 9px rgba(56,189,248,.5);
+}
+.agrupacion-token::after{ display:none !important; }
+.agrupacion-token.selected{
+  background:
+    radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,.4), rgba(0,0,0,0) 58%),
+    radial-gradient(circle at 50% 50%, #fef3c7, #fbbf24 62%, #78350f);
+  box-shadow: 0 0 0 2.5px rgba(251,191,36,.9), 0 0 16px rgba(251,191,36,.8), inset -2px -3px 6px rgba(0,0,0,.35);
+}
+.agrupacion-group{
+  border:3px solid transparent; border-radius:999px; padding:8px 16px;
+  background:linear-gradient(160deg,rgba(18,10,52,.9),rgba(30,15,78,.88)) padding-box, linear-gradient(135deg,#22d3ee,#6366f1,#a855f7) border-box;
+  box-shadow:0 0 14px rgba(56,189,248,.35);
+}
+.agrupacion-group-count{ border-left-color:rgba(125,211,252,.4); color:#7dd3fc; }
+
+/* tablas: medallón del divisor y casillas tipo píldora */
+.mult-table .tablas-label{
+  border-radius:50%; aspect-ratio:1; min-width:54px; font-size:1.15rem; font-weight:800; color:#fff;
+  background:radial-gradient(circle at 35% 28%,#4a25a8,#150a3d); box-shadow:0 0 0 3px #fbbf24, 0 0 16px rgba(251,191,36,.5);
+  align-self:center;
+}
+.mult-table .tablas-cell{
+  border:3px solid transparent; border-radius:26px;
+  background:linear-gradient(180deg,rgba(22,13,64,.92),rgba(9,5,32,.96)) padding-box, linear-gradient(180deg,#38bdf8,#6366f1) border-box;
+  box-shadow:0 0 8px rgba(56,189,248,.28);
+}
+.mult-table .tablas-cell .tablas-header{ border-radius:50%; width:26px; height:26px; padding:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 35% 28%,#bae6fd,#38bdf8 70%,#0369a1); color:#04263a; font-weight:800; }
+.mult-table .tablas-cell:has(.tablas-input.correct){ background:linear-gradient(180deg,rgba(8,40,36,.92),rgba(6,22,24,.96)) padding-box, linear-gradient(180deg,#6ee7b7,#059669) border-box; box-shadow:0 0 12px rgba(52,211,153,.5); }
+.tablas-input{ background:transparent !important; box-shadow:none !important; }
+.tablas-input.correct{ color:#6ee7b7; } .tablas-input.incorrect{ color:#fb7185; } .tablas-input.x-mark{ color:#fbbf24; }
+@media (min-width:768px){
+  .mult-table .tablas-cell{ flex:0 1 84px; max-width:96px; min-width:72px; padding:10px 6px; }
+  .tablas-input{ width:72px; height:46px; font-size:1.5rem; }
+  .mult-table .tablas-label{ min-width:72px; font-size:1.5rem; }
+  .mult-table .tablas-row{ justify-content:center; gap:10px; }
+}
+
+/* tarjetas de estrategia con ícono */
+.strategy-ico{ display:block; margin:0 auto 4px; width:44px; height:44px; filter:drop-shadow(0 0 8px rgba(125,211,252,.55)); }
+.strategy-card{ display:flex; flex-direction:column; align-items:center; }
+
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; min-height:2.4em; display:flex; align-items:center; justify-content:center; }
+
+/* ===================== REDISEÑO RADICAL ===================== */
+/* tipografía y textos: degradados con brillo, nada de cajas rectangulares */
+.mv-pregunta{
+  font-family:var(--font-display); font-weight:800; text-align:center; font-size:clamp(1.25rem,5vw,1.9rem); line-height:1.1; margin:2px 0 4px; letter-spacing:.01em;
+  background:linear-gradient(180deg,#fff,#c4b5fd); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 8px rgba(124,58,237,.6));
+}
+.mv-estrategias{ display:flex; flex-direction:column; align-items:center; }
+.mv-estrategias .mv-niveles{ margin-top:4px; }
+.mv-estrategias .problema-pill{ margin-bottom:6px; }
+.status-area{
+  background:rgba(8,3,26,.5); border:none; border-radius:999px; padding:9px 20px; font-family:var(--font-display); font-weight:700; font-size:1rem; letter-spacing:.01em;
+  color:#fde68a; box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.65), 0 0 14px rgba(251,191,36,.18); text-shadow:0 0 10px rgba(251,191,36,.45);
+}
+.status-area.ok{ color:#a7f3d0; box-shadow:inset 0 0 0 1.5px rgba(52,211,153,.8), 0 0 14px rgba(52,211,153,.25); text-shadow:0 0 10px rgba(52,211,153,.45); }
+.zone-label{ font-family:var(--font-display); letter-spacing:.14em; color:#7dd3fc; text-align:center; text-shadow:0 0 10px rgba(56,189,248,.5); }
+.error-msg, .success-msg{ border-radius:999px; font-family:var(--font-display); font-weight:700; }
+
+/* panel de preguntas: órbita con anillo y medallones para responder */
+.math-panel{
+  border:3px solid transparent; border-radius:42px;
+  background:linear-gradient(160deg,rgba(14,8,40,.94),rgba(26,13,70,.9)) padding-box, conic-gradient(from 210deg,#22d3ee,#3b82f6,#8b5cf6,#38bdf8,#22d3ee) border-box;
+  box-shadow:0 0 16px rgba(56,189,248,.3), inset 0 0 22px rgba(56,189,248,.08); box-shadow:0 0 16px rgba(56,189,248,.3);
+}
+.math-division-title{
+  background:linear-gradient(180deg,#fff3b0,#fbbf24); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(251,191,36,.45)); letter-spacing:.03em;
+}
+.math-sentence{ font-family:var(--font-display); font-weight:700; letter-spacing:.01em; text-shadow:0 2px 8px rgba(0,0,0,.4); }
+.math-inline-input, #tableChoiceInput{
+  width:clamp(50px,15vw,70px); aspect-ratio:1; padding:0; border-radius:50%; font-size:clamp(1.1rem,5vw,1.6rem); font-weight:800; color:#fff;
+  background:radial-gradient(circle at 35% 28%,#3a1d8f,#150a3d); box-shadow:0 0 0 3px rgba(251,191,36,.85), 0 0 14px rgba(251,191,36,.35); vertical-align:middle;
+}
+.math-inline-input:focus{ box-shadow:0 0 0 3px #fde68a, 0 0 22px rgba(251,191,36,.75); }
+.math-inline-input.correct, #tableChoiceInput.correct{ background:radial-gradient(circle at 35% 28%,#065f46,#022c22); box-shadow:0 0 0 3px #34d399, 0 0 18px rgba(52,211,153,.6); color:#a7f3d0; }
+.math-inline-input:disabled{ opacity:1; }
+.final-message{ font-family:var(--font-display); letter-spacing:.01em; }
+.table-choice-card .math-division-title{ font-size:clamp(2rem,9vw,2.8rem); }
+.table-choice-question{ font-family:var(--font-display); font-size:1.15rem; }
+
+/* reparto: planetas con orbes de 5 y 10, bien distribuidos */
+.bags-container{ grid-template-columns:repeat(var(--cols,5), auto) !important; gap:14px 20px !important; justify-content:center; padding:4px 0 2px; }
+.bag{ width:var(--bagS,80px) !important; height:var(--bagS,80px) !important; }
+.bag-wrapper{ margin:0 calc(var(--bagS,80px) * .12); gap:8px; }
+.bag-content{ visibility:hidden; pointer-events:none; }
+.bag-viz{
+  position:absolute; inset:17%; z-index:2; display:flex; flex-wrap:wrap; align-content:center; justify-content:center; align-items:center;
+  gap:calc(var(--bagS,80px) * .025); pointer-events:none;
+}
+.vz{ display:flex; align-items:center; justify-content:center; border-radius:50%; font-family:var(--font-display); font-weight:800; color:#fff; flex:0 0 auto; animation:vzIn .35s cubic-bezier(.34,1.56,.64,1); }
+.vz.v1{ width:calc(var(--bagS,80px) * .13); height:calc(var(--bagS,80px) * .13); box-shadow:inset -1px -2px 3px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.4); }
+.vz.v5{ width:calc(var(--bagS,80px) * .21); height:calc(var(--bagS,80px) * .21); font-size:calc(var(--bagS,80px) * .12);
+  background:radial-gradient(circle at 31% 26%, rgba(255,255,255,.9) 0 6%, rgba(255,255,255,0) 24%), radial-gradient(circle at 70% 80%, rgba(0,0,0,.4), rgba(0,0,0,0) 58%), radial-gradient(circle, #fde68a, #f59e0b 65%, #78350f);
+  box-shadow:inset -2px -3px 5px rgba(0,0,0,.4), 0 3px 6px rgba(0,0,0,.45), 0 0 10px rgba(251,191,36,.6); text-shadow:0 1px 3px rgba(0,0,0,.6); }
+.vz.v10{ width:calc(var(--bagS,80px) * .3); height:calc(var(--bagS,80px) * .3); font-size:calc(var(--bagS,80px) * .15);
+  background:radial-gradient(circle at 31% 26%, rgba(255,255,255,.9) 0 6%, rgba(255,255,255,0) 24%), radial-gradient(circle at 70% 80%, rgba(0,0,0,.45), rgba(0,0,0,0) 58%), radial-gradient(circle, #ddd6fe, #8b5cf6 62%, #3b0764);
+  box-shadow:inset -2px -4px 7px rgba(0,0,0,.45), 0 4px 8px rgba(0,0,0,.5), 0 0 14px rgba(167,139,250,.75); text-shadow:0 1px 4px rgba(0,0,0,.6); }
+.vz.k1{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #d1fae5, #34d399 62%, #064e3b); }
+.vz.k2{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #dbeafe, #60a5fa 62%, #1e3a8a); }
+.vz.k3{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #fce7f3, #f472b6 62%, #831843); }
+.vz.k4{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #fef3c7, #fbbf24 62%, #78350f); }
+.vz.k5{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #ede9fe, #a78bfa 62%, #4c1d95); }
+.vz.k6{ background:radial-gradient(circle at 31% 26%, #fff 0 8%, rgba(255,255,255,0) 28%), radial-gradient(circle, #fee2e2, #fb7185 62%, #7f1d1d); }
+@keyframes vzIn{ from{ transform:scale(.2); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.bag.bump{ animation:bagBump .3s ease; }
+@keyframes bagBump{ 50%{ transform:scale(1.08); } }
+.bag-count{ font-family:var(--font-display); font-size:.95rem; padding:3px 14px; }
+
+/* agrupación: contador y grupos como órbitas con medallón G1, G2... */
+.grouping-btn-area{ display:flex; align-items:center; justify-content:center; gap:14px; }
+.agr-contador{
+  display:inline-flex; align-items:baseline; gap:4px; padding:6px 16px; border-radius:999px; font-family:var(--font-display); font-weight:800; color:#fde68a;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 2px rgba(251,191,36,.7), 0 0 12px rgba(251,191,36,.25);
+}
+.agr-contador b{ font-size:1.5rem; line-height:1; min-width:1.2ch; text-align:center; }
+.agr-contador span{ opacity:.6; }
+.agr-contador.lleno{ color:#a7f3d0; box-shadow:inset 0 0 0 2px #34d399, 0 0 16px rgba(52,211,153,.55); }
+.agr-contador.pasado{ color:#fda4af; box-shadow:inset 0 0 0 2px #fb7185, 0 0 14px rgba(251,113,133,.5); }
+.agrupacion-group{
+  --gc:#38bdf8; position:relative; display:inline-grid !important; grid-auto-flow:row !important; grid-template-columns:auto repeat(var(--gcols,5), auto) !important; grid-template-rows:repeat(var(--grows,1), auto) !important; align-items:center; gap:5px 6px; padding:10px 18px 10px 12px; margin:6px;
+  border:3px solid transparent; border-radius:42px;
+  background:linear-gradient(160deg,rgba(14,8,40,.94),rgba(26,13,70,.9)) padding-box, linear-gradient(135deg,var(--gc),#6366f1) border-box !important;
+  box-shadow:0 0 14px color-mix(in srgb, var(--gc) 45%, transparent);
+}
+.agrupacion-group::before{ content:none; }
+.agrupacion-group .agrupacion-token{ display:inline-block; margin:0; width:clamp(14px,4.2vw,22px) !important; height:clamp(14px,4.2vw,22px) !important; }
+.agrupacion-group-count{
+  grid-column:1; grid-row:1 / span var(--grows,1); margin-right:6px; align-self:center; display:flex; align-items:center; justify-content:center; width:2.6em; height:2.6em; border-radius:50%; margin:0; padding:0; border:none;
+  font-family:var(--font-display); font-weight:800; font-size:.95rem; color:#fff; grid-row:auto;
+  background:radial-gradient(circle at 35% 28%,#4a25a8,#150a3d); box-shadow:0 0 0 2.5px var(--gc), 0 0 12px color-mix(in srgb, var(--gc) 60%, transparent);
+}
+.agrupacion-groups-row{ gap:2px; }
+.agrupacion-leftover-wrap{ border-radius:999px; background:rgba(8,3,26,.35); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.35); }
+
+/* tablas: medallón del divisor + 2 filas de píldoras (igual que Divisiones) */
+.table-wrapper{ margin-bottom:10px; }
+.mult-table .tablas-row{
+  display:grid !important; grid-template-columns:auto repeat(5, minmax(0,1fr)); grid-template-rows:repeat(var(--rowsN,2), auto); gap:8px 6px; align-items:stretch; margin:0;
+  padding:10px 12px 10px 10px; border-radius:46px;
+  border:3px solid transparent;
+  background:linear-gradient(160deg,rgba(14,8,40,.94),rgba(26,13,70,.9)) padding-box, conic-gradient(from 210deg,#22d3ee,#3b82f6,#8b5cf6,#38bdf8,#22d3ee) border-box;
+  box-shadow:0 0 16px rgba(56,189,248,.3);
+}
+.mult-table .tablas-label{
+  grid-column:1; grid-row:1 / span var(--rowsN,2); align-self:center; justify-self:center;
+  width:calc(clamp(60px,20vw,112px) * 1); aspect-ratio:1; padding:0; min-width:0; margin:0 6px 0 2px; border-radius:50%;
+  font-family:var(--font-display); font-weight:800; line-height:1; color:#fbbf24; font-size:clamp(2.2rem,9vw,4rem); text-shadow:0 0 18px rgba(251,191,36,.6), 0 3px 0 rgba(146,64,14,.6);
+  background:radial-gradient(circle at 35% 28%,#4a25a8,#150a3d) padding-box, conic-gradient(from 20deg,#fde68a,#f59e0b,#fff3b0,#f59e0b,#fde68a) border-box; border:3px solid transparent;
+  box-shadow:0 0 22px rgba(251,191,36,.5), inset 0 0 18px rgba(0,0,0,.55);
+}
+.mult-table .tablas-label.l2{ font-size:clamp(1.7rem,7vw,3rem); }
+.mult-table .tablas-label.l3{ font-size:clamp(1.3rem,5.2vw,2.2rem); }
+.mult-table .tablas-cell{
+  flex:none; max-width:none; min-width:0; width:auto; justify-content:center; gap:0; padding:6px 1px 7px; min-height:clamp(54px,12vw,78px);
+  border:2px solid transparent !important; border-radius:999px !important;
+  background:linear-gradient(180deg,rgba(22,13,64,.92),rgba(9,5,32,.96)) padding-box, linear-gradient(180deg,#38bdf8,#6366f1) border-box !important;
+  box-shadow:0 0 8px rgba(56,189,248,.28) !important;
+}
+.mult-table .tablas-cell .tablas-header{
+  background:none !important; width:auto; height:auto; padding:0; border-radius:0; display:block; text-align:center;
+  font-family:var(--font-display); font-weight:700; font-size:clamp(.7rem,2.5vw,.95rem); color:#7dd3fc;
+}
+.tablas-input{ width:100% !important; max-width:none; height:auto !important; padding:0; border-radius:0; font-size:clamp(1.05rem,4.8vw,1.8rem) !important; line-height:1.15; }
+.mult-table .tablas-cell:has(.tablas-input.correct){ background:linear-gradient(180deg,rgba(8,40,36,.92),rgba(6,22,24,.96)) padding-box, linear-gradient(180deg,#6ee7b7,#059669) border-box !important; box-shadow:0 0 12px rgba(52,211,153,.5) !important; }
+.mult-table .tablas-cell:has(.tablas-input.incorrect){ box-shadow:0 0 14px rgba(251,113,133,.7) !important; }
+.mult-table .tablas-cell:has(.tablas-input:focus){ background:linear-gradient(180deg,rgba(40,24,70,.95),rgba(14,8,36,.96)) padding-box, linear-gradient(180deg,#fde68a,#f59e0b) border-box !important; box-shadow:0 0 16px rgba(251,191,36,.65) !important; }
+@media (min-width:768px){
+  .mult-table .tablas-cell{ flex:none; max-width:none; min-width:0; padding:10px 4px; }
+  .tablas-input{ width:100% !important; height:auto !important; font-size:1.7rem !important; }
+  .mult-table .tablas-label{ min-width:0; font-size:4rem; }
+  .mult-table .tablas-row{ justify-content:initial; gap:10px 8px; }
+}
+
+/* planetas de comparación: el que ya está hecho se marca con un check */
+.mv-estrategias .level-btn.mv-nivel{ cursor:pointer; }
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n1{ --x:5; --y:48; --w:40; }
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n2{ --x:55; --y:48; --w:40; }
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n3{ --x:30; --y:2; --w:40; }
+@media (min-width:700px){
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n1{ --x:14; --y:16; --w:24; }
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n2{ --x:38; --y:16; --w:24; }
+.mv-universo .mv-estrategias .mv-niveles .level-btn.mv-nivel.n3{ --x:62; --y:16; --w:24; }
+}
+.mv-estrategias .level-btn.mv-nivel.completed{ filter:saturate(.75) brightness(.92); cursor:default; }
+.compare-pending{ display:none !important; }
+.mv-estrategias .compare-check{
+  position:absolute; top:6%; right:4%; z-index:5; margin:0; width:clamp(34px,13cqw,56px); aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  border-radius:50%; background:radial-gradient(circle at 35% 28%,#34d399,#047857); box-shadow:0 0 0 3px #a7f3d0, 0 0 18px rgba(52,211,153,.8); font-size:0;
+}
+.mv-estrategias .compare-check::after{ content:""; width:42%; height:22%; border-left:4px solid #fff; border-bottom:4px solid #fff; transform:rotate(-45deg) translate(6%,-8%); border-radius:2px; }
+
+/* ===================== ESCENARIO ÚNICO: nada vive en su cajita ===================== */
+.objects-pool, .agrupacion-leftover-wrap{ background:none !important; border:none !important; box-shadow:none !important; border-radius:0 !important; }
+.status-area{ background:none !important; box-shadow:none !important; border:none !important; border-radius:0 !important; padding:4px 8px !important; text-align:center; font-size:1.08rem; }
+.math-panel{
+  background:none !important; border:none !important; box-shadow:none !important; border-radius:0 !important; position:relative; padding-top:18px !important;
+}
+.math-panel::before{
+  content:""; position:absolute; top:0; left:6%; right:6%; height:2px; border-radius:2px;
+  background:linear-gradient(90deg,transparent,rgba(125,211,252,.7),rgba(167,139,250,.7),transparent);
+}
+.status-area::after{ content:none; }
+.zone-label{ position:relative; display:flex; align-items:center; gap:10px; justify-content:center; }
+.zone-label::before, .zone-label::after{ content:""; flex:1 1 0; max-width:90px; height:1.5px; background:linear-gradient(90deg,transparent,rgba(125,211,252,.55)); }
+.zone-label::after{ transform:scaleX(-1); }
+
+/* respuestas: cuadro contorneado con brillo */
+.math-inline-input, #tableChoiceInput{
+  width:clamp(58px,17vw,76px) !important; height:clamp(46px,12vw,56px); aspect-ratio:auto !important; border-radius:16px !important; border:none !important; padding:0 !important;
+  background:rgba(12,6,40,.7) !important; box-shadow:inset 0 0 0 2.5px #fbbf24, 0 0 14px rgba(251,191,36,.4) !important; filter:none;
+  font-size:clamp(1.4rem,6vw,1.9rem) !important; font-weight:800; color:#fff; text-align:center; text-shadow:0 0 10px rgba(251,191,36,.45);
+}
+.math-inline-input::placeholder{ color:rgba(253,230,138,.4); }
+.math-inline-input:focus, #tableChoiceInput:focus{ box-shadow:inset 0 0 0 2.5px #fff3b0, 0 0 20px rgba(251,191,36,.75) !important; outline:none; filter:none; }
+.math-inline-input.correct, #tableChoiceInput.correct{ background:rgba(6,50,40,.75) !important; box-shadow:inset 0 0 0 2.5px #34d399, 0 0 16px rgba(52,211,153,.55) !important; color:#a7f3d0; text-shadow:0 0 10px rgba(52,211,153,.6); filter:none; }
+.math-inline-input.incorrect{ box-shadow:inset 0 0 0 2.5px #fb7185, 0 0 14px rgba(251,113,133,.5) !important; color:#fecdd3; }
+.math-panel .math-division-title{ display:none !important; }
+
+/* contador de agrupar: texto luminoso, sin píldora */
+.agr-contador{ background:none !important; box-shadow:none !important; border-radius:0 !important; padding:0 6px; text-shadow:0 0 16px rgba(251,191,36,.6); }
+.agr-contador b{ font-size:2.1rem; }
+.agr-contador.lleno{ text-shadow:0 0 16px rgba(52,211,153,.7); }
+.agr-contador.pasado{ text-shadow:0 0 16px rgba(251,113,133,.7); }
+
+.grouping-area, .agrupacion-groups-row{ background:none !important; border:none !important; box-shadow:none !important; border-radius:0 !important; }
+/* grupos: la cápsula se queda, pero la etiqueta cuelga del borde y no ocupa espacio */
+.agrupacion-group{
+  display:inline-grid !important; grid-template-columns:repeat(var(--gcols,5), auto) !important; grid-template-rows:none !important; grid-auto-rows:auto; justify-items:center; justify-content:center;
+  gap:6px 7px !important; padding:18px 16px 12px !important; margin:14px 6px 6px !important; border-radius:30px !important;
+}
+.agrupacion-group-count{
+  position:absolute !important; top:-13px; left:50%; transform:translateX(-50%); grid-column:auto !important; grid-row:auto !important;
+  width:auto !important; height:auto !important; min-width:2.6em; padding:2px 12px !important; border-radius:999px !important; font-size:.82rem !important; line-height:1.4;
+  background:var(--gc) !important; color:#0d0630 !important; box-shadow:0 0 12px color-mix(in srgb, var(--gc) 70%, transparent) !important; text-shadow:none;
+}
+
+
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="st3d" viewBox="-11 -11 22 22" overflow="visible"><polygon points="0.00,-10.00 2.53,-3.48 9.51,-3.09 4.09,1.33 5.88,8.09 0.00,4.30 -5.88,8.09 -4.09,1.33 -9.51,-3.09 -2.53,-3.48" fill="#92400e" stroke="#92400e" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0,0 -2.53,-3.48 0.00,-10.00" fill="#fff6c2"/><polygon points="0,0 0.00,-10.00 2.53,-3.48" fill="#f59e0b"/><polygon points="0,0 2.53,-3.48 9.51,-3.09" fill="#fcd34d"/><polygon points="0,0 9.51,-3.09 4.09,1.33" fill="#b45309"/><polygon points="0,0 4.09,1.33 5.88,8.09" fill="#fcd34d"/><polygon points="0,0 5.88,8.09 0.00,4.30" fill="#b45309"/><polygon points="0,0 0.00,4.30 -5.88,8.09" fill="#fcd34d"/><polygon points="0,0 -5.88,8.09 -4.09,1.33" fill="#f59e0b"/><polygon points="0,0 -4.09,1.33 -9.51,-3.09" fill="#fff6c2"/><polygon points="0,0 -9.51,-3.09 -2.53,-3.48" fill="#f59e0b"/><ellipse cx="-2.6" cy="-3.6" rx="1.7" ry="1" fill="#fff" opacity=".85" transform="rotate(-30 -2.6 -3.6)"/></symbol>
+<linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1ecff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+<linearGradient id="gXp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+<linearGradient id="gInf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<radialGradient id="gCara" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></radialGradient>
+<filter id="fSombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="fIco" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.1" flood-color="#000" flood-opacity=".55"/></filter>
+</defs></svg>
+
+<div id="app">
+  <header class="app-header hidden" id="app-header">
+    <div class="side left">
+      <button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button>
+    </div>
+    <div class="mv-centro" id="mvChipHeader"></div>
+    <div class="brand">División</div>
+    <div class="side right">
+      <span class="icon-btn hidden" id="timer-pill" style="cursor:default; color:var(--accent); border-color:rgba(251,191,36,.4);"></span>
+      <span class="icon-btn hidden" id="contador-pill" style="cursor:default; color:var(--primary); border-color:rgba(52,211,153,.4);"></span>
+      <button class="icon-btn btn-orbita v-rosa" id="btn-reset" type="button" aria-label="Reiniciar"><span class="bola"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span></button>
+      <a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+    </div>
+  </header>
+  <main id="main"><div id="vista">
+    <div id="screen-welcome" class="screen">
+        <div class="card mv-home">
+    <a class="icon-btn btn-orbita v-azul mv-atras-home" data-atras href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+    <a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+    <h1 class="home-title" style="font-size:clamp(1.6rem,6.2vw,2.8rem)">División</h1>
+    <p id="indicadorOnline" class="hidden" style="text-align:center; margin:-10px 0 14px; font-size:.85rem; font-weight:800; color:var(--primary);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p>
+    <div class="mv-fila-chip" id="mvChipHome"></div>
+    <div class="mv-niveles level-grid">
+      <div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+      <button class="level-btn easy mv-nivel n1" data-level="easy" type="button" aria-label="Fácil, +1 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p1t" d="M 11 58 Q 50 72 89 58"/><path id="p1x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="39.5" y="21.5" width="21" height="21" transform="rotate(0.0 50.0 32.0)" filter="url(#fIco)"/><text class="sv-t" font-size="17.5"><textPath href="#p1t" startOffset="50%" text-anchor="middle">Fácil</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p1x" startOffset="50%" text-anchor="middle">+1 XP</textPath></text></svg></button>
+      <button class="level-btn mid mv-nivel n2" data-level="medium" type="button" aria-label="Intermedio, +3 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p2t" d="M 11 58 Q 50 72 89 58"/><path id="p2x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="29.3" y="20.9" width="21" height="21" transform="rotate(6.5 39.8 31.4)" filter="url(#fIco)"/><use href="#st3d" x="49.7" y="20.9" width="21" height="21" transform="rotate(-6.5 60.2 31.4)" filter="url(#fIco)"/><text class="sv-t" font-size="14.2"><textPath href="#p2t" startOffset="50%" text-anchor="middle">Intermedio</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p2x" startOffset="50%" text-anchor="middle">+3 XP</textPath></text></svg></button>
+      <button class="level-btn hard mv-nivel n3" data-level="hard" type="button" aria-label="Difícil, +5 XP por ejercicio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="p3t" d="M 11 58 Q 50 72 89 58"/><path id="p3x" d="M 25 77 Q 50 86 75 77"/></defs><use href="#st3d" x="21.5" y="19.7" width="21" height="21" transform="rotate(11.3 32.0 30.2)" filter="url(#fIco)"/><use href="#st3d" x="39.5" y="21.5" width="21" height="21" transform="rotate(0.0 50.0 32.0)" filter="url(#fIco)"/><use href="#st3d" x="57.5" y="19.7" width="21" height="21" transform="rotate(-11.3 68.0 30.2)" filter="url(#fIco)"/><text class="sv-t" font-size="17.5"><textPath href="#p3t" startOffset="50%" text-anchor="middle">Difícil</textPath></text><text class="sv-x" font-size="9.5"><textPath href="#p3x" startOffset="50%" text-anchor="middle">+5 XP</textPath></text></svg></button>
+    </div>
+    <button class="level-btn custom mv-crear btn-orbita v-oro" data-level="custom" type="button">
+      <span class="bola"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/></svg></span><span>Crea tu ejercicio</span>
+    </button></div>
+        <footer class="credits">División · Material interactivo para Educación Básica</footer>
+    </div>
+
+    <div id="screen-manual" class="screen">
+        <div class="card">
+            <h2 class="form-title">Crea tu división</h2>
+            <p class="form-sub">Escribe el dividendo y el divisor, y resuélvela de tres maneras.</p>
+            <div class="setup-box">
+                <label>Escribe el dividendo y el divisor</label>
+                <div class="factor-input-row">
+                    <input type="text" id="inputDividend" class="factor-input" inputmode="numeric" maxlength="3" placeholder="14" autocomplete="off">
+                    <span class="factor-x">÷</span>
+                    <input type="text" id="inputDivisor" class="factor-input" inputmode="numeric" maxlength="2" placeholder="3" autocomplete="off">
+                </div>
+                <div id="error-welcome" class="error-msg"></div>
+            </div>
+            <button type="button" class="primary-btn" onclick="onManualStart()">Comenzar →</button>
+        </div>
+    </div>
+
+    <div id="screen-strategy" class="screen">
+        <div class="card mv-estrategias">
+            <div class="problema-pill topbar-division" id="strategyBanner"></div>
+            <h2 class="mv-pregunta">¿Cómo quieres resolverla?</h2>
+            <div class="mv-niveles"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div><button class="level-btn mv-nivel n1" type="button" data-est="reparto" onclick="startStrategy('reparto')" aria-label="Reparto equitativo"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="se1t" d="M 11 58 Q 50 72 89 58"/><path id="se1x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><g stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".85" fill="none"><path d="M-2.5 -3 L-8.5 4"/><path d="M0 -3 L0 4"/><path d="M2.5 -3 L8.5 4"/></g><circle cx="0" cy="-8" r="5" fill="#fde68a"/><circle cx="-1.6" cy="-9.6" r="1.4" fill="#fff" opacity=".8"/><circle cx="-9" cy="9" r="3.8" fill="#fbcfe8"/><circle cx="0" cy="10" r="3.8" fill="#6ee7b7"/><circle cx="9" cy="9" r="3.8" fill="#7dd3fc"/></g><text class="sv-t" font-size="15.5"><textPath href="#se1t" startOffset="50%" text-anchor="middle">Reparto</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#se1x" startOffset="50%" text-anchor="middle">Equitativo</textPath></text></svg></button><button class="level-btn mv-nivel n2" type="button" data-est="agrupacion" onclick="startStrategy('agrupacion')" aria-label="Agrupación"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="se2t" d="M 11 58 Q 50 72 89 58"/><path id="se2x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><ellipse cx="0" cy="0" rx="13" ry="7.5" fill="none" stroke="#e0f2fe" stroke-width="2.2" transform="rotate(-14)"/><circle cx="-6.5" cy="0" r="3.4" fill="#7dd3fc"/><circle cx="0" cy="0" r="3.4" fill="#7dd3fc"/><circle cx="6.5" cy="0" r="3.4" fill="#7dd3fc"/></g><text class="sv-t" font-size="13.2"><textPath href="#se2t" startOffset="50%" text-anchor="middle">Agrupación</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#se2x" startOffset="50%" text-anchor="middle"></textPath></text></svg></button><button class="level-btn mv-nivel n3" type="button" data-est="tablas" onclick="startStrategy('tablas')" aria-label="Tablas"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="se3t" d="M 11 58 Q 50 72 89 58"/><path id="se3x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><g stroke-linecap="round" stroke-width="5.2" fill="none"><path d="M-8 -9 L8 9" stroke="#fde68a"/><path d="M8 -9 L-8 9" stroke="#fbcfe8"/></g></g><text class="sv-t" font-size="15.5"><textPath href="#se3t" startOffset="50%" text-anchor="middle">Tablas de</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#se3x" startOffset="50%" text-anchor="middle">Multiplicar</textPath></text></svg></button></div>
+        </div>
+    </div>
+
+    <div id="screen-reparto" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="repartoBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="repartoTopDivision"></div>
+        </div>
+        <div class="card">
+            <div class="zones-wrapper" id="repartoZones">
+                <div class="bags-area">
+                    <div id="repartoBags" class="bags-container"></div>
+                </div>
+                <div>
+                    <div class="zone-label" id="repartoObjectsLabel">Objetos sin repartir</div>
+                    <div id="repartoPool" class="objects-pool"></div>
+                </div>
+            </div>
+            <div id="repartoStatus" class="status-area">
+                Toca una caja para repartir o arrastra las fichas hacia ellas
+            </div>
+
+            <div id="repartoMathPanel" class="math-panel">
+                <div class="math-division-title" id="rpDivisionTitle"></div>
+                <div class="math-sentence">Hay <input type="text" id="rpMathQuotient" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas en cada caja</div>
+                <div class="math-sentence">Sobraron <input type="text" id="rpMathRemainder" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas</div>
+                <div id="rpMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="rpMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="rpMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="rpContinueWrap">
+                    <button class="btn-orbita v-verde btn-fila" type="button" onclick="goToCompare()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Continuar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-agrupacion" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="agrupacionBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="agTopDivision"></div>
+        </div>
+        <div class="card">
+            <div id="agrupacionGroupsRow" class="agrupacion-groups-row"></div>
+            <div id="agrupacionArea" class="grouping-area"></div>
+
+            <div class="grouping-btn-area" id="agruparBtnWrap"><div class="agr-contador" id="agrContador" title="Fichas pintadas"><b id="agrSel">0</b><span>/</span><b id="agrMeta">0</b></div>
+                <button class="btn-orbita v-azul btn-fila" id="agruparBtn" type="button" onclick="doAgrupar()"><span class="bola"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="4"/><circle cx="16" cy="12" r="4"/></svg></span><span>Agrupar</span></button>
+            </div>
+
+            <div id="agrupacionStatus" class="status-area">
+                Selecciona las fichas para formar grupos del mismo tamaño.
+            </div>
+
+            <div id="agrMathPanel" class="math-panel">
+                <div class="math-sentence">Pude formar <input type="text" id="agMathQuotient" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> grupos</div>
+                <div class="math-sentence">Quedaron <input type="text" id="agMathRemainder" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> fichas sin agrupar</div>
+                <div id="agMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="agMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="agMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="agContinueWrap">
+                    <button class="btn-orbita v-verde btn-fila" type="button" onclick="goToCompare()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Continuar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-tablas" class="screen">
+        <div class="app-topbar">
+            <button class="icon-btn" id="tablasBackBtn" onclick="goBack()">← Volver</button>
+            <div class="topbar-division" id="tablasTopDivision"></div>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <div class="mult-table" id="multTable">
+                    <div id="tablasBody"></div>
+                </div>
+            </div>
+
+            <div id="tablasStatus" class="status-area">
+                Escribe los productos de la tabla. Si superas el dividendo, toca el casillero y presiona el botón "✕ Marcar X".
+            </div>
+
+            <div style="text-align:center; margin-top:10px;" id="tablasXBtnWrap">
+                <button class="btn-orbita v-rosa btn-fila" type="button" id="tablasXBtn" onclick="markActiveTablasInputAsX()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Marcar X</span></button>
+            </div>
+
+            <div id="tabMathQuestions" class="math-panel">
+                <div class="math-sentence">Pude avanzar <input type="text" id="tabQ1" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> veces</div>
+                <div class="math-sentence">Me faltaron <input type="text" id="tabQ2" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?"> para llegar a <span id="tabDividendTarget"></span></div>
+                <div id="tabMathError" class="error-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="tabMathSuccess" class="success-msg" style="margin-top:12px; margin-bottom:0;"></div>
+                <div id="tabMathFinal" class="final-message"></div>
+                <div style="text-align:center; margin-top:14px; display:none;" id="tabContinueWrap">
+                    <button class="btn-orbita v-verde btn-fila" type="button" onclick="goToCompare()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Continuar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-compare" class="screen">
+        <div class="card mv-estrategias">
+            <div class="problema-pill topbar-division" id="compareBanner"></div>
+            <h2 class="mv-pregunta">La misma división, tres caminos</h2>
+            <div class="mv-niveles" id="compareGrid"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div><button class="level-btn mv-nivel n1" type="button" data-est="reparto" id="card-reparto" onclick="tryStrategy('reparto')" aria-label="Reparto"><span id="icon-reparto" class="compare-pending"></span><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="sc1t" d="M 11 58 Q 50 72 89 58"/><path id="sc1x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><g stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".85" fill="none"><path d="M-2.5 -3 L-8.5 4"/><path d="M0 -3 L0 4"/><path d="M2.5 -3 L8.5 4"/></g><circle cx="0" cy="-8" r="5" fill="#fde68a"/><circle cx="-1.6" cy="-9.6" r="1.4" fill="#fff" opacity=".8"/><circle cx="-9" cy="9" r="3.8" fill="#fbcfe8"/><circle cx="0" cy="10" r="3.8" fill="#6ee7b7"/><circle cx="9" cy="9" r="3.8" fill="#7dd3fc"/></g><text class="sv-t" font-size="15.5"><textPath href="#sc1t" startOffset="50%" text-anchor="middle">Reparto</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#sc1x" startOffset="50%" text-anchor="middle">Equitativo</textPath></text></svg></button><button class="level-btn mv-nivel n2" type="button" data-est="agrupacion" id="card-agrupacion" onclick="tryStrategy('agrupacion')" aria-label="Agrupación"><span id="icon-agrupacion" class="compare-pending"></span><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="sc2t" d="M 11 58 Q 50 72 89 58"/><path id="sc2x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><ellipse cx="0" cy="0" rx="13" ry="7.5" fill="none" stroke="#e0f2fe" stroke-width="2.2" transform="rotate(-14)"/><circle cx="-6.5" cy="0" r="3.4" fill="#7dd3fc"/><circle cx="0" cy="0" r="3.4" fill="#7dd3fc"/><circle cx="6.5" cy="0" r="3.4" fill="#7dd3fc"/></g><text class="sv-t" font-size="13.2"><textPath href="#sc2t" startOffset="50%" text-anchor="middle">Agrupación</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#sc2x" startOffset="50%" text-anchor="middle"></textPath></text></svg></button><button class="level-btn mv-nivel n3" type="button" data-est="tablas" id="card-tablas" onclick="tryStrategy('tablas')" aria-label="Tablas de"><span id="icon-tablas" class="compare-pending"></span><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="sc3t" d="M 11 58 Q 50 72 89 58"/><path id="sc3x" d="M 20 78 Q 50 88 80 78"/></defs><g transform="translate(50 32)" filter="url(#fIco)"><g stroke-linecap="round" stroke-width="5.2" fill="none"><path d="M-8 -9 L8 9" stroke="#fde68a"/><path d="M8 -9 L-8 9" stroke="#fbcfe8"/></g></g><text class="sv-t" font-size="15.5"><textPath href="#sc3t" startOffset="50%" text-anchor="middle">Tablas de</textPath></text><text class="sv-x" font-size="11.5"><textPath href="#sc3x" startOffset="50%" text-anchor="middle">Multiplicar</textPath></text></svg></button></div>
+            <div style="display:flex; justify-content:center; margin-top:6px;"><button class="btn-orbita v-violeta btn-fila" onclick="resetAll()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span><span>Otra división</span></button></div>
+        </div>
+    </div>
+
+    <div id="screen-complete" class="screen">
+        <div class="card">
+            <div class="mv-fila-chip mv-celebra" id="mvChipResult"></div>
+            <div class="result-hero" aria-hidden="true"><svg viewBox="-12 -12 24 24" width="110" height="110"><use href="#st3d" x="-11" y="-11" width="22" height="22" filter="url(#fIco)"/></svg></div>
+            <h2 class="result-title">¡Excelente!</h2>
+            <p class="result-sub">La misma división, tres caminos y el mismo resultado.</p>
+            <div class="complete-strategies">
+                <div class="complete-strategy-item">✓ Reparto Equitativo</div>
+                <div class="complete-strategy-item">✓ Agrupación</div>
+                <div class="complete-strategy-item">✓ Tablas</div>
+            </div>
+            <div class="result-actions">
+                <button class="btn-orbita v-azul" type="button" onclick="resetAll()"><span class="bola"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><path d="M3 15.5c-1.2-2.2 3-6.2 9-8M21 8.5c1.2 2.2-3 6.2-9 8"/></svg></span><span>Cambiar nivel</span></button>
+                <button class="btn-orbita v-verde" type="button" onclick="siguienteDivision()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><span>Siguiente</span></button>
+            </div>
+        </div>
+    </div>
+  </div></main>
+</div>
+<div id="monedasPill" class="hidden" style="position:fixed; bottom:12px; right:12px; z-index:99998; background:rgba(30,17,71,.75); backdrop-filter:blur(6px); border:1px solid rgba(251,191,36,.4); border-radius:20px; padding:8px 14px; font-family:var(--font-display); font-weight:800; font-size:.85rem; color:var(--color-secondary); box-shadow:0 4px 14px rgba(0,0,0,.35);">🪙 0</div>
+<div id="modal-root"></div>
+<div id="celebration" class="celebration"></div>
+
+    <div class="table-choice-overlay hidden" id="tableChoiceOverlay">
+        <div class="table-choice-card">
+            <div class="math-division-title" id="tableChoiceDivision"></div>
+            <p class="table-choice-question">¿Qué tabla debemos usar?</p>
+            <input type="text" id="tableChoiceInput" class="math-inline-input" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="?">
+            <p id="tableChoiceError" class="error-msg" style="margin-top:12px; display:none;"></p>
+        </div>
+    </div>
+<script>
+        /* ============================================
+           ESTADO GLOBAL
+           ============================================ */
+        const App = {
+            dividend: 0, divisor: 0, quotient: 0, remainder: 0,
+            currentStrategy: null,
+            completedStrategies: { reparto: false, agrupacion: false, tablas: false },
+            context: null,
+            selectedLevel: null,
+            reparto: {
+                bagCounts: [],
+                draggedEl: null, dragOffsetX: 0, dragOffsetY: 0, dragClone: null,
+                mathPanelShown: false
+            },
+            agrupacion: {
+                selectedTokens: new Set(),
+                groups: [],
+                mathPanelShown: false
+            },
+            tablas: {
+                products: [],
+                completed: false,
+                mathPanelShown: false,
+                locked: false
+            },
+            reset() {
+                this.dividend = 0; this.divisor = 0; this.quotient = 0; this.remainder = 0;
+                this.currentStrategy = null; this.xpHecho = false;
+                this.completedStrategies = { reparto: false, agrupacion: false, tablas: false };
+                this.context = null;
+                this.selectedLevel = null;
+                this.reparto = { bagCounts: [], draggedEl: null, dragOffsetX: 0, dragOffsetY: 0, dragClone: null, mathPanelShown: false };
+                this.agrupacion = { selectedTokens: new Set(), groups: [], mathPanelShown: false };
+                this.tablas = { products: [], completed: false, mathPanelShown: false, locked: false, activeInput: null };
+            }
+        };
+
+        const contexts = [
+            { name: 'caramelos', item: 'caramelo', itemPl: 'caramelos', container: 'bolsas', containerPl: 'bolsas', action: 'repartir' },
+            { name: 'manzanas', item: 'manzana', itemPl: 'manzanas', container: 'canastas', containerPl: 'canastas', action: 'repartir' },
+            { name: 'libros', item: 'libro', itemPl: 'libros', container: 'estantes', containerPl: 'estantes', action: 'distribuir' },
+            { name: 'pelotas', item: 'pelota', itemPl: 'pelotas', container: 'cajas', containerPl: 'cajas', action: 'guardar' },
+            { name: 'galletas', item: 'galleta', itemPl: 'galletas', container: 'platos', containerPl: 'platos', action: 'colocar' },
+            { name: 'lápices', item: 'lápiz', itemPl: 'lápices', container: 'estuches', containerPl: 'estuches', action: 'organizar' },
+            { name: 'papeles', item: 'papel', itemPl: 'papeles', container: 'carpetas', containerPl: 'carpetas', action: 'repartir' },
+            { name: 'pegatinas', item: 'pegatina', itemPl: 'pegatinas', container: 'hojas', containerPl: 'hojas', action: 'pegar' }
+        ];
+
+        /* ============================================
+           UTILIDADES
+           ============================================ */
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+        function hideError(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('show');
+            el.textContent = '';
+        }
+        const screenHistory = [];
+        function switchScreen(id, isBack) {
+            const current = document.querySelector('.screen.active');
+            if (current && current.id !== id && !isBack) {
+                screenHistory.push(current.id);
+            }
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(id);
+            if (target) target.classList.add('active');
+            actualizarCabecera(id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function goBack() {
+            const prev = screenHistory.pop();
+            switchScreen(prev || 'screen-welcome', true);
+        }
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        /* ============================================
+           HISTORIAL
+           ============================================ */
+        /* ============================================
+           GENERADOR DE EJERCICIOS
+           ============================================ */
+        const LEVEL_RULES = {
+            easy: [
+                { divisors: [1,2,3,4,5,10], qMin: 1, qMax: 8 },
+                { divisors: [6,7,8,9], qMin: 1, qMax: 3 },
+            ],
+            medium: [
+                { divisors: [1,2,3,4,5,10], qMin: 9, qMax: 12 },
+                { divisors: [6,7,8,9], qValues: [4,5,6,7,8,10] },
+            ],
+            hard: [
+                { divisors: [2,3,4,5,10], qMin: 13, qMax: 16 },
+                { divisors: [6,7,8,9], qValues: [9,11,12] },
+                { divisors: [11,12], qMin: 2, qMax: 7 },
+            ],
+        };
+
+        function startLevel(level) {
+            App.selectedLevel = level; App.ultimoNivel = level; App.xpHecho = false;
+            const rules = LEVEL_RULES[level];
+            const rule = rules[randomInt(0, rules.length - 1)];
+            const divisor = rule.divisors[randomInt(0, rule.divisors.length - 1)];
+            const quotient = rule.qValues
+                ? rule.qValues[randomInt(0, rule.qValues.length - 1)]
+                : randomInt(rule.qMin, rule.qMax);
+            const remainder = randomInt(0, divisor - 1);
+            const dividend = divisor * quotient + remainder;
+
+            App.dividend = dividend;
+            App.divisor = divisor;
+            App.quotient = quotient;
+            App.remainder = remainder;
+            App.context = contexts[randomInt(0, contexts.length - 1)];
+            goToStrategySelect();
+        }
+
+        /* ============================================
+           MODO: PRÁCTICA LIBRE vs CONTRARRELOJ
+           Aquí "completar 1" significa terminar las 3 estrategias
+           (reparto, agrupación, tablas) de la MISMA división -- no basta
+           con una sola. Los errores no se cuentan: reparto y agrupación
+           nunca marcan explícitamente una respuesta incorrecta en el
+           código original (solo esperan hasta que esté bien), así que
+           inventar un conteo ahí sería poco confiable.
+           ============================================ */
+        const PESO_XP_NIVEL = {easy:1, medium:3, hard:5, custom:1};
+function reaccion(t){ if(window.reaccionCompanero) window.reaccionCompanero(t); }
+const NOMBRES_NIVEL_CR = { easy:'Fácil', medium:'Intermedio', hard:'Difícil' };
+const DURACION_CONTRARRELOJ = 12*60; // 12 minutos (cada división completa son las 3 estrategias)
+const Contrarreloj = { activo:false, restante:0, completados:0, intervalo:null, nivel:null };
+let modalCierreCallback = null;
+function cerrarModal(){ document.getElementById('modal-root').innerHTML = ''; modalCierreCallback = null; }
+function cerrarModalConX(){ const cb = modalCierreCallback; cerrarModal(); if(cb) cb(); }
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('modal-root').innerHTML !== '') cerrarModalConX();
+});
+function abrirSelectorModo(nivel){
+  const root = document.getElementById('modal-root');
+  const peso = PESO_XP_NIVEL[nivel] || 1;
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay-modo">
+      <div class="modal-box">
+        <button type="button" class="modal-close-x" onclick="cerrarModalConX()">✕</button>
+        <div class="modal-eyebrow">Nivel ${NOMBRES_NIVEL_CR[nivel]}</div>
+        <h3 class="modal-title">¿Cómo quieres practicar?</h3>
+        <div class="modo-opciones mv-modo">
+          <button class="modo-btn" id="btn-modo-libre" aria-label="Práctica libre"><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="mlt" d="M 6 57 Q 50 71 94 57"/><path id="mld" d="M 12 70 Q 50 80 88 70"/><path id="mlx" d="M 22 82 Q 50 89 78 82"/></defs><g filter="url(#fIco)" transform="translate(50 36) scale(.8) translate(-50 -30)"><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="#064e3b" stroke-width="8" stroke-linejoin="round" opacity=".5" transform="translate(0 1.6)"/><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="url(#gInf)" stroke-width="7.2" stroke-linejoin="round"/><path d="M50 30C57 19 73 19 73 30S57 41 50 30C43 19 27 19 27 30S43 41 50 30Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" opacity=".7" transform="translate(-.6 -1.7)"/></g><text class="sv-t" font-size="12.8"><textPath href="#mlt" startOffset="50%" text-anchor="middle">Práctica libre</textPath></text><text class="sv-d" font-size="9.4"><textPath href="#mld" startOffset="50%" text-anchor="middle">sin límite</textPath></text><text class="sv-x" font-size="9.4"><textPath href="#mlx" startOffset="50%" text-anchor="middle">+${peso} XP c/u</textPath></text></svg></button>
+          <button class="modo-btn" id="btn-modo-contrarreloj" aria-label="Contrarreloj"><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="mct" d="M 6 57 Q 50 71 94 57"/><path id="mcd" d="M 12 70 Q 50 80 88 70"/><path id="mcx" d="M 22 82 Q 50 89 78 82"/></defs><g filter="url(#fIco)" transform="translate(50 33) scale(.8) translate(-50 -32)"><rect x="46" y="9" width="8" height="5" rx="1.5" fill="url(#gMet)"/><rect x="47.8" y="13" width="4.4" height="4" fill="#94a3b8"/><rect x="66" y="16" width="4.5" height="6" rx="1.5" fill="url(#gMet)" transform="rotate(40 68 19)"/><circle cx="50" cy="32" r="15.5" fill="url(#gMet)"/><circle cx="50" cy="32" r="12.6" fill="url(#gCara)"/><circle cx="50" cy="32" r="12.6" fill="none" stroke="#92400e" stroke-opacity=".35" stroke-width=".8"/><g stroke="#92400e" stroke-width="1.1" stroke-linecap="round"><path d="M50 21.2v2.4M50 40.4v2.4M39.2 32h2.4M58.4 32h2.4"/></g><path d="M50 32V23.6" stroke="#b45309" stroke-width="1.9" stroke-linecap="round"/><path d="M50 32L56 36" stroke="#7c2d12" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="32" r="1.8" fill="#7c2d12"/><path d="M41 25a12 12 0 0 1 6-4" stroke="#fff" stroke-width="1.3" stroke-linecap="round" fill="none" opacity=".8"/></g><text class="sv-t" font-size="12.8"><textPath href="#mct" startOffset="50%" text-anchor="middle">Contrarreloj</textPath></text><text class="sv-d" font-size="9.4"><textPath href="#mcd" startOffset="50%" text-anchor="middle">12 minutos</textPath></text><text class="sv-x" font-size="9.4"><textPath href="#mcx" startOffset="50%" text-anchor="middle">+${peso} XP c/u</textPath></text></svg></button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-modo-libre').onclick = () => { cerrarModal(); startLevel(nivel); };
+  document.getElementById('btn-modo-contrarreloj').onclick = () => { cerrarModal(); startContrarreloj(nivel); };
+}
+
+function startContrarreloj(nivel){
+  Contrarreloj.activo = true;
+  Contrarreloj.restante = DURACION_CONTRARRELOJ;
+  Contrarreloj.completados = 0;
+  Contrarreloj.nivel = nivel;
+  document.getElementById('timer-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').textContent = '✓ 0';
+  actualizarTimerPill();
+  if(Contrarreloj.intervalo) clearInterval(Contrarreloj.intervalo);
+  Contrarreloj.intervalo = setInterval(tickContrarreloj, 1000);
+  startLevel(nivel);
+}
+function tickContrarreloj(){
+  Contrarreloj.restante--;
+  actualizarTimerPill();
+  if(Contrarreloj.restante <= 0){
+    clearInterval(Contrarreloj.intervalo);
+    Contrarreloj.intervalo = null;
+    Contrarreloj.activo = false;
+    mostrarFinContrarreloj();
+  }
+}
+function actualizarTimerPill(){
+  const m = Math.floor(Contrarreloj.restante/60), s = Contrarreloj.restante%60;
+  const pill = document.getElementById('timer-pill');
+  pill.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  pill.style.setProperty('--p', (Contrarreloj.restante / DURACION_CONTRARRELOJ * 100).toFixed(1));
+  pill.classList.toggle('urgente', Contrarreloj.restante <= 30);
+}
+function detenerContrarreloj(){
+  if(Contrarreloj.intervalo){ clearInterval(Contrarreloj.intervalo); Contrarreloj.intervalo=null; }
+  Contrarreloj.activo = false;
+  document.getElementById('timer-pill').classList.add('hidden');
+  document.getElementById('contador-pill').classList.add('hidden');
+}
+
+function mostrarFinContrarreloj(){
+  modalCierreCallback = () => { detenerContrarreloj(); resetAll(); };
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box" style="text-align:center;">
+        <button type="button" class="modal-close-x" onclick="cerrarModalConX()">✕</button>
+        <div class="modal-eyebrow">⏱️ Contrarreloj</div>
+        <h3 class="modal-title">¡Se acabó el tiempo!</h3>
+        <p style="font-size:1.05rem; margin-bottom:16px; color:var(--text-dim);">
+          Completaste <b style="color:var(--primary); font-size:1.3em; font-family:var(--font-display);">${Contrarreloj.completados}</b> división(es) completa(s).
+        </p>
+        <div class="modo-opciones">
+          <button class="modo-btn" id="btn-cr-otra">➜ Otra ronda</button>
+          <button class="modo-btn" id="btn-cr-inicio">🏠 Inicio</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-cr-otra').onclick = () => { cerrarModal(); startContrarreloj(Contrarreloj.nivel); };
+  document.getElementById('btn-cr-inicio').onclick = () => { cerrarModal(); detenerContrarreloj(); resetAll(); };
+}
+
+/* ============================================
+           DESAFÍO ONLINE
+           ============================================ */
+        const CLAVE_SESION_COMPARTIDA = 'profehoracio_alumno_actual';
+        let AlumnoActual = null;
+
+        function intentarSesionCompartida(){
+          try{
+            const guardado = JSON.parse(sessionStorage.getItem(CLAVE_SESION_COMPARTIDA) || 'null');
+            if(guardado && guardado.id && guardado.nombre){
+              AlumnoActual = guardado;
+              iniciarHeartbeatTiempo();
+              return true;
+            }
+          } catch(e){}
+          return false;
+        }
+
+        function iniciarHeartbeatTiempo(){
+          if(typeof window.iniciarHeartbeatMathverse === 'function'){
+            window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'representacion-division');
+          } else {
+            setTimeout(iniciarHeartbeatTiempo, 100);
+          }
+        }
+
+        intentarSesionCompartida();
+        switchScreen('screen-welcome');
+
+        const Online = { activo:false, codigo:null, uid:null, nombre:null, docId:null };
+
+// Se llama UNA vez, justo al unirse a la sesión -- sin esto, si el
+// profesor eligió "Práctica libre" (no Contrarreloj), el alumno nunca
+// aparecía en el panel ni se guardaba su avance.
+function registrarInicioOnline(){
+  if(!Online.activo) return;
+  Online.docId = Online.uid + '_' + Date.now();
+  if(window.iniciarNuevoIntentoOnline) window.iniciarNuevoIntentoOnline(Online.codigo, Online.docId, Online.nombre, Online.uid);
+}
+
+
+        function goToManual() {
+            hideError('error-welcome');
+            switchScreen('screen-manual');
+            setTimeout(() => { const i = document.getElementById('inputDividend'); if (i) i.focus(); }, 300);
+        }
+
+        /* ============================================
+           INICIO MANUAL
+           ============================================ */
+        function onManualStart() {
+            hideError('error-welcome');
+            const dividend = parseInt(document.getElementById('inputDividend').value);
+            const divisor = parseInt(document.getElementById('inputDivisor').value);
+
+            if (!dividend || dividend < 2) {
+                showError('error-welcome', 'El dividendo debe ser al menos 2.');
+                return;
+            }
+            if (dividend > 100) {
+                showError('error-welcome', 'El dividendo no puede ser mayor a 100.');
+                return;
+            }
+            if (!divisor || divisor < 1) {
+                showError('error-welcome', 'El divisor debe ser al menos 1.');
+                return;
+            }
+            if (divisor > 15) {
+                showError('error-welcome', 'El divisor no puede ser mayor a 15.');
+                return;
+            }
+            if (divisor > dividend) {
+                showError('error-welcome', 'El divisor no puede ser mayor que el dividendo.');
+                return;
+            }
+
+            App.dividend = dividend;
+            App.divisor = divisor;
+            App.quotient = Math.floor(dividend / divisor);
+            App.remainder = dividend % divisor;
+            App.context = contexts[randomInt(0, contexts.length - 1)];
+            App.selectedLevel = null; App.ultimoNivel = null; App.xpHecho = false;
+            goToStrategySelect();
+        }
+
+        /* ============================================
+           NAVEGACIÓN
+           ============================================ */
+        function goToWelcome() {
+            if(Contrarreloj.activo) detenerContrarreloj();
+            App.reset();
+            document.getElementById('inputDividend').value = '';
+            document.getElementById('inputDivisor').value = '';
+            hideError('error-welcome');
+            switchScreen('screen-welcome');
+        }
+
+        function goToStrategySelect() {
+            const b = document.getElementById('strategyBanner');
+            if (b) b.textContent = App.dividend + ' ÷ ' + App.divisor;
+            switchScreen('screen-strategy');
+        }
+
+        function goToCompare() {
+            const b = document.getElementById('compareBanner');
+            if (b) b.textContent = App.dividend + ' ÷ ' + App.divisor;
+
+            ['reparto','agrupacion','tablas'].forEach(s => {
+                const card = document.getElementById('card-' + s);
+                const icon = document.getElementById('icon-' + s);
+                if (!card || !icon) return;
+                card.classList.remove('completed','available','disabled');
+                if (App.completedStrategies[s]) {
+                    card.classList.add('completed');
+                    card.classList.add('disabled');
+                    card.onclick = null;
+                    icon.innerHTML = '✅';
+                    icon.className = 'compare-check';
+                } else {
+                    card.classList.add('available');
+                    icon.innerHTML = '○';
+                    icon.className = 'compare-pending';
+                    card.onclick = function() { tryStrategy(s); };
+                }
+            });
+
+            if (App.completedStrategies.reparto && App.completedStrategies.agrupacion && App.completedStrategies.tablas) {
+                if(App.xpHecho){ goToComplete(); return; }
+                App.xpHecho = true;
+                const _nivXp = Contrarreloj.activo ? Contrarreloj.nivel : (App.selectedLevel || 'custom');
+                if(AlumnoActual) window.reportarProgresoPractica(AlumnoActual.id, 'representacion-division', 1, 0, PESO_XP_NIVEL[_nivXp] || 1);
+                if(Contrarreloj.activo){
+                    Contrarreloj.completados++;
+                    document.getElementById('contador-pill').textContent = '✓ '+Contrarreloj.completados;
+                    if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.docId, 1, 0);
+                    triggerBigCelebration();
+                    setTimeout(() => {
+                        if(!Contrarreloj.activo) return;
+                        startLevel(Contrarreloj.nivel);
+                    }, 1100);
+                    return;
+                }
+                goToComplete();
+                return;
+            }
+            switchScreen('screen-compare');
+        }
+
+        function goToComplete() {
+            reaccion('bien');
+            triggerBigCelebration();
+            switchScreen('screen-complete');
+        }
+
+        function startStrategy(strategy) {
+            App.currentStrategy = strategy;
+            if (strategy === 'reparto') buildReparto();
+            else if (strategy === 'agrupacion') buildAgrupacion();
+            else if (strategy === 'tablas') openTableChoiceModal();
+        }
+
+        function openTableChoiceModal() {
+            document.getElementById('tableChoiceDivision').textContent = App.dividend + ' ÷ ' + App.divisor + ' =';
+            const input = document.getElementById('tableChoiceInput');
+            input.value = '';
+            input.disabled = false;
+            input.classList.remove('correct');
+            document.getElementById('tableChoiceError').style.display = 'none';
+            document.getElementById('tableChoiceOverlay').classList.remove('hidden');
+            setTimeout(() => input.focus(), 100);
+
+            input.oninput = function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
+                document.getElementById('tableChoiceError').style.display = 'none';
+                const v = parseInt(this.value, 10);
+                if (!isNaN(v) && v === App.divisor) {
+                    this.classList.add('correct');
+                    this.disabled = true;
+                    setTimeout(() => {
+                        document.getElementById('tableChoiceOverlay').classList.add('hidden');
+                        buildTablas();
+                    }, 450);
+                }
+            };
+            input.onkeydown = function(e) {
+                if (e.key !== 'Enter') return;
+                const v = parseInt(this.value, 10);
+                if (isNaN(v) || v !== App.divisor) {
+                    const err = document.getElementById('tableChoiceError');
+                    err.textContent = 'Esa no es la tabla correcta. Piensa en el divisor de la división.';
+                    err.style.display = 'block';
+                }
+            };
+        }
+
+        function tryStrategy(strategy) {
+            startStrategy(strategy);
+        }
+
+        function resetAll() {
+            App.reset();
+            goToWelcome();
+        }
+
+
+        /* ============================================
+           MÓDULO REPARTO EQUITATIVO
+           ============================================ */
+        function buildReparto() {
+            const st = App.reparto;
+            st.bagCounts = new Array(App.divisor).fill(0);
+            st.mathPanelShown = false;
+
+            document.getElementById('repartoTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('repartoBackBtn').disabled = false;
+            document.getElementById('repartoZones').style.display = '';
+            document.getElementById('repartoStatus').style.display = '';
+
+            const pool = document.getElementById('repartoPool');
+            pool.innerHTML = '';
+            pool.classList.remove('highlight');
+            const colors = ['c1','c2','c3','c4','c5','c6'];
+            for (let i = 0; i < App.dividend; i++) {
+                const m = document.createElement('div');
+                m.className = 'marble ' + colors[i % colors.length];
+                m.dataset.index = i;
+                makeDraggable(m);
+                pool.appendChild(m);
+            }
+
+            const bagsEl = document.getElementById('repartoBags');
+            bagsEl.innerHTML = '';
+            for (let i = 0; i < App.divisor; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bag-wrapper';
+                const bag = document.createElement('div');
+                bag.className = 'bag';
+                bag.dataset.bag = i;
+                const boxColor = i % 2 === 0 ? '#38bdf8' : '#fbbf24';
+                bag.innerHTML =
+                    '<div class="box-square" style="background:' + boxColor + ';"></div>' +
+                    '<div class="bag-content"></div>';
+                bag.addEventListener('click', function(e) {
+                    if (e.target.closest('.marble')) return;
+                    addOneToBag(i);
+                });
+                const count = document.createElement('div');
+                count.className = 'bag-count';
+                count.id = 'bagCount-' + i;
+                count.textContent = '0';
+                count.title = 'Toca para quitar una';
+                count.addEventListener('click', function() { removeOneFromBag(i); });
+                wrapper.appendChild(bag);
+                wrapper.appendChild(count);
+                bagsEl.appendChild(wrapper);
+            }
+
+
+            document.getElementById('repartoStatus').textContent = 'Toca una caja para repartir o arrastra las fichas hacia ellas';
+            document.getElementById('repartoStatus').classList.remove('ok');
+            document.getElementById('repartoMathPanel').classList.remove('show');
+            document.getElementById('rpMathQuotient').value = '';
+            document.getElementById('rpMathRemainder').value = '';
+            document.getElementById('rpMathFinal').classList.remove('show');
+            document.getElementById('rpMathFinal').textContent = '';
+            document.getElementById('rpDivisionTitle').textContent = App.dividend + ' ÷ ' + App.divisor;
+            hideError('rpMathError');
+            hideError('rpMathSuccess');
+            document.getElementById('rpContinueWrap').style.display = 'none';
+            setupAutoMathCheck('rpMathQuotient', 'rpMathRemainder', completeRepartoMath);
+
+            layoutBags(); renderBagViz();
+            switchScreen('screen-reparto');
+        }
+
+        function makeDraggable(el) {
+            el.addEventListener('mousedown', onDragStart);
+            el.addEventListener('touchstart', onDragStart, { passive: false });
+        }
+
+        function onDragStart(e) {
+            if (e.button === 2) return;
+            const st = App.reparto;
+            st.draggedEl = e.currentTarget;
+            e.preventDefault();
+            const rect = st.draggedEl.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragOffsetX = clientX - rect.left;
+            st.dragOffsetY = clientY - rect.top;
+
+            st.dragClone = st.draggedEl.cloneNode(true);
+            st.dragClone.style.width = rect.width + 'px';
+            st.dragClone.style.height = rect.height + 'px';
+            st.dragClone.classList.add('dragging');
+            st.dragClone.style.left = (clientX - st.dragOffsetX) + 'px';
+            st.dragClone.style.top = (clientY - st.dragOffsetY) + 'px';
+            document.body.appendChild(st.dragClone);
+
+            st.draggedEl.style.opacity = '0.4';
+            document.getElementById('repartoPool').classList.add('highlight');
+            document.querySelectorAll('.bag').forEach(b => b.classList.add('highlight'));
+
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('touchend', onDragEnd);
+        }
+
+        function onDragMove(e) {
+            const st = App.reparto;
+            if (!st.dragClone) return;
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragClone.style.left = (clientX - st.dragOffsetX) + 'px';
+            st.dragClone.style.top = (clientY - st.dragOffsetY) + 'px';
+        }
+
+        function onDragEnd(e) {
+            const st = App.reparto;
+            if (!st.dragClone) return;
+            const cloneRect = st.dragClone.getBoundingClientRect();
+            const cloneCX = cloneRect.left + cloneRect.width / 2;
+            const cloneCY = cloneRect.top + cloneRect.height / 2;
+            document.body.removeChild(st.dragClone);
+            st.dragClone = null;
+
+            let dropped = false;
+            const bag = getBagAt(cloneCX, cloneCY);
+            if (bag) {
+                dropInBag(st.draggedEl, bag);
+                dropped = true;
+            } else {
+                const pool = getPoolAt(cloneCX, cloneCY);
+                if (pool) {
+                    returnToPool(st.draggedEl);
+                    dropped = true;
+                }
+            }
+
+            if (!dropped) {
+                const container = st.draggedEl.parentElement;
+                if (container.classList.contains('bag-content')) {
+                    const bagIdx = parseInt(container.parentElement.dataset.bag);
+                    st.bagCounts[bagIdx]--;
+                    returnToPool(st.draggedEl);
+                }
+            }
+
+            st.draggedEl.style.opacity = '1';
+            document.getElementById('repartoPool').classList.remove('highlight');
+            document.querySelectorAll('.bag').forEach(b => b.classList.remove('highlight'));
+
+            updateBagCounts();
+            updateRepartoStatus();
+
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('touchend', onDragEnd);
+            st.draggedEl = null;
+        }
+
+        function addOneToBag(bagIdx) {
+            const pool = document.getElementById('repartoPool');
+            if (pool.children.length === 0) return;
+            const marble = pool.children[0];
+            const bag = document.querySelector('.bag[data-bag="' + bagIdx + '"]');
+            if (!bag) return;
+            dropInBag(marble, bag);
+            updateBagCounts();
+            updateRepartoStatus();
+        }
+
+        function removeOneFromBag(bagIdx) {
+            const content = document.querySelector('.bag[data-bag="' + bagIdx + '"] .bag-content');
+            if (!content || content.children.length === 0) return;
+            const marble = content.lastElementChild;
+            App.reparto.bagCounts[bagIdx]--;
+            returnToPool(marble);
+            updateBagCounts();
+            updateRepartoStatus();
+        }
+
+        function dropInBag(el, bag) {
+            const st = App.reparto;
+            const oldParent = el.parentElement;
+            if (oldParent && oldParent.classList.contains('bag-content')) {
+                const oldBagIdx = parseInt(oldParent.parentElement.dataset.bag);
+                st.bagCounts[oldBagIdx]--;
+            }
+            const content = bag.querySelector('.bag-content');
+            content.appendChild(el);
+            el.classList.add('dropped');
+            setTimeout(() => el.classList.remove('dropped'), 350);
+            const bagIdx = parseInt(bag.dataset.bag);
+            st.bagCounts[bagIdx] = content.children.length;
+        }
+
+        function returnToPool(el) {
+            const st = App.reparto;
+            const oldParent = el.parentElement;
+            if (oldParent && oldParent.classList.contains('bag-content')) {
+                const oldBagIdx = parseInt(oldParent.parentElement.dataset.bag);
+                st.bagCounts[oldBagIdx]--;
+            }
+            document.getElementById('repartoPool').appendChild(el);
+        }
+
+        function getBagAt(x, y) {
+            let found = null;
+            document.querySelectorAll('.bag').forEach(bag => {
+                const r = bag.getBoundingClientRect();
+                if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                    found = bag;
+                }
+            });
+            return found;
+        }
+
+        function getPoolAt(x, y) {
+            const pool = document.getElementById('repartoPool');
+            const r = pool.getBoundingClientRect();
+            return (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) ? pool : null;
+        }
+
+        function updateBagCounts() {
+            for (let i = 0; i < App.divisor; i++) {
+                const content = document.querySelector('.bag[data-bag="' + i + '"] .bag-content');
+                if (content) {
+                    App.reparto.bagCounts[i] = content.children.length;
+                    const countEl = document.getElementById('bagCount-' + i);
+                    if (countEl) countEl.textContent = App.reparto.bagCounts[i];
+                }
+            }
+            renderBagViz();
+        }
+
+        function updateRepartoStatus() {
+            const poolCount = document.getElementById('repartoPool').children.length;
+            const st = App.reparto;
+            const statusEl = document.getElementById('repartoStatus');
+
+            const allBagsHaveQuotient = st.bagCounts.every(function(c) { return c === App.quotient; });
+            if (allBagsHaveQuotient && poolCount === App.remainder) {
+                statusEl.textContent = 'Reparto Equitativo completado';
+                statusEl.classList.add('ok');
+                if (!st.mathPanelShown) {
+                    document.getElementById('repartoMathPanel').classList.add('show');
+                    st.mathPanelShown = true;
+                    setTimeout(function() { document.getElementById('rpMathQuotient').focus(); }, 400);
+                }
+                return;
+            }
+
+            if (st.mathPanelShown) {
+                document.getElementById('repartoMathPanel').classList.remove('show');
+                st.mathPanelShown = false;
+            }
+
+            if (poolCount === 0) {
+                statusEl.textContent = 'El reparto no es equitativo todavía.';
+                statusEl.classList.remove('ok');
+                return;
+            }
+
+            const distributedCount = App.dividend - poolCount;
+            if (distributedCount > 0) {
+                const max = Math.max(...st.bagCounts);
+                const min = Math.min(...st.bagCounts);
+                if (max > App.quotient + 1 || (max - min) > 1) {
+                    statusEl.textContent = 'El reparto no es equitativo todavía.';
+                    statusEl.classList.remove('ok');
+                    return;
+                }
+            }
+
+            statusEl.textContent = 'Te quedan ' + poolCount + ' objetos por repartir.';
+            statusEl.classList.remove('ok');
+            if (st.mathPanelShown) {
+                document.getElementById('repartoMathPanel').classList.remove('show');
+                st.mathPanelShown = false;
+            }
+        }
+
+        /* Helper reutilizado por reparto/agrupación/tablas: avanza el foco al
+           segundo campo apenas el primero es correcto, y autoverifica ambos
+           sin necesitar un botón "Comprobar". */
+        function setupAutoMathCheck(qId, rId, onComplete) {
+            const qBox = document.getElementById(qId);
+            const rBox = document.getElementById(rId);
+            qBox.disabled = false;
+            rBox.disabled = false;
+            function sanitize(box) { box.value = box.value.replace(/[^0-9]/g, '').slice(0, 2); }
+            function tryComplete() {
+                const q = parseInt(qBox.value);
+                const r = parseInt(rBox.value);
+                const okQ = !isNaN(q) && q === App.quotient;
+                const okR = !isNaN(r) && r === App.remainder;
+                qBox.classList.toggle('correct', okQ);
+                rBox.classList.toggle('correct', okR);
+                if (okQ && okR) {
+                    qBox.disabled = true;
+                    rBox.disabled = true;
+                    onComplete();
+                }
+            }
+            qBox.oninput = function() {
+                sanitize(qBox);
+                const q = parseInt(qBox.value);
+                if (!isNaN(q) && q === App.quotient) rBox.focus();
+                tryComplete();
+            };
+            rBox.oninput = function() {
+                sanitize(rBox);
+                tryComplete();
+            };
+        }
+
+        function completeRepartoMath() {
+            hideError('rpMathError');
+            showError('rpMathSuccess', '¡Correcto! El cociente es ' + App.quotient + ' y el resto es ' + App.remainder + '.');
+            const finalEl = document.getElementById('rpMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.reparto = true; reaccion('bien');
+            triggerCelebration();
+            document.getElementById('repartoZones').style.display = 'none';
+            document.getElementById('repartoStatus').style.display = 'none';
+            document.getElementById('repartoBackBtn').disabled = true;
+            document.getElementById('rpContinueWrap').style.display = 'block';
+        }
+
+
+        /* ============================================
+           MÓDULO AGRUPACIÓN
+           ============================================ */
+        function buildAgrupacion() {
+            const st = App.agrupacion;
+            st.selectedTokens.clear();
+            st.groups = [];
+            setTimeout(actualizarContadorAgr, 0);
+            st.mathPanelShown = false;
+
+            document.getElementById('agTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('agrupacionBackBtn').disabled = false;
+            document.getElementById('agrupacionGroupsRow').style.display = '';
+            document.getElementById('agrupacionArea').style.display = '';
+            document.getElementById('agruparBtnWrap').style.display = '';
+            document.getElementById('agrupacionStatus').style.display = '';
+
+            document.getElementById('agrupacionStatus').textContent = 'Selecciona las fichas para formar grupos de ' + App.divisor + '.';
+            document.getElementById('agrupacionStatus').classList.remove('ok');
+            document.getElementById('agrMathPanel').classList.remove('show');
+            document.getElementById('agMathQuotient').value = '';
+            document.getElementById('agMathRemainder').value = '';
+            document.getElementById('agMathFinal').classList.remove('show');
+            hideError('agMathError');
+            hideError('agMathSuccess');
+            document.getElementById('agruparBtn').disabled = false;
+            document.getElementById('agruparBtn').style.opacity = '1';
+            document.getElementById('agContinueWrap').style.display = 'none';
+            setupAutoMathCheck('agMathQuotient', 'agMathRemainder', completeAgrupacionMath);
+
+            const area = document.getElementById('agrupacionArea');
+            area.innerHTML = '';
+            area.classList.remove('all-grouped');
+            document.getElementById('agrupacionGroupsRow').innerHTML = '';
+
+            for (let i = 0; i < App.dividend; i++) {
+                const token = document.createElement('div');
+                token.className = 'agrupacion-token';
+                token.dataset.index = i;
+                token.addEventListener('mousedown', function(e) { startTokenDrag(i, token, e); });
+                token.addEventListener('touchstart', function(e) { startTokenDrag(i, token, e); }, { passive: false });
+                area.appendChild(token);
+            }
+
+            switchScreen('screen-agrupacion');
+        }
+
+        /* Selección de fichas "pintando" con el dedo/mouse: se toca la primera
+           ficha del grupo y, sin soltar, se recorre hasta la última — todas las
+           que se cruzan en el camino se suman (o se quitan, si el arrastre
+           partió sobre una ficha ya seleccionada). Evita tener que tocar ficha
+           por ficha. */
+        function startTokenDrag(index, el, e) {
+            const st = App.agrupacion;
+            if (st.mathPanelShown || el.classList.contains('grouped')) return;
+            e.preventDefault();
+            st.dragMode = true;
+            st.dragAction = st.selectedTokens.has(index) ? 'deselect' : 'select';
+            st.dragTouched = new Set();
+            applyTokenDrag(index, el);
+            const startX = e.touches ? e.touches[0].clientX : e.clientX;
+            const startY = e.touches ? e.touches[0].clientY : e.clientY;
+            st.dragLastX = startX;
+            st.dragLastY = startY;
+            document.addEventListener('mousemove', onTokenDragMove);
+            document.addEventListener('touchmove', onTokenDragMove, { passive: false });
+            document.addEventListener('mouseup', endTokenDrag);
+            document.addEventListener('touchend', endTokenDrag);
+        }
+
+        function onTokenDragMove(e) {
+            const st = App.agrupacion;
+            if (!st.dragMode) return;
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            // El navegador no dispara un evento por cada ficha que el dedo cruza
+            // al moverse rápido: solo informa la posición actual. Revisando
+            // varios puntos intermedios entre el último punto conocido y este,
+            // evitamos que se "salten" fichas pequeñas en el camino.
+            const fromX = st.dragLastX, fromY = st.dragLastY;
+            const dist = Math.hypot(clientX - fromX, clientY - fromY);
+            const steps = Math.min(20, Math.max(1, Math.ceil(dist / 6)));
+            for (let i = 1; i <= steps; i++) {
+                const t = i / steps;
+                const x = fromX + (clientX - fromX) * t;
+                const y = fromY + (clientY - fromY) * t;
+                const el = document.elementFromPoint(x, y);
+                if (el && el.classList.contains('agrupacion-token') && !el.classList.contains('grouped')) {
+                    const idx = parseInt(el.dataset.index, 10);
+                    applyTokenDrag(idx, el);
+                }
+            }
+            st.dragLastX = clientX;
+            st.dragLastY = clientY;
+        }
+
+        function endTokenDrag() {
+            App.agrupacion.dragMode = false;
+            document.removeEventListener('mousemove', onTokenDragMove);
+            document.removeEventListener('touchmove', onTokenDragMove);
+            document.removeEventListener('mouseup', endTokenDrag);
+            document.removeEventListener('touchend', endTokenDrag);
+        }
+
+        function applyTokenDrag(index, el) {
+            const st = App.agrupacion;
+            if (st.dragTouched.has(index)) return;
+            st.dragTouched.add(index);
+            if (st.dragAction === 'select') selectToken(index, el);
+            else deselectToken(index, el);
+        }
+
+        const AGRUPACION_GROUP_COLORS = [
+            'radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46)',
+            'radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af)',
+            'radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d)',
+            'radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e)',
+            'radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6)',
+            'radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b)',
+            'radial-gradient(circle at 35% 35%, #c7d2fe, #818cf8, #3730a3)',
+            'radial-gradient(circle at 35% 35%, #bbf7d0, #4ade80, #166534)',
+            'radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e)',
+            'radial-gradient(circle at 35% 35%, #e9d5ff, #c084fc, #6b21a8)'
+        ];
+
+        function selectToken(index, el) {
+            const st = App.agrupacion;
+            st.selectedTokens.add(index);
+            el.classList.add('selected');
+            const nextGroup = st.groups.length;
+            el.style.background = AGRUPACION_GROUP_COLORS[nextGroup % AGRUPACION_GROUP_COLORS.length];
+            el.style.color = 'white';
+            actualizarContadorAgr();
+        }
+
+        function deselectToken(index, el) {
+            const st = App.agrupacion;
+            st.selectedTokens.delete(index);
+            el.classList.remove('selected');
+            el.style.background = '';
+            el.style.color = '#475569';
+            actualizarContadorAgr();
+        }
+
+
+
+        function doAgrupar() {
+            const st = App.agrupacion;
+            if (st.selectedTokens.size === 0) return;
+            if (st.selectedTokens.size !== App.divisor) {
+                document.getElementById('agrupacionStatus').textContent = 'Selecciona exactamente ' + App.divisor + ' fichas para formar un grupo.';
+                return;
+            }
+            if (st.mathPanelShown) return;
+
+            const area = document.getElementById('agrupacionArea');
+            const groupsRow = document.getElementById('agrupacionGroupsRow');
+            const groupColors = [
+                'radial-gradient(circle at 35% 35%, #a7f3d0, #34d399, #065f46)',
+                'radial-gradient(circle at 35% 35%, #bfdbfe, #60a5fa, #1e40af)',
+                'radial-gradient(circle at 35% 35%, #fbcfe8, #f472b6, #9d174d)',
+                'radial-gradient(circle at 35% 35%, #fde68a, #fbbf24, #92400e)',
+                'radial-gradient(circle at 35% 35%, #ddd6fe, #a78bfa, #5b21b6)',
+                'radial-gradient(circle at 35% 35%, #fecaca, #f87171, #991b1b)',
+                'radial-gradient(circle at 35% 35%, #c7d2fe, #818cf8, #3730a3)',
+                'radial-gradient(circle at 35% 35%, #bbf7d0, #4ade80, #166534)',
+                'radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e)',
+                'radial-gradient(circle at 35% 35%, #e9d5ff, #c084fc, #6b21a8)'
+            ];
+            const borderColors = ['#34d399','#60a5fa','#f472b6','#fbbf24','#a78bfa','#f87171','#818cf8','#4ade80','#f59e0b','#c084fc'];
+
+            const indices = Array.from(st.selectedTokens).sort((a,b) => a - b);
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'agrupacion-group';
+            const rows = indices.length <= 3 ? 1 : (indices.length <= 8 ? 2 : 3);
+            groupContainer.style.setProperty('--rows', rows);
+            const colorIdx = st.groups.length % groupColors.length;
+            const color = groupColors[colorIdx];
+            const borderColor = borderColors[colorIdx];
+            groupContainer.style.borderColor = borderColor;
+            groupContainer.style.background = borderColor + '15';
+
+            indices.forEach(idx => {
+                const token = area.querySelector('.agrupacion-token[data-index="' + idx + '"]');
+                if (token) {
+                    const clone = token.cloneNode(true);
+                    clone.classList.remove('selected');
+                    clone.style.background = color;
+                    clone.style.color = 'white';
+                    clone.style.cursor = 'default';
+                    clone.onclick = null;
+                    groupContainer.appendChild(clone);
+                    token.classList.add('grouped');
+                    token.classList.remove('selected');
+                    token.style.opacity = '0';
+                    setTimeout(() => token.style.display = 'none', 300);
+                }
+            });
+
+            const count = document.createElement('div');
+            count.className = 'agrupacion-group-count';
+            count.textContent = 'G' + (st.groups.length + 1);
+            groupContainer.style.setProperty('--gc', borderColor);
+            groupContainer.dataset.n = indices.length;
+            groupContainer.style.setProperty('--gcols', Math.min(5, indices.length)); groupContainer.style.setProperty('--grows', Math.ceil(indices.length / 5));
+            groupContainer.appendChild(count);
+            groupsRow.appendChild(groupContainer);
+
+            st.groups.push(indices);
+            st.selectedTokens.clear();
+            actualizarContadorAgr();
+
+            const groupedCount = st.groups.length * App.divisor;
+            const remaining = App.dividend - groupedCount;
+
+            if (remaining < App.divisor) {
+                document.getElementById('agrupacionStatus').textContent = '¡Agrupación Completada!';
+                document.getElementById('agrupacionStatus').classList.add('ok');
+                document.getElementById('agruparBtnWrap').style.display = 'none';
+                area.classList.add('all-grouped');
+                if (area.children.length > 0) {
+                    const leftoverWrap = document.createElement('div');
+                    leftoverWrap.className = 'agrupacion-leftover-wrap';
+                    Array.from(area.children).forEach(token => {
+                        token.classList.add('leftover-final');
+                        leftoverWrap.appendChild(token);
+                    });
+                    groupsRow.appendChild(leftoverWrap);
+                }
+                area.style.display = 'none';
+                document.getElementById('agrMathPanel').classList.add('show');
+                st.mathPanelShown = true;
+                setTimeout(() => document.getElementById('agMathQuotient').focus(), 400);
+            } else {
+                document.getElementById('agrupacionStatus').textContent = 'Grupo formado. Selecciona ' + App.divisor + ' fichas más.';
+            }
+        }
+
+        function completeAgrupacionMath() {
+            hideError('agMathError');
+            showError('agMathSuccess', '¡Correcto! El cociente es ' + App.quotient + ' y el resto es ' + App.remainder + '.');
+            const finalEl = document.getElementById('agMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.agrupacion = true; reaccion('bien');
+            triggerCelebration();
+            document.getElementById('agrupacionGroupsRow').style.display = 'none';
+            document.getElementById('agrupacionArea').style.display = 'none';
+            document.getElementById('agruparBtnWrap').style.display = 'none';
+            document.getElementById('agrupacionStatus').style.display = 'none';
+            document.getElementById('agrupacionBackBtn').disabled = true;
+            document.getElementById('agContinueWrap').style.display = 'block';
+        }
+
+
+        /* ============================================
+           MÓDULO TABLAS DE MULTIPLICAR
+           ============================================ */
+        function buildTablas() {
+            const st = App.tablas;
+            st.products = [];
+            st.completed = false;
+            st.mathPanelShown = false;
+            st.locked = false;
+
+            document.getElementById('tablasTopDivision').textContent = App.dividend + ' ÷ ' + App.divisor;
+            document.getElementById('tablasBackBtn').disabled = false;
+
+            document.querySelector('#screen-tablas .table-wrapper').style.display = '';
+            document.getElementById('tablasStatus').style.display = '';
+            document.getElementById('tablasXBtnWrap').style.display = '';
+            document.getElementById('tablasStatus').textContent = 'Escribe los productos de la tabla. Si superas el dividendo, escribe X.';
+            document.getElementById('tablasStatus').classList.remove('ok');
+            document.getElementById('tabMathQuestions').classList.remove('show');
+            document.getElementById('tabDividendTarget').textContent = App.dividend;
+            document.getElementById('tabQ1').value = '';
+            document.getElementById('tabQ2').value = '';
+            document.getElementById('tabMathFinal').classList.remove('show');
+            hideError('tabMathError');
+            hideError('tabMathSuccess');
+            document.getElementById('tabContinueWrap').style.display = 'none';
+            setupAutoMathCheck('tabQ1', 'tabQ2', completeTablasMath);
+
+            const tbody = document.getElementById('tablasBody');
+            tbody.innerHTML = '';
+            const totalCols = Math.max(10, App.quotient + 1);
+            const colsPerRow = 1000;
+            const numRows = Math.ceil(totalCols / colsPerRow);
+
+            for (let r = 0; r < numRows; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'tablas-row'; rowDiv.style.setProperty('--rowsN', Math.ceil(totalCols / 5));
+                const start = r * colsPerRow + 1;
+                const end = Math.min(start + colsPerRow - 1, totalCols);
+
+                if (r === 0) {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'tablas-label';
+                    labelDiv.textContent = String(App.divisor); labelDiv.classList.add('l' + Math.min(String(App.divisor).length, 3));
+                    rowDiv.appendChild(labelDiv);
+                }
+
+                for (let i = start; i <= end; i++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'tablas-cell';
+                    cellDiv.dataset.index = i;
+                    const expected = App.divisor * i;
+
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'tablas-header';
+                    headerDiv.textContent = '×' + i;
+                    cellDiv.appendChild(headerDiv);
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.inputMode = 'numeric';
+                    input.className = 'tablas-input';
+                    input.dataset.index = i;
+                    input.maxLength = 3;
+
+                    input.addEventListener('focus', function() {
+                        App.tablas.activeInput = input;
+                    });
+
+                    input.addEventListener('input', function() {
+                        const val = this.value.trim().toUpperCase();
+                        let isCorrect = false;
+                        if (expected > App.dividend) {
+                            if (val === 'X') {
+                                this.classList.add('correct');
+                                this.classList.remove('incorrect');
+                                st.products[i - 1] = 'X';
+                                isCorrect = true;
+                            } else if (val !== '') {
+                                this.classList.add('incorrect'); reaccion('mal');
+                                this.classList.remove('correct');
+                            } else {
+                                this.classList.remove('correct', 'incorrect');
+                            }
+                        } else {
+                            const num = parseInt(val);
+                            if (!isNaN(num) && num === expected) {
+                                this.classList.add('correct');
+                                this.classList.remove('incorrect');
+                                st.products[i - 1] = num;
+                                isCorrect = true;
+                            } else if (val !== '' && String(expected).startsWith(val) && val.length < String(expected).length) {
+                                this.classList.remove('correct', 'incorrect');
+                            } else if (val !== '') {
+                                this.classList.add('incorrect'); reaccion('mal');
+                                this.classList.remove('correct');
+                            } else {
+                                this.classList.remove('correct', 'incorrect');
+                            }
+                        }
+                        if (isCorrect) {
+                            const next = document.querySelector('.tablas-input[data-index="' + (i + 1) + '"]');
+                            if (next) next.focus();
+                        }
+                        if (!st.locked) { maybeFinishTablas(); }
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const next = document.querySelector('.tablas-input[data-index="' + (i + 1) + '"]');
+                            if (next) next.focus();
+                        }
+                    });
+
+                    cellDiv.appendChild(input);
+                    rowDiv.appendChild(cellDiv);
+                }
+
+                tbody.appendChild(rowDiv);
+            }
+
+            switchScreen('screen-tablas');
+            setTimeout(() => {
+                const first = document.querySelector('.tablas-input[data-index="1"]');
+                if (first) { first.focus(); App.tablas.activeInput = first; }
+            }, 400);
+        }
+
+        function markActiveTablasInputAsX() {
+            let target = App.tablas.activeInput;
+            if (!target || !document.body.contains(target)) {
+                target = document.querySelector('.tablas-input:not(.correct)');
+            }
+            if (!target) return;
+            target.value = 'X';
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.focus();
+            document.getElementById('tablasXBtnWrap').style.display = 'none';
+        }
+
+        function finishTablas() {
+            const st = App.tablas;
+            st.completed = true;
+            st.locked = true;
+            document.querySelectorAll('.tablas-input').forEach(function(input) {
+                input.readOnly = true;
+            });
+            document.getElementById('tablasStatus').innerHTML =
+                '¡Tabla completada! Ahora responde las preguntas finales.';
+            document.getElementById('tablasStatus').classList.add('ok');
+            document.getElementById('tabMathQuestions').classList.add('show');
+            st.mathPanelShown = true;
+            setTimeout(function() { document.getElementById('tabQ1').focus(); }, 400);
+        }
+
+        function maybeFinishTablas() {
+            const st = App.tablas;
+            if (st.locked) return;
+
+            let allPreviousCorrect = true;
+            const inputs = Array.from(document.querySelectorAll('.tablas-input'))
+                .sort(function(a, b) { return parseInt(a.dataset.index) - parseInt(b.dataset.index); });
+
+            for (let idx = 0; idx < inputs.length; idx++) {
+                const input = inputs[idx];
+                const i = parseInt(input.dataset.index);
+                const expected = App.divisor * i;
+                const val = input.value.trim().toUpperCase();
+
+                if (expected > App.dividend) {
+                    if (val === 'X') {
+                        if (allPreviousCorrect) {
+                            finishTablas();
+                            return;
+                        }
+                    } else if (val !== '') {
+                        allPreviousCorrect = false;
+                    } else {
+                        allPreviousCorrect = false;
+                    }
+                } else {
+                    if (val === '' || val === null) {
+                        allPreviousCorrect = false;
+                    } else if (parseInt(val) === expected) {
+                        input.readOnly = true;
+                    } else {
+                        allPreviousCorrect = false;
+                    }
+                }
+            }
+        }
+
+        function completeTablasMath() {
+            hideError('tabMathError');
+            showError('tabMathSuccess', '¡Correcto! Pudiste avanzar ' + App.quotient + ' veces y sobraron ' + App.remainder + '.');
+            const finalEl = document.getElementById('tabMathFinal');
+            finalEl.innerHTML = '¡Gran trabajo! <span class="star-burst">⭐</span>';
+            finalEl.classList.add('show', 'correct');
+            finalEl.classList.remove('incorrect');
+            App.completedStrategies.tablas = true; reaccion('bien');
+            triggerCelebration();
+            document.querySelector('#screen-tablas .table-wrapper').style.display = 'none';
+            document.getElementById('tablasStatus').style.display = 'none';
+            document.getElementById('tablasXBtnWrap').style.display = 'none';
+            document.getElementById('tablasBackBtn').disabled = true;
+            document.getElementById('tabContinueWrap').style.display = 'block';
+        }
+
+        /* ============================================
+           CELEBRACIÓN
+           ============================================ */
+        function triggerCelebration() {
+            const container = document.getElementById('celebration');
+            if (!container) return;
+            const colors = ['#5b8cff','#ff8f5b','#ffd25b','#5bff9e','#ff5b8f','#c45bff'];
+            for (let i = 0; i < 60; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '★';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = '-10px';
+                star.style.fontSize = (Math.random() * 14 + 10) + 'px';
+                star.style.color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+                star.style.animationDelay = (Math.random() * 0.3) + 's';
+                container.appendChild(star);
+                setTimeout(() => { if (star.parentNode) star.parentNode.removeChild(star); }, 2000);
+            }
+        }
+
+        function triggerBigCelebration() {
+            const container = document.getElementById('celebration');
+            if (!container) return;
+            const colors = ['#5b8cff','#ff8f5b','#ffd25b','#5bff9e','#ff5b8f','#c45bff'];
+            for (let i = 0; i < 120; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '★';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = '-10px';
+                star.style.fontSize = (Math.random() * 16 + 12) + 'px';
+                star.style.color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                star.style.animationDelay = (Math.random() * 0.5) + 's';
+                container.appendChild(star);
+                setTimeout(() => { if (star.parentNode) star.parentNode.removeChild(star); }, 3000);
+            }
+        }
+
+        /* ============================================
+           ATAJOS DE TECLADO
+           ============================================ */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const activeScreen = document.querySelector('.screen.active');
+                if (!activeScreen) return;
+                const id = activeScreen.id;
+                if (id === 'screen-welcome') return;
+                if (id === 'screen-manual') goToWelcome();
+                else if (id === 'screen-strategy') goToWelcome();
+                else if (id === 'screen-reparto' || id === 'screen-agrupacion' || id === 'screen-tablas') goToCompare();
+                else if (id === 'screen-compare') goToStrategySelect();
+                else if (id === 'screen-complete') resetAll();
+            }
+        });
+
+        /* ============================================
+           FOCOS POR ENTER EN INPUTS DE BIENVENIDA
+           ============================================ */
+        document.getElementById('inputDividend').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') document.getElementById('inputDivisor').focus();
+        });
+        document.getElementById('inputDivisor').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') onManualStart();
+        });
+
+        App.reset();
+
+/* ---- Capa Mathverse: cabecera, chips, atrás, ajuste de altura ---- */
+function montarChipsVista(n){
+  n = n || 0;
+  if(typeof window.montarChipCompanero === 'function'){
+    const h = document.getElementById('mvChipHome'); if(h && !h.dataset.mv){ h.dataset.mv='1'; window.montarChipCompanero(h, { grande:true }); }
+    const r = document.getElementById('mvChipResult'); if(r && !r.dataset.mv){ r.dataset.mv='1'; window.montarChipCompanero(r, { grande:true, celebra:true }); }
+    const c = document.getElementById('mvChipHeader'); if(c && !c.dataset.mv){ c.dataset.mv='1'; window.montarChipCompanero(c, { grande:false }); }
+  } else if(n < 100){ setTimeout(() => montarChipsVista(n + 1), 100); }
+}
+var PANTALLAS_CON_REINICIO = ['screen-manual','screen-reparto','screen-agrupacion','screen-tablas'];
+function actualizarCabecera(id){
+  const hdr = document.getElementById('app-header');
+  if(!hdr) return;
+  hdr.classList.toggle('hidden', id === 'screen-welcome');
+  document.getElementById('btn-reset').classList.toggle('hidden', !['screen-manual','screen-reparto','screen-agrupacion','screen-tablas'].includes(id));
+  document.body.dataset.pantalla = id.replace('screen-', '');
+  if(id === 'screen-complete'){
+    const r = document.getElementById('mvChipResult');
+    if(r){ r.dataset.mv = ''; r.innerHTML = ''; }
+  }
+  montarChipsVista();
+}
+function siguienteDivision(){
+  const nivel = App.ultimoNivel;
+  if(nivel){ startLevel(nivel); }
+  else { goToWelcome(); goToManual(); }
+}
+document.getElementById('btn-back').addEventListener('click', () => {
+  const act = document.querySelector('.screen.active'); if(!act) return;
+  const viejo = act.querySelector('.icon-btn');
+  if(viejo && viejo.disabled) return;
+  if(act.id === 'screen-manual' || act.id === 'screen-strategy' || act.id === 'screen-complete') goToWelcome();
+  else goBack();
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const act = document.querySelector('.screen.active'); if(!act) return;
+  const viejo = act.querySelector('.icon-btn');
+  if(viejo && viejo.disabled) return;
+  if(act.id === 'screen-manual'){
+    const a = document.getElementById('inputDividend'), b = document.getElementById('inputDivisor');
+    if(a) a.value = ''; if(b) b.value = '';
+    hideError('error-welcome'); if(a) a.focus();
+  } else if(App.currentStrategy){
+    startStrategy(App.currentStrategy);
+  }
+});
+document.querySelectorAll('#screen-manual input').forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') onManualStart(); }));
+document.querySelectorAll('#screen-manual input').forEach(i => i.addEventListener('input', () => { i.value = i.value.replace(/[^0-9]/g, ''); }));
+document.querySelectorAll('.level-btn.mv-nivel[data-level]').forEach(b => { b.onclick = () => abrirSelectorModo(b.dataset.level); });
+document.querySelector('.mv-crear').onclick = () => goToManual();
+
+/* Ajuste a la altura: si la pantalla no cabe, se achica un poco todo el contenido (--fz) para evitar el scroll */
+(function(){
+  const raiz = document.documentElement; let pend = false;
+  function ajustar(){
+    pend = false;
+    let f = 1; raiz.style.setProperty('--fz', '1');
+    const sobra = () => raiz.scrollHeight - window.innerHeight;
+    let guardia = 0;
+    while(sobra() > 1 && f > 0.5 && guardia++ < 16){ f = Math.max(0.5, f - 0.04); raiz.style.setProperty('--fz', f.toFixed(2)); }
+  }
+  function pedir(){ if(!pend){ pend = true; requestAnimationFrame(ajustar); } }
+  window.addEventListener('resize', pedir);
+  window.addEventListener('load', () => { pedir(); setTimeout(pedir, 800); });
+  new MutationObserver(pedir).observe(document.getElementById('main'), { subtree:true, childList:true, attributes:true, attributeFilter:['class','style'] });
+  pedir();
+})();
+
+/* ---- Reparto: planetas con orbes de 5 y de 10 ---- */
+function layoutBags(){
+  const el = document.getElementById('repartoBags'); if(!el) return;
+  const n = App.divisor || 1, q = (App.quotient || 0) + 1;
+  const tens = Math.floor(q / 10);
+  const S0 = Math.min(176, 80 + 18 * tens + (q >= 5 ? 6 : 0));
+  const avail = Math.min(window.innerWidth - 64, 880);
+  const gap = n > 9 ? 10 : 16, ring = n > 9 ? 1.22 : 1.28;
+  const minS = n > 9 ? 44 : 64;
+  const colsFor = (S) => Math.max(1, Math.min(8, Math.floor((avail + gap) / (S * ring + gap))));
+  const rowsMin = Math.ceil(n / colsFor(minS));
+  let S = S0;
+  while(S > minS && Math.ceil(n / colsFor(S)) > rowsMin) S -= 2;
+  S = Math.max(minS, S);
+  const rows = Math.ceil(n / colsFor(S));
+  const cols = Math.ceil(n / rows);
+  el.style.setProperty('--bagS', S + 'px');
+  el.style.setProperty('--cols', cols);
+}
+window.addEventListener('resize', () => { if(document.querySelector('#screen-reparto.active')) layoutBags(); });
+const _VZ_COL = ['k1','k2','k3','k4','k5','k6'];
+function renderBagViz(){
+  document.querySelectorAll('.bag').forEach(bag => {
+    const content = bag.querySelector('.bag-content');
+    const n = content ? content.children.length : 0;
+    if(bag.dataset.n === String(n)) return;
+    const prev = parseInt(bag.dataset.n || '0', 10);
+    bag.dataset.n = String(n);
+    let viz = bag.querySelector('.bag-viz');
+    if(!viz){ viz = document.createElement('div'); viz.className = 'bag-viz'; bag.appendChild(viz); }
+    const t = Math.floor(n / 10), f = Math.floor((n % 10) / 5), u = n % 5;
+    let h = '';
+    for(let i = 0; i < t; i++) h += '<span class="vz v10">10</span>';
+    for(let i = 0; i < f; i++) h += '<span class="vz v5">5</span>';
+    for(let i = 0; i < u; i++) h += '<span class="vz v1 ' + _VZ_COL[(i + t + f) % 6] + '"></span>';
+    viz.innerHTML = h;
+    if(n !== prev){ bag.classList.remove('bump'); void bag.offsetWidth; bag.classList.add('bump'); }
+  });
+}
+/* ---- Agrupación: contador de fichas pintadas ---- */
+function actualizarContadorAgr(){
+  const s = document.getElementById('agrSel'); if(!s) return;
+  const n = App.agrupacion.selectedTokens.size;
+  s.textContent = n;
+  document.getElementById('agrMeta').textContent = App.divisor;
+  const c = document.getElementById('agrContador');
+  c.classList.toggle('lleno', n === App.divisor);
+  c.classList.toggle('pasado', n > App.divisor);
+}
+/* ---- Tablas: la X ya puesta oculta el botón ---- */
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if(t && t.classList && t.classList.contains('tablas-input') && String(t.value).trim().toUpperCase() === 'X'){
+    const w = document.getElementById('tablasXBtnWrap'); if(w) w.style.display = 'none';
+  }
+});
+/* ---- Enter = Continuar / Siguiente ---- */
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter') return;
+  if(document.getElementById('modal-root').innerHTML.trim() !== '') return;
+  const act = document.querySelector('.screen.active'); if(!act) return;
+  if(act.id === 'screen-complete'){ e.preventDefault(); siguienteDivision(); return; }
+  const w = act.querySelector('[id$="ContinueWrap"]');
+  if(w && getComputedStyle(w).display !== 'none'){
+    const b = w.querySelector('button'); if(b){ e.preventDefault(); b.click(); }
+  }
+});
+</script>
+<script>
+/* "Atrás": vuelve a la página desde la que llegaste (el eje); si entraste directo, va a la lista de ejes */
+document.addEventListener('click', function(e){
+  var a = e.target.closest && e.target.closest('[data-atras]'); if(!a) return;
+  e.preventDefault();
+  if(window.mvIrAtras) window.mvIrAtras(); else location.href = a.getAttribute('href');
+});
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig, "onlineRepDivision");
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+
+    const sessionRef = doc(db, 'sessions', codigo);
+    const sessionSnap = await getDoc(sessionRef);
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+    if(datos.recurso && datos.recurso !== 'representacion-division') return { ok:false, error:`Ese código es para ${datos.recurso}, no para Representación de Divisiones.` };
+
+    const duracionMinutos = datos.duracionMinutos || 180;
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos) return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+    }
+
+    return { ok:true, uid, nivelObjetivo: datos.nivelObjetivo, modoObjetivo: datos.modoObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+
+window.iniciarNuevoIntentoOnline = async function(codigo, docId, nombre, uid){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      name: nombre, uid: uid || null, startedAt: serverTimestamp(), completados: 0, errores: 0, mascota: (window.mascotaParaClase ? await window.mascotaParaClase() : null)
+    });
+  } catch(err){
+    console.error('No se pudo iniciar el intento online:', err);
+  }
+};
+
+window.reportarProgresoOnline = async function(codigo, docId, deltaCompletados, deltaErrores){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      completados: increment(deltaCompletados || 0),
+      errores: increment(deltaErrores || 0),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){
+    console.error('No se pudo reportar el progreso online:', err);
+  }
+};
+// Si se llega desde el inicio con un código de clase en el enlace
+// (?codigoClase=XXXX), se une solo, sin mostrar el botón ni el modal --
+// ya sea con la cuenta que ya tenía la sesión, o como invitado si vino
+// con ?invitado=Nombre (ese nombre ya pasó por el filtro en el inicio).
+try{
+  const parametrosUrl = new URLSearchParams(location.search);
+  const codigoDesdeUrl = parametrosUrl.get('codigoClase');
+  const invitadoDesdeUrl = parametrosUrl.get('invitado');
+  let nombreParaUnirse = null;
+  if(AlumnoActual) nombreParaUnirse = AlumnoActual.nombre;
+  else if(invitadoDesdeUrl && invitadoDesdeUrl.trim()) nombreParaUnirse = `👤 Invitado: ${invitadoDesdeUrl.trim()}`;
+
+  if(codigoDesdeUrl && nombreParaUnirse){
+    (async () => {
+      const resultado = await window.unirseClaseOnline(codigoDesdeUrl.toUpperCase(), nombreParaUnirse);
+      if(!resultado.ok){ alert(resultado.error); return; }
+      Online.activo = true; Online.codigo = codigoDesdeUrl.toUpperCase(); Online.uid = resultado.uid; Online.nombre = nombreParaUnirse;
+      registrarInicioOnline();
+      // Ojo: en algunos recursos este indicador recién se dibuja cuando se
+      // muestra la pantalla de niveles -- si un invitado llega sin sesión
+      // previa, puede que todavía no exista en el DOM.
+      const _indEl = document.getElementById('indicadorOnline');
+      if(_indEl){ _indEl.classList.remove('hidden'); document.getElementById('nombreOnline').textContent = nombreParaUnirse; }
+      if(resultado.modoObjetivo === 'contrarreloj'){ startContrarreloj(resultado.nivelObjetivo); }
+      else { startLevel(resultado.nivelObjetivo); }
+    })();
+  }
+} catch(e){ console.error(e); }
+</script>
+</body>
+</html>
