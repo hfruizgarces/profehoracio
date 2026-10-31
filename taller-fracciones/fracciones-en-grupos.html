@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Laboratorio de Números</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS DE DISEÑO
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147;
+  --bg-2:#3b1785;
+  --bg-3:#5b21b6;
+  --surface:rgba(255,255,255,.07);
+  --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.14);
+
+  --primary:#34d399;
+  --primary-dark:#0f9d70;
+  --accent:#fbbf24;
+  --accent-soft:#fde68a;
+  --pink:#f472b6;
+  --blue:#38bdf8;
+  --error:#fb7185;
+  --error-soft:#3b0f1f;
+
+  --text:#f6f3ff;
+  --text-dim:#c9bdf0;
+  --text-faint:#8f7fc4;
+
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+
+  --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+  --tap-min: 48px;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100%; overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button, input{ -webkit-user-select:none; user-select:none; }
+input{font-family:inherit;}
+
+.hidden{display:none !important;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* Foco visible para accesibilidad con teclado */
+:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+  padding: clamp(10px, 2.5vw, 24px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 56px 14px 2px;
+  flex-wrap:wrap;
+}
+.app-header .side{
+  display:flex; align-items:center; gap:6px;
+  flex:1 1 auto;
+  min-width:70px;
+}
+.app-header .side.right{ justify-content:flex-end; }
+
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  padding:9px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:clamp(.75rem, 2vw, .9rem);
+  cursor:pointer;
+  min-height:var(--tap-min);
+  transition: background .15s, transform .1s;
+  white-space:nowrap;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.icon-btn:active{ transform:scale(.96); }
+
+.brand{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.2vw, 1.6rem);
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+.brand .plus{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.5em; height:1.5em;
+  background:linear-gradient(135deg, var(--primary), var(--blue));
+  border-radius:10px;
+  color:#0b1a12;
+  font-size:1em;
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+.screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation: fadeSlideIn .35s ease both;
+}
+@keyframes fadeSlideIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.card{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(16px, 4vw, 32px);
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px);
+}
+
+/* =========================================================
+   PANTALLA INICIAL
+   ========================================================= */
+.home-title{
+  text-align:center;
+  font-size:clamp(1.4rem, 5vw, 2.2rem);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.home-sub{
+  text-align:center;
+  color:var(--text-dim);
+  font-size:clamp(.9rem, 2.4vw, 1.05rem);
+  margin:0 auto clamp(18px,4vw,28px);
+  max-width:46ch;
+}
+footer.credits{ text-align:center; color: var(--text-faint); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
+.level-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:clamp(10px, 2.5vw, 16px);
+  width:100%;
+}
+@media (max-width:420px){
+  .level-grid{ grid-template-columns:1fr; }
+}
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:clamp(16px,4vw,22px) 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  cursor:pointer;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1rem, 2.6vw, 1.15rem);
+  min-height:96px;
+  transition:transform .15s, box-shadow .15s;
+}
+.level-btn:hover{ transform:translateY(-3px); }
+.level-btn:active{ transform:scale(.97); }
+.level-btn .emoji{ font-size:clamp(1.6rem, 5vw, 2.1rem); }
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+
+/* =========================================================
+   PANTALLA "CREA TU EJERCICIO"
+   ========================================================= */
+.form-title{ font-size:clamp(1.2rem,3.6vw,1.5rem); font-weight:800; text-align:center; margin-bottom:4px; }
+.form-sub{ color:var(--text-dim); text-align:center; margin-bottom:18px; font-size:.95rem; }
+
+.addend-row{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:12px;
+}
+.addend-index{
+  width:26px; text-align:right; color:var(--text-faint); font-weight:700; flex:0 0 auto;
+}
+.addend-input{
+  flex:0 1 180px;
+  min-width:0;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1.1rem, 3.2vw, 1.35rem);
+  text-align:center;
+  padding:12px 10px;
+  min-height:var(--tap-min);
+  letter-spacing:1px;
+}
+.addend-input::placeholder{ color:var(--text-faint); font-family:var(--font-body); font-weight:600; font-size:.85em;}
+.addend-remove{
+  flex:0 0 auto;
+  width:var(--tap-min); height:var(--tap-min);
+  border-radius:50%;
+  background:rgba(251,113,133,.18);
+  border:1px solid var(--error);
+  color:var(--error);
+  font-size:1.2rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.dashed-btn{
+  width:100%;
+  max-width:220px;
+  margin-left:auto; margin-right:auto;
+  display:block;
+  padding:12px;
+  border-radius:var(--r-sm);
+  border:2px dashed var(--border-soft);
+  background:transparent;
+  color:var(--text-dim);
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap-min);
+  margin-bottom:18px;
+}
+.dashed-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+.dashed-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.primary-btn{
+  width:100%;
+  padding:14px;
+  border-radius:var(--r-md);
+  border:none;
+  background:linear-gradient(135deg, var(--primary), #10b981);
+  color:#062b1c;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1rem, 2.8vw, 1.15rem);
+  cursor:pointer;
+  min-height:52px;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.primary-btn:hover{ transform:translateY(-2px); }
+.primary-btn:active{ transform:scale(.98); }
+.primary-btn:disabled{
+  background:#4b4b5a; color:#9a9aab; box-shadow:none; cursor:not-allowed; transform:none;
+}
+.form-error{
+  color:var(--error);
+  text-align:center;
+  font-weight:700;
+  font-size:.9rem;
+  min-height:1.4em;
+  margin-bottom:10px;
+}
+
+/* =========================================================
+   PANTALLA DE EJERCICIO
+   ========================================================= */
+.hint-box{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:16px;
+  width:100%;
+  font-size:clamp(.82rem, 2.1vw, .95rem);
+  line-height:1.45;
+}
+.hint-box .bulb{ font-size:1.2em; flex:0 0 auto; }
+.hint-box b{ color:var(--accent); }
+.hint-box .ok{ color:var(--primary); }
+
+/* =========================================================
+   MODAL (llevada / totales de columna)
+   ========================================================= */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,4,30,.6);
+  backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  z-index:700;
+}
+.modal-box{
+  width:100%; max-width:400px;
+  background:linear-gradient(160deg, #2c1468, #4c1d95);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(18px,4vw,26px);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.modal-close-x{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:var(--surface); color:var(--text);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:5;
+}
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes monedaFlota{
+  0%{ transform:translateY(0); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translateY(-24px); opacity:0; }
+}
+.modal-eyebrow{
+  font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:6px; text-align:center;
+}
+.modal-title{
+  font-size:clamp(1.05rem, 3.2vw, 1.25rem);
+  text-align:center;
+  margin-bottom:14px;
+  line-height:1.4;
+}
+.modal-title b{ color:var(--accent-soft); }
+.modal-fields{
+  display:flex; gap:12px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;
+}
+.modal-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.modal-field label{ font-size:.8rem; color:var(--text-dim); font-weight:700; text-align:center; max-width:11em; }
+.modal-field input{
+  width:80px;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.3rem;
+  padding:10px 6px;
+  border-radius:var(--r-sm);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  min-height:var(--tap-min);
+}
+.modal-feedback{
+  text-align:center; min-height:1.6em; font-weight:700; margin-bottom:10px; font-size:.9rem;
+}
+.modal-feedback.err{ color:var(--error); }
+.modal-feedback.ok{ color:var(--primary); }
+.modal-actions{ display:flex; gap:10px; }
+.modal-actions button{ flex:1; }
+.secondary-btn{
+  padding:12px; border-radius:var(--r-md); border:1px solid var(--border-soft);
+  background:transparent; color:var(--text-dim); font-weight:700; cursor:pointer;
+  min-height:48px;
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO / CELEBRACIÓN
+   ========================================================= */
+.result-hero{
+  font-size:clamp(2.2rem, 9vw, 3.4rem);
+  text-align:center;
+}
+.result-title{
+  font-size:clamp(1.3rem, 4vw, 1.8rem);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.result-eq{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.6vw, 1.6rem);
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:20px;
+  word-break:break-word;
+}
+.result-actions{
+  display:flex; gap:12px; width:100%; flex-wrap:wrap;
+}
+.result-actions button{ flex:1 1 160px; }
+
+.confetti-piece{
+  position:fixed; top:-10px; z-index:800;
+  border-radius:2px;
+  animation: fall linear forwards;
+  pointer-events:none;
+}
+@keyframes fall{
+  to{ transform:translateY(105vh) rotate(360deg); opacity:.9; }
+}
+
+/* =========================================================
+   BARRA DE PROGRESO DE COLUMNAS
+   ========================================================= */
+.progress-track{
+  display:flex; gap:6px; width:100%; margin-bottom:16px;
+}
+.progress-seg{
+  flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progress-seg .fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--blue));
+  transition:width .4s ease;
+}
+
+/* utilidad de botón de sonido */
+.sound-icon{ font-size:1.1em; }
+
+/* =========================================================
+   MULTIPLICACIÓN ÁRABE — retícula (propio del recurso)
+   ========================================================= */
+:root{
+  --ink:var(--text); --ink-soft:var(--text-dim); --ink-faint:var(--text-faint);
+  --brass:#fbbf24; --brass-dark:#f59e0b; --success:#34d399; --success-bg:rgba(52,211,153,.15);
+  --error-bg:rgba(251,113,133,.15); --radius-s:10px; --radius-m:16px; --radius-l:22px;
+  --font-num:var(--font-display); --font-ui:var(--font-body);
+  --cell-size:calc(var(--cell-base,56px) * var(--f,1));
+}
+#vista{ width:100%; display:flex; flex-direction:column; }
+.hero{ text-align:center; }
+.problema-pill{
+  align-self:center; font-family:var(--font-num); font-weight:800; letter-spacing:.04em;
+  font-size:calc(clamp(1.3rem,4.4vw,1.9rem) * var(--f,1)); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.35); border-radius:16px;
+  padding:calc(6px * var(--f,1)) calc(22px * var(--f,1)); margin:0 0 calc(12px * var(--f,1));
+}
+.lattice-card{ width:100%; display:flex; flex-direction:column; align-items:center; padding:calc(4px * var(--f,1)) 0 0; }
+.lattice-row{ display:flex; align-items:flex-start; gap:6px; }
+.lattice-left{ display:flex; flex-direction:column; }
+.top-digits, .side-digits{ display:flex; }
+.top-digits{ justify-content:flex-end; margin-bottom:5px; gap:4px; }
+.side-digits{ flex-direction:column; margin-top:calc(var(--cell-size) * .62 + 5px); gap:4px; margin-left:4px; }
+.digit-box{
+  width:var(--cell-size); height:calc(var(--cell-size) * .62); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .46); color:#fff;
+  background:linear-gradient(150deg, rgba(124,58,237,.45), rgba(44,20,104,.7)); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45);
+  border:none; border-radius:12px; text-shadow:0 2px 6px rgba(0,0,0,.45);
+}
+.side-digits .digit-box{ width:calc(var(--cell-size) * .72); height:var(--cell-size); }
+.grid-boxes{ display:grid; gap:4px; }
+.lcell{
+  width:var(--cell-size); height:var(--cell-size); position:relative; overflow:hidden; border-radius:10px;
+  border:2px solid rgba(196,181,253,.75); background:rgba(30,17,71,.55); box-shadow:0 0 14px rgba(124,58,237,.25);
+}
+.lcell .tri{ position:absolute; inset:0; transition:background-color .35s ease, opacity .35s ease; }
+.tri-tens{ clip-path:polygon(0 0,100% 0,0 100%); background:rgba(255,255,255,.05); }
+.tri-ones{ clip-path:polygon(100% 0,100% 100%,0 100%); background:rgba(255,255,255,.1); }
+.tri.diag-dim{ opacity:.35; } .tri.diag-active{ opacity:1; }
+.cell-num{
+  position:absolute; z-index:2; font-family:var(--font-num); font-weight:800; line-height:1; pointer-events:none;
+  font-size:calc(var(--cell-size) * .36); color:#fff; text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.cell-num.tens-pos{ top:12%; left:12%; } .cell-num.ones-pos{ bottom:10%; right:12%; }
+.lcell input.cell-input{
+  position:absolute; z-index:2; width:42%; height:42%; border:none; border-radius:7px; padding:0; outline:none;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.5); text-align:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .32); color:#fff; user-select:text; -webkit-user-select:text;
+}
+.lcell input.cell-input.tens-pos{ top:6%; left:6%; } .lcell input.cell-input.ones-pos{ bottom:6%; right:6%; }
+.lcell input.cell-input:focus{ background:rgba(124,58,237,.5); box-shadow:0 0 0 2.5px var(--brass), 0 0 14px rgba(251,191,36,.6); }
+.lcell input.cell-input.wrong-flash{ background:var(--error-bg); box-shadow:0 0 0 2.5px var(--error); }
+
+.diag-section{ margin-top:calc(22px * var(--f,1)); width:100%; display:flex; flex-direction:column; align-items:center; }
+.diag-section h3{ font-size:calc(.86rem * var(--f,1)); font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:calc(30px * var(--f,1)); text-align:center; }
+.diag-row{ display:flex; gap:calc(8px * var(--f,1)); align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.diag-box-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; }
+.carry-badge{
+  position:absolute; top:calc(-24px * var(--f,1)); left:50%; transform:translateX(-50%) scale(0); opacity:0;
+  font-family:var(--font-num); font-weight:800; font-size:.8rem; color:#3b2405; background:var(--brass);
+  border-radius:999px; padding:2px 9px; white-space:nowrap; box-shadow:0 0 10px rgba(251,191,36,.7);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+.carry-badge.show{ transform:translateX(-50%) scale(1); opacity:1; }
+.diag-box{
+  width:calc(clamp(48px,11vw,64px) * var(--f,1)); min-height:calc(clamp(48px,11vw,64px) * var(--f,1));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1));
+  border:2.5px solid var(--border-soft); background:rgba(8,3,26,.4); color:var(--text-faint); transition:all .25s ease;
+}
+.diag-box.pending{ opacity:.55; }
+.diag-box input{ width:100%; height:100%; border:none; background:transparent; text-align:center; font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1)); color:#fff; outline:none; user-select:text; -webkit-user-select:text; }
+.diag-box.wrong{ animation:shake .32s ease; }
+.carry-fly{
+  position:fixed; z-index:3000; font-family:var(--font-num); font-weight:800; font-size:.95rem; color:#3b2405;
+  background:var(--brass); border-radius:999px; padding:4px 10px; pointer-events:none;
+  transition:transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+}
+.final-banner{
+  margin-top:calc(16px * var(--f,1)); text-align:center; background:var(--success-bg); border:2px solid var(--success);
+  color:var(--success); border-radius:16px; padding:calc(10px * var(--f,1)) 20px; font-weight:800;
+  font-family:var(--font-num); font-size:calc(clamp(1.1rem,3.8vw,1.5rem) * var(--f,1));
+}
+.arabe-final{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.arabe-final .mv-fila-chip{ margin-top:calc(8px * var(--f,1)); }
+.arabe-final .result-actions{ margin-top:calc(14px * var(--f,1)); }
+.setup-box{ width:100%; max-width:480px; margin:0 auto; text-align:center; }
+.setup-box label{ display:block; font-weight:700; font-size:.95rem; color:var(--text-dim); margin-bottom:16px; }
+.factor-input-row{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,3vw,18px); }
+.factor-input{
+  width:100%; max-width:150px; font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,7vw,2.2rem);
+  text-align:center; color:#fff; border:none; border-radius:16px; padding:14px 6px; background:rgba(8,3,26,.5);
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); user-select:text;
+}
+.factor-input:focus{ outline:none; box-shadow:0 0 0 3px var(--brass), 0 0 16px rgba(251,191,36,.5); }
+.factor-input::placeholder{ color:var(--text-faint); font-weight:600; }
+.factor-x{ font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,6vw,2.2rem); color:var(--brass); flex-shrink:0; }
+.setup-error{ margin-top:12px; padding:9px 14px; border-radius:10px; background:var(--error-bg); color:var(--error); font-weight:700; font-size:.9rem; display:none; }
+.setup-error.show{ display:block; }
+.mv-universo #screen-custom .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; }
+@media (min-width:900px) and (orientation:landscape){ .mv-universo .mv-home .home-title{ padding:0; } }
+
+.lattice-card[data-fase="diagonales"] .digit-box{ opacity:.4; transition:opacity .25s; }
+.lcell input.cell-input, .diag-box input, .factor-input{ -webkit-touch-callout:none; }
+.lcell input.cell-input::selection, .diag-box input::selection{ background:transparent; }
+.diag-row{ margin-top:calc(26px * var(--f,1)); }
+.result-eq{ font-size:clamp(1.6rem,6vw,2.4rem) !important; }
+
+.lattice-card[data-fase="diagonales"] .cell-num{ opacity:.38; transition:opacity .25s; }
+.lattice-card[data-fase="diagonales"] .cell-num.num-act{ opacity:1; }
+.tri.diag-dim{ opacity:.7 !important; }
+.tri.diag-active{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.55); }
+button, input{ -webkit-user-select:text; user-select:text; }
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+
+#vista .screen{ animation:none; }
+.mv-universo #screen-exercise .hint-box{ margin-bottom:calc(10px * var(--f,1)); }
+.mv-universo #screen-exercise .hint-box{ font-size:calc(.95rem * var(--f,1)); }
+body[data-pantalla="result"] #screen-exercise .hint-box{ display:none; }
+:root{
+  --color-primary:#38bdf8; --color-primary-dark:#7dd3fc; --color-secondary:#fbbf24; --color-success:#34d399;
+  --color-card:rgba(255,255,255,.07); --color-text:#f6f3ff; --color-text-light:#c9bdf0; --surface-soft:rgba(255,255,255,.05);
+  --shadow:0 14px 34px rgba(0,0,0,.4); --shadow-hover:0 20px 44px rgba(0,0,0,.5); --radius:20px; --radius-sm:12px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+  --b-mil:#ef4444; --b-mil-dark:#7f1d1d; --b-cen:#38bdf8; --b-cen-dark:#0369a1; --b-dec:#34d399; --b-dec-dark:#0f9d70; --b-uni:#fbbf24; --b-uni-dark:#b45309;
+}
+
+
+html,body{margin:0}
+#vista{--f:1; zoom:var(--fz,1)}
+.card{background:transparent;border:0;box-shadow:none;padding:6px 10px;position:relative;max-width:980px;margin:0 auto}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance}
+.credits{text-align:center;color:#a99bdc;font-size:.78rem;margin:6px 0 0}
+a.level-btn{text-decoration:none}
+.mv-fila-chip{margin-top:30px !important}
+.mv-niveles.mv-p2{aspect-ratio:100/56;width:min(100%,640px)}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n1{--x:6;--y:10;--w:42}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n2{--x:52;--y:10;--w:42}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:9;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:53;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:31;--y:3;--w:38}
+.mv-niveles.mv-p4{aspect-ratio:100/88}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:7;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:53;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:7;--y:48;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:53;--y:48;--w:40}
+.mv-niveles .level-btn.mv-nivel.n4{--i:3;--a:#451a03;--b:#f59e0b;--c:#fef3c7;--glow:251,191,36;--ang-b:158deg;--fl:6.1s}
+.mv-niveles .level-btn.mv-nivel.n4::after{animation-delay:-3.2s}
+@media (min-width:700px){
+  .mv-niveles.mv-p3{aspect-ratio:100/40}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:11;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:37.5;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:64;--y:8;--w:25}
+  .mv-niveles.mv-p4{width:min(100%,900px);aspect-ratio:100/30}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:2;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:27;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:52;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:77;--y:4;--w:22}
+}
+
+
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+  --hb:clamp(34px,8dvh,60px);
+}
+
+*{ box-sizing:border-box; }
+
+body.en-juego{ overflow:hidden; height:100dvh; min-height:0; }
+
+button{ font-family:inherit; }
+
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+
+.hidden{ display:none !important; }
+
+
+.screen{ display:none; animation:fadeIn .35s ease; }
+
+.screen.active{ display:block; }
+
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+
+/* ---------- Pantalla de juego (sin scroll) ---------- */
+#screen-juego{ height:100dvh; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+
+#screen-juego.active{ display:grid; }
+
+.topbar-der{ grid-area:der; justify-self:end; display:flex; gap:6px; }
+
+.nivel-pill{
+  grid-area:pill; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4); color:var(--accent);
+  padding:6px 12px; border-radius:999px; font-family:var(--font-display); font-weight:800;
+  font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+}
+
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:var(--transition);
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); padding:7px 14px; border-radius:999px;
+}
+
+.btn:hover{ background:var(--surface-strong); }
+
+.btn.icono{ width:38px; height:38px; padding:0; font-size:19px; display:inline-flex; align-items:center; justify-content:center; }
+
+.btn.verde{ background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.siguiente{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3d1f00; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.corte{ padding:5px 11px; min-width:34px; }
+
+.btn.sel{ background:rgba(56,189,248,.22); border-color:var(--blue); color:var(--blue); }
+
+
+.juego-main{
+  width:100%; max-width:1050px; margin:0 auto; min-height:0; padding:0 14px 40px;
+  display:flex; flex-direction:column; gap:6px;
+}
+
+.escenario{
+  flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:8px;
+  padding:4px 2px; overflow:hidden;
+}
+
+.fila{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:center; }
+
+.fila.fix{ flex-wrap:nowrap; }
+
+.fila .flex1{ flex:1; min-width:0; }
+
+.etq{ font-family:var(--font-display); font-weight:800; font-size:15px; min-width:78px; color:var(--text-dim); }
+
+.estado{ display:flex; justify-content:center; align-items:center; font-family:var(--font-display); font-weight:800; font-size:15px; color:var(--accent); }
+
+.sub{ margin:0; text-align:center; font-size:14px; line-height:1.3; color:var(--text-dim); font-weight:700; }
+
+.sub b{ color:var(--text); }
+
+
+.msg{ min-height:2.7em; margin:0; padding:3px 8px; text-align:center; line-height:1.3; font-size:14px; font-weight:700; color:var(--text-dim); display:block; }
+
+.msg.bien{ color:var(--primary); }
+ .msg.mal{ color:var(--error); }
+ .msg.casi{ color:var(--accent); }
+
+.msg b{ color:inherit; }
+
+
+/* Fracciones */
+.frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; font-weight:800; line-height:1.05; margin:0 3px; }
+
+.frac > span:first-child{ border-bottom:2.5px solid currentColor; padding:0 4px; }
+
+.frac .den{ border-top:3px solid currentColor; padding:0 10px; }
+
+.frac.grande{ font-size:clamp(1.35rem,5.5vw,1.9rem); font-family:var(--font-display); }
+
+.entrada{
+  width:68px; padding:6px; font-size:1.25rem; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  text-align:center; background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:800;
+  -moz-appearance:textfield; appearance:textfield;
+}
+
+.entrada::-webkit-outer-spin-button,.entrada::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+.entrada:focus{ outline:none; border-color:var(--blue); }
+
+
+/* Barras */
+.barra{
+  display:flex; height:var(--hb); border:3px solid var(--text); border-radius:var(--radius-sm); overflow:hidden;
+  background:rgba(255,255,255,.06); transition:outline .2s, transform .5s, opacity .3s; touch-action:none; width:100%;
+}
+
+.barra.entero{ height:calc(var(--hb)*.75); background:rgba(56,189,248,.18); justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; font-family:var(--font-display); }
+
+.trozo{
+  flex:1; min-width:0; border-right:2px solid var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(8px,2.5vw,13px); color:var(--text-dim); user-select:none; touch-action:none; transition:background .15s;
+}
+
+.trozo:last-child{ border-right:none; }
+
+.trozo.on{ background:var(--blue); color:#0c1b3a; font-weight:800; }
+
+.barra.b .trozo.on{ background:var(--accent); color:#3d1f00; }
+
+.barra.coincide{ outline:5px solid var(--primary); }
+
+.sup-z{ position:relative; z-index:3; }
+
+.historial{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; font-size:1.15rem; font-family:var(--font-display); }
+
+.historial .frac{ opacity:.55; }
+ .historial .frac.actual{ opacity:1; color:var(--accent); }
+
+svg text{ font-weight:800; font-family:var(--font-display); }
+
+.balanza{ width:100%; flex:1 1 0; min-height:70px; }
+
+
+@media(max-width:600px){
+  .app-topbar{ padding:6px 62px 2px 8px; }
+  .icon-btn{ padding:7px 11px; font-size:.82rem; }
+  .btn.icono{ width:34px; height:34px; font-size:17px; }
+  .juego-main{ padding:0 8px 40px; }
+  .escenario{ padding:4px 0; }
+  .etq{ min-width:60px; font-size:14px; }
+}
+
+@media(max-height:620px){ :root{ --hb:clamp(30px,6.6dvh,48px); } .escenario{ gap:6px; } }
+
+@media(max-height:480px){
+  :root{ --hb:clamp(28px,9dvh,40px); }
+  .app-topbar{ padding-top:3px; padding-bottom:2px; min-height:52px; }
+  .btn.icono{ width:30px; height:30px; }
+  .juego-main{ padding-bottom:38px; gap:3px; }
+  .escenario{ padding:2px 8px; gap:4px; }
+  .msg{ font-size:12.5px; min-height:2.4em; padding:1px; }
+  .sub{ font-size:12.5px; }
+  .btn.corte{ padding:3px 9px; } .btn.verde,.btn.siguiente,.btn.azul{ padding:5px 14px; }
+  .entrada{ padding:3px; font-size:1.05rem; width:60px; }
+  .frac.grande{ font-size:1.25rem; }
+}
+
+
+.trozo .frac{ margin:0; font-size:inherit; }
+ .trozo .frac > span:first-child{ border-bottom-width:1px; padding:0 2px; }
+
+
+/* ---------- Fracciones en grupos ---------- */
+.tabs{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin:2px 0 0; }
+
+.consigna{ display:block; text-align:center; font-family:var(--font-display); font-weight:800; font-size:clamp(.95rem,3.3vw,1.2rem);
+  color:var(--text); background:var(--surface); border:1px solid var(--border-soft); border-radius:22px; padding:6px 20px; margin:2px auto 0; max-width:100%; line-height:1.2; }
+
+.consigna .frac, .msg .frac{ color:var(--accent); font-size:1.4em; }
+
+.consigna .frac span:first-child, .msg .frac span:first-child{ border-bottom-color:var(--accent); }
+
+.escenario.grupo{ justify-content:flex-start; gap:2px; }
+
+.escena{ width:100%; flex:1 1 0; min-height:0; max-height:100%; max-width:900px; margin:0 auto; display:block; touch-action:manipulation; }
+
+.escena .it{ cursor:pointer; }
+ .escena .it.fijo{ cursor:default; }
+ .escena text{ font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',var(--font-display),sans-serif; font-weight:400; user-select:none; }
+
+.escena .nuevo{ animation:aparece .2s ease-out; transform-box:fill-box; transform-origin:center; }
+
+@keyframes aparece{ from{ transform:scale(.6); opacity:.2; } to{ transform:scale(1); opacity:1; } }
+
+@media(prefers-reduced-motion:reduce){ .escena .nuevo{ animation:none; } }
+
+.herram{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; align-items:center; min-height:44px; }
+
+.herram .mas{ width:48px; height:44px; padding:0; font-size:1.5rem; border-radius:12px; }
+
+.opciones{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+.op{ min-width:84px; padding:6px 16px; border-radius:var(--radius-sm); cursor:pointer; color:var(--text);
+  background:var(--surface-strong); border:2px solid var(--border-soft); font-size:clamp(1.15rem,4.4vw,1.55rem); transition:var(--transition); }
+
+.op:hover{ border-color:var(--blue); }
+ .op .frac{ color:inherit; margin:0; }
+
+.op.mal{ border-color:var(--error); opacity:.45; pointer-events:none; }
+ .op.bien{ border-color:var(--primary); background:rgba(52,211,153,.22); }
+
+.conteo{ font-family:var(--font-display); font-weight:800; font-size:.9rem; color:var(--text-dim); text-align:center; min-height:1.2em; }
+
+@media(max-height:480px){ .consigna{ padding:2px 14px; font-size:.95rem; } .herram{ min-height:34px; } .tabs{ margin:0; } .tabs .btn{ padding:3px 12px; font-size:13px; } .tabs .tx{ display:none; } .conteo{ display:none; } .juego-main{ gap:2px; } }
+
+
+
+#screen-juego{align-items:stretch}
+body.mv-universo{margin:0}
+.app-topbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;max-width:1050px;margin:0 auto;padding:6px 10px 4px}
+.app-topbar>*,.app-topbar .nivel-pill{grid-area:auto !important}
+.app-topbar{grid-template-areas:none !important;grid-template-rows:auto}
+.app-topbar .centro{justify-self:center;display:flex;align-items:center;gap:6px;min-width:0}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.topbar-der{justify-self:end;display:flex;gap:6px;align-items:center}
+.nivel-pill{display:inline-flex;align-items:center;justify-content:center;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:var(--accent);padding:6px 12px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.niv-leyenda{list-style:none;margin:2px auto 0;padding:0;max-width:430px;display:grid;gap:3px;font-size:.84rem;color:#d9d0f7}
+.niv-leyenda li{display:flex;align-items:center;gap:8px}
+.niv-leyenda .pt{flex:none;width:10px;height:10px;border-radius:50%}
+.niv-leyenda b{color:#fff;min-width:78px}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/84}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}}
+.mv-items-card{padding-bottom:10px}
+
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="st3d" viewBox="-11 -11 22 22" overflow="visible"><polygon points="0.00,-10.00 2.53,-3.48 9.51,-3.09 4.09,1.33 5.88,8.09 0.00,4.30 -5.88,8.09 -4.09,1.33 -9.51,-3.09 -2.53,-3.48" fill="#92400e" stroke="#92400e" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0,0 -2.53,-3.48 0.00,-10.00" fill="#fff6c2"/><polygon points="0,0 0.00,-10.00 2.53,-3.48" fill="#f59e0b"/><polygon points="0,0 2.53,-3.48 9.51,-3.09" fill="#fcd34d"/><polygon points="0,0 9.51,-3.09 4.09,1.33" fill="#b45309"/><polygon points="0,0 4.09,1.33 5.88,8.09" fill="#fcd34d"/><polygon points="0,0 5.88,8.09 0.00,4.30" fill="#b45309"/><polygon points="0,0 0.00,4.30 -5.88,8.09" fill="#fcd34d"/><polygon points="0,0 -5.88,8.09 -4.09,1.33" fill="#f59e0b"/><polygon points="0,0 -4.09,1.33 -9.51,-3.09" fill="#fff6c2"/><polygon points="0,0 -9.51,-3.09 -2.53,-3.48" fill="#f59e0b"/><ellipse cx="-2.6" cy="-3.6" rx="1.7" ry="1" fill="#fff" opacity=".85" transform="rotate(-30 -2.6 -3.6)"/></symbol>
+<linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1ecff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+<linearGradient id="gXp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+<linearGradient id="gInf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<radialGradient id="gCara" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></radialGradient>
+<filter id="fSombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="fIco" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.1" flood-color="#000" flood-opacity=".55"/></filter>
+</defs></svg>
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen" id="screen-home"><div id="app"><main id="main"><div id="vista"><div class="card mv-items-card"><a class="icon-btn btn-orbita v-azul mv-atras-home" href="representacion.html" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a><a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a><h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem);padding:0 46px">Fracciones en grupos</h1><div class="mv-fila-chip" id="mvChipHome"></div><h2 class="mv-pregunta">Elige un nivel</h2><p class="items-sub">Marca, completa y descubre fracciones de un grupo</p><div class="mv-niveles mv-p3 mv-lv"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div><button type="button" class="level-btn mv-nivel n1" data-nivel="facil" onclick="iniciarNivel('facil')" aria-label="Fácil"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="g1l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="0.00,-13.00 3.51,-4.84 12.36,-4.02 5.69,1.85 7.64,10.52 0.00,5.98 -7.64,10.52 -5.69,1.85 -12.36,-4.02 -3.51,-4.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#g1l0" startOffset="50%" text-anchor="middle">Fácil</textPath></text></svg></button><button type="button" class="level-btn mv-nivel n2" data-nivel="intermedio" onclick="iniciarNivel('intermedio')" aria-label="Intermedio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="g2l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="-9.00,-9.50 -6.43,-3.54 0.04,-2.94 -4.84,1.35 -3.42,7.69 -9.00,4.37 -14.58,7.69 -13.16,1.35 -18.04,-2.94 -11.57,-3.54" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="9.00,-9.50 11.57,-3.54 18.04,-2.94 13.16,1.35 14.58,7.69 9.00,4.37 3.42,7.69 4.84,1.35 -0.04,-2.94 6.43,-3.54" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#g2l0" startOffset="50%" text-anchor="middle">Intermedio</textPath></text></svg></button><button type="button" class="level-btn mv-nivel n3" data-nivel="dificil" onclick="iniciarNivel('dificil')" aria-label="Difícil"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="g3l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="0.00,-15.50 2.30,-10.16 8.08,-9.63 3.72,-5.79 5.00,-0.12 0.00,-3.09 -5.00,-0.12 -3.72,-5.79 -8.08,-9.63 -2.30,-10.16" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="-10.00,-2.50 -7.70,2.84 -1.92,3.37 -6.28,7.21 -5.00,12.88 -10.00,9.91 -15.00,12.88 -13.72,7.21 -18.08,3.37 -12.30,2.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="10.00,-2.50 12.30,2.84 18.08,3.37 13.72,7.21 15.00,12.88 10.00,9.91 5.00,12.88 6.28,7.21 1.92,3.37 7.70,2.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#g3l0" startOffset="50%" text-anchor="middle">Difícil</textPath></text></svg></button></div><ul class="niv-leyenda"><li><span class="pt" style="background:#34d399"></span><b>Fácil</b><span>hasta quintos, grupos pequeños</span></li><li><span class="pt" style="background:#38bdf8"></span><b>Intermedio</b><span>hasta octavos</span></li><li><span class="pt" style="background:#f472b6"></span><b>Difícil</b><span>hasta doceavos, grupos grandes</span></li></ul></div></div></main></div></div>
+<div class="screen" id="screen-juego">
+  <div class="app-topbar"><button class="icon-btn btn-orbita v-azul" id="bVolver" type="button" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button><div class="centro"><span class="nivel-pill" id="actPill"></span></div><div class="topbar-der"><button class="btn icono" id="bSon" title="Sonido" aria-label="Sonido">🔊</button><button class="btn icono" id="bFull" title="Pantalla completa" aria-label="Pantalla completa">⛶</button><a class="icon-btn btn-orbita v-violeta" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></div>
+  <main class="juego-main">
+    <div class="tabs" id="tabs">
+      <button class="btn sel" data-modo="mezcla" type="button" title="Mezcla">🎲<span class="tx"> Mezcla</span></button>
+      <button class="btn" data-modo="marcar" type="button" title="Marcar">👆<span class="tx"> Marcar</span></button>
+      <button class="btn" data-modo="leer" type="button" title="¿Qué fracción es?">🔎<span class="tx"> ¿Qué fracción es?</span></button>
+    </div>
+    <div class="consigna" id="consigna"></div>
+    <section class="escenario grupo" id="escenario">
+      <svg class="escena" id="esc" viewBox="25 25 750 420" aria-label="Escena del grupo">
+        <defs>
+          <radialGradient id="gClara" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#f4f1ff"/><stop offset=".4" stop-color="#b6aed9"/><stop offset="1" stop-color="#6d629e"/></radialGradient>
+          <radialGradient id="gPint" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#fff5bb"/><stop offset=".45" stop-color="#fbbf24"/><stop offset="1" stop-color="#b8670e"/></radialGradient>
+        </defs>
+        <g id="arte"></g>
+        <g id="items"></g>
+      </svg>
+      <div class="conteo" id="conteo"></div>
+      <div class="herram" id="herram"></div>
+    </section>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </main>
+</div>
+<script>
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rnd(0,arr.length-1)];
+const barajar = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const mcd = (a,b)=> b ? mcd(b,a%b) : Math.abs(a);
+const $ = s => document.querySelector(s);
+/* Toda fracción se escribe con el numerador sobre el denominador y con barra fraccionaria */
+const F = (n,d)=> `<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+
+let sonidoOn = true, ctx;
+function tono(f=880, dur=.15, tipo='sine'){
+  if(!sonidoOn) return;
+  try{
+    ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=tipo; o.frequency.value=f; g.gain.setValueAtTime(.15,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+const tintineo = ()=>{ tono(988,.12); setTimeout(()=>tono(1319,.2),110); };
+const errorSnd = ()=> tono(220,.25,'triangle');
+$('#bSon').onclick = e => { sonidoOn=!sonidoOn; e.currentTarget.textContent = sonidoOn?'🔊':'🔇'; };
+$('#bFull').onclick = ()=> document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+function aviso(html, tipo=''){ const m=$('#msg'); m.className='msg '+tipo; m.innerHTML=html; }
+
+let AlumnoActual = null;
+function registrarCompletado(){
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){
+    window.reportarProgresoPractica(AlumnoActual.id, 'taller-fracciones', 1, 0, [1, 2, 3][nivelAuto] || 1);
+  }
+}
+const marcarActividad = () => document.dispatchEvent(new Event('click'));
+function reportar(ok){ try{ if(window.TallerOnline && window.TallerOnline.activo) window.TallerOnline.resultado(ok); }catch(e){} }
+
+/* =========================================================
+   LOS CONTENEDORES (cada uno con su dibujo, su zona interior y su objeto)
+   Los objetos siempre se dibujan DENTRO de la zona interior del contenedor.
+   ========================================================= */
+const arteEstablo = ()=>`
+  <polygon points="50,170 400,38 750,170" fill="#7c2d12"/><polygon points="95,170 400,62 705,170" fill="#9a3412"/>
+  <rect x="90" y="165" width="620" height="255" rx="8" fill="#b45345"/>
+  ${Array.from({length:11},(_,i)=>`<line x1="${142+i*52}" y1="165" x2="${142+i*52}" y2="420" stroke="#7f2f26" stroke-width="3" opacity=".45"/>`).join('')}
+  <rect x="140" y="190" width="520" height="215" rx="10" fill="#2a1608" opacity=".9"/>
+  <rect x="140" y="380" width="520" height="25" rx="6" fill="#ca8a04" opacity=".7"/>
+  <circle cx="400" cy="120" r="17" fill="#2a1608" opacity=".85"/><rect x="30" y="420" width="740" height="14" rx="7" fill="#166534" opacity=".8"/>`;
+const arteEstuche = ()=>`
+  <rect x="60" y="110" width="680" height="270" rx="44" fill="#2563eb"/><rect x="60" y="110" width="680" height="270" rx="44" fill="none" stroke="#93c5fd" stroke-width="4"/>
+  <rect x="100" y="148" width="600" height="194" rx="20" fill="#1e3a8a" opacity=".92"/>
+  <path d="M92 128 H708" stroke="#fbbf24" stroke-width="6" stroke-dasharray="10 6" stroke-linecap="round"/><circle cx="712" cy="128" r="12" fill="#fbbf24"/>`;
+const arteEstante = ()=>`
+  <rect x="60" y="60" width="680" height="350" rx="12" fill="#92400e"/><rect x="90" y="90" width="620" height="290" fill="#431407"/>
+  <rect x="90" y="340" width="620" height="40" fill="#b45309"/><rect x="60" y="400" width="680" height="14" rx="6" fill="#78350f"/>`;
+const artePecera = ()=>`
+  <rect x="70" y="60" width="660" height="350" rx="26" fill="#0ea5e9" opacity=".3"/><rect x="70" y="60" width="660" height="350" rx="26" fill="none" stroke="#bae6fd" stroke-width="5"/>
+  <rect x="76" y="352" width="648" height="52" rx="20" fill="#f59e0b" opacity=".55"/>
+  <path d="M120 352 q-22-70 0-125 q18 55 28 125z" fill="#22c55e" opacity=".85"/><path d="M690 352 q22-70 0-125 q-18 55-28 125z" fill="#16a34a" opacity=".85"/>
+  <circle cx="680" cy="120" r="9" fill="#e0f2fe" opacity=".5"/><circle cx="700" cy="150" r="6" fill="#e0f2fe" opacity=".5"/><circle cx="105" cy="110" r="7" fill="#e0f2fe" opacity=".5"/>`;
+const arteCanasto = ()=>`
+  <path d="M170 198 Q400 -50 630 198" fill="none" stroke="#92400e" stroke-width="16" stroke-linecap="round"/>
+  <path d="M110 198 H690 L645 418 H155 Z" fill="#b7791f"/>
+  ${Array.from({length:9},(_,i)=>`<line x1="${150+i*62}" y1="198" x2="${170+i*58}" y2="418" stroke="#8a5a14" stroke-width="4" opacity=".55"/>`).join('')}
+  <path d="M120 270 H680 M130 340 H670" stroke="#8a5a14" stroke-width="4" opacity=".55"/>
+  <rect x="100" y="186" width="600" height="26" rx="12" fill="#92400e"/>`;
+const arteBolso = ()=>`
+  <path d="M260 150 Q400 10 540 150" fill="none" stroke="#14532d" stroke-width="18" stroke-linecap="round"/>
+  <rect x="60" y="130" width="680" height="300" rx="70" fill="#16a34a"/>
+  <rect x="110" y="165" width="580" height="205" rx="30" fill="#052e16" opacity=".9"/>
+  <rect x="60" y="388" width="680" height="12" fill="#ffffff" opacity=".5"/><rect x="60" y="404" width="680" height="8" fill="#ffffff" opacity=".3"/>`;
+const arteEstac = ()=>`
+  <rect x="40" y="60" width="720" height="350" rx="18" fill="#374151"/>
+  ${Array.from({length:8},(_,i)=>`<rect x="${70+i*88}" y="100" width="5" height="270" fill="#e5e7eb" opacity=".55"/>`).join('')}
+  <rect x="52" y="70" width="34" height="34" rx="6" fill="#2563eb"/><text x="69" y="96" text-anchor="middle" font-size="26" fill="#fff" style="font-family:var(--font-display);font-weight:800">P</text>`;
+const arteHuevos = ()=>`
+  <rect x="60" y="100" width="680" height="300" rx="30" fill="#d6c3a1"/><rect x="90" y="130" width="620" height="240" rx="20" fill="#b89b6a"/>`;
+const arteBolsa = ()=>`
+  <g transform="translate(205,10) scale(.85)">
+    <path d="M151 20Q230 55 309 20L280 101C310 144 406 196 409 337Q419 474 340 490Q230 515 120 490Q41 474 51 337C54 196 150 144 180 101Z" fill="#ffffff14" stroke="#afa4e5" stroke-width="4"/>
+    <path d="M169 104Q230 118 291 104M224 111Q169 86 159 117Q169 146 225 112Q280 86 293 118Q276 144 225 112" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"/>
+  </g>`;
+
+const TEMAS = [
+  { id:'caballos',   sg:'caballo',  pl:'caballos',  g:'m', cont:'el establo',        arte:arteEstablo, r:{x:150,y:196,w:500,h:178}, emo:()=>'🐴' },
+  { id:'lapices',    sg:'lápiz',    pl:'lápices',   g:'m', cont:'el estuche',        arte:arteEstuche, r:{x:110,y:156,w:580,h:178}, emo:()=>'✏️' },
+  { id:'peces',      sg:'pez',      pl:'peces',     g:'m', cont:'la pecera',         arte:artePecera,  r:{x:120,y:100,w:560,h:240}, emo:()=>'🐟' },
+  { id:'manzanas',   sg:'manzana',  pl:'manzanas',  g:'f', cont:'el canasto',        arte:arteCanasto, r:{x:175,y:218,w:450,h:180}, emo:()=>'🍎' },
+  { id:'libros',     sg:'libro',    pl:'libros',    g:'m', cont:'el estante',        arte:arteEstante, r:{x:100,y:100,w:600,h:236}, emo:i=>['📕','📗','📘','📙'][i%4] },
+  { id:'balones',    sg:'balón',    pl:'balones',   g:'m', cont:'el bolso',          arte:arteBolso,   r:{x:118,y:172,w:564,h:190}, emo:()=>'⚽' },
+  { id:'autos',      sg:'auto',     pl:'autos',     g:'m', cont:'el estacionamiento',arte:arteEstac,   r:{x:70,y:100,w:660,h:270},  emo:()=>'🚗' },
+  { id:'huevos',     sg:'huevo',    pl:'huevos',    g:'m', cont:'la caja',           arte:arteHuevos,  r:{x:100,y:138,w:600,h:224}, emo:()=>'🥚' },
+  { id:'bolitas',    sg:'bolita',   pl:'bolitas',   g:'f', cont:'la bolsa',          arte:arteBolsa,   r:{x:292,y:226,w:218,h:180}, emo:null }
+];
+const art  = t => t.g==='f' ? 'las' : 'los';
+const marc = t => t.g==='f' ? 'marcadas' : 'marcados';
+const enCont = t => 'en '+t.cont;
+
+/* =========================================================
+   GENERADOR DE EJERCICIOS
+   Dos tipos:
+     marcar    → hay T objetos (T = d·k); marca n/d de ellos (cada parte tiene k objetos)
+     leer      → un grupo con k de T marcados; elegir qué fracción es
+   La dificultad sube sola (nivel 1 a 3) con aciertos al primer intento.
+   ========================================================= */
+const MAXOBJ = 20;
+const DEN_NIV = [[2,3,4,5],[2,3,4,5,6,8],[2,3,4,5,6,8,10,12]];
+const K_NIV   = [[1,2],[1,2,3],[1,2,3,4]];
+function poolMarcar(nv){
+  const pool=[];
+  DEN_NIV[nv].forEach(d=>K_NIV[nv].forEach(k=>{ if(d*k<=MAXOBJ && d*k>=3) for(let n=1;n<d;n++) pool.push({tipo:'marcar',n,d,k,T:d*k}); }));
+  return pool;
+}
+function poolLeer(nv){
+  const [a,b]=[[4,10],[6,15],[8,20]][nv], pool=[];
+  for(let T=a;T<=b;T++) for(let k=1;k<T;k++) pool.push({tipo:'leer',k,T,n:k,d:T});
+  return pool;
+}
+const reciente=[];
+const valor = e => { if(e.tipo==='leer'){ const g=mcd(e.k,e.T); return e.tipo+(e.k/g)+'-'+(e.T/g)+'-'+e.T; }
+                     const g=mcd(e.n,e.d); return e.tipo+(e.n/g)+'-'+(e.d/g)+'-'+e.T; };
+function sortear(tipo){
+  const pool = tipo==='marcar' ? poolMarcar(nivelAuto) : poolLeer(nivelAuto);
+  const ult = reciente.slice(-8);
+  let cand = pool.filter(e=>!ult.includes(valor(e)));
+  if(!cand.length) cand = pool.filter(e=>!reciente.slice(-2).includes(valor(e)));
+  if(!cand.length) cand = pool;
+  const e = {...pick(cand)};
+  reciente.push(valor(e)); while(reciente.length>20) reciente.shift();
+  return e;
+}
+function opcionesLeer(e){
+  const {k,T}=e, vistos=[k/T], malas=[];
+  barajar([[T-k,T],[k,T-k],[k+1,T],[k-1,T],[k,T+1],[k+2,T],[k-2,T]]).forEach(([a,b])=>{
+    if(a<=0||b<=1||a>=b) return;
+    const v=a/b; if(vistos.some(x=>Math.abs(x-v)<1e-9)) return; vistos.push(v); malas.push([a,b]);
+  });
+  return barajar([[k,T],...malas.slice(0,3)]);
+}
+
+/* =========================================================
+   ESTADO Y ESCENA
+   ========================================================= */
+let modo='mezcla', tipoFijoOnline=null, nivelAuto=0, racha=0, rachaMal=0;
+let ej=null, tema=null, items=[], fase='', errores=0, primero=true, pista=false, nuevoIdx=-1, token=0, tsig;
+let bolsaTemas=[], ultimoTipo=[], tipoActual='';
+
+function siguienteTema(){
+  if(!bolsaTemas.length) bolsaTemas = barajar(TEMAS).filter(t=>!tema || t.id!==tema.id || TEMAS.length===1);
+  return bolsaTemas.pop();
+}
+function elegirTipo(){
+  if(tipoFijoOnline) return tipoFijoOnline;
+  if(modo!=='mezcla') return modo;
+  const todos=['marcar','leer'];
+  const ok=todos.filter(t=>!(ultimoTipo.length>=2 && ultimoTipo.slice(-2).every(x=>x===t)));
+  return pick(ok);
+}
+
+/* Cuadrícula dentro de la zona interior del contenedor */
+function layout(n, r, fija){
+  // Con "fija" la cuadrícula es la de la capacidad máxima (así el espacio no delata cuántos faltan)
+  const base = fija ? MAXOBJ : n;
+  let mejor=-1, cols=1;
+  for(let c=1;c<=base;c++){ const rw=Math.ceil(base/c), cs=Math.min(r.w/c,r.h/rw); if(cs>mejor+1e-9){ mejor=cs; cols=c; } }
+  const rows=Math.ceil(base/cols), cs=Math.min(r.w/cols, r.h/rows), pos=[];
+  const oy=r.y+(r.h-rows*cs)/2;
+  for(let i=0;i<n;i++){
+    const fila=Math.floor(i/cols), col=i%cols;
+    const enFila = fija ? cols : Math.min(cols, n-fila*cols);
+    const ox = r.x+(r.w-enFila*cs)/2;
+    pos.push({x:ox+col*cs+cs/2, y:oy+fila*cs+cs/2});
+  }
+  return {pos, s:Math.min(cs*.86,78)};
+}
+function itemSVG(i,x,y,s,marcado,anillo){
+  const t=tema; let g=`<g class="it${i===nuevoIdx?' nuevo':''}${(fase==='jugar'&&puedeTocar(i))?'':' fijo'}" data-i="${i}">`;
+  g+=`<circle cx="${x}" cy="${y}" r="${s*.62}" fill="#ffffff" fill-opacity=".001"/>`;
+  if(t.emo){
+    if(marcado) g+=`<circle cx="${x}" cy="${y}" r="${s*.6}" fill="#fbbf24" fill-opacity=".92"/>`;
+    g+=`<text x="${x}" y="${y+s*.34}" font-size="${s*.9}" text-anchor="middle">${t.emo(i)}</text>`;
+  } else {
+    g+=`<circle cx="${x}" cy="${y}" r="${s*.46}" fill="url(#${marcado?'gPint':'gClara'})" stroke="${marcado?'#fff5bb':'#f4f1ff'}" stroke-width="1.5"/>`;
+  }
+  if(anillo) g+=`<circle cx="${x}" cy="${y}" r="${s*.62}" fill="none" stroke="${anillo}" stroke-width="4" stroke-dasharray="${anillo==='#38bdf8'?'0':'7 5'}"/>`;
+  if(marcado) g+=`<circle cx="${x+s*.38}" cy="${y-s*.38}" r="${s*.2}" fill="#34d399"/><text x="${x+s*.38}" y="${y-s*.38+s*.09}" font-size="${s*.26}" fill="#04281c" text-anchor="middle" style="font-weight:800">✓</text>`;
+  return g+'</g>';
+}
+const puedeTocar = i => ej && ej.tipo==='marcar' && fase==='jugar';
+
+function pintar(){
+  $('#arte').innerHTML = tema.arte();
+  const fija = false;
+  const {pos,s}=layout(items.length, tema.r, fija);
+  let h='';
+  items.forEach((m,i)=>{
+    let anillo=null;
+    if(pista || fase==='hecho'){
+      if(ej.tipo==='marcar') anillo = Math.floor(i/ej.k)%2 ? '#f472b6' : '#38bdf8';
+    }
+    h+=itemSVG(i,pos[i].x,pos[i].y,s,m,anillo);
+  });
+  $('#items').innerHTML=h; nuevoIdx=-1;
+  const marcados=items.filter(Boolean).length;
+  const cap = w => w[0].toUpperCase()+w.slice(1);
+  $('#conteo').textContent = ej.tipo==='marcar' ? `${cap(marc(tema))}: ${marcados}` : '';
+}
+
+/* ---------- Un ejercicio nuevo ---------- */
+function nuevo(){
+  clearTimeout(tsig); token++;
+  tipoActual=elegirTipo(); ultimoTipo.push(tipoActual); if(ultimoTipo.length>4) ultimoTipo.shift();
+  tema=siguienteTema(); ej=sortear(tipoActual);
+  fase='jugar'; errores=0; primero=true; pista=false;
+  const H=$('#herram'); H.innerHTML=''; const t=tema, A=art(t);
+  if(ej.tipo==='marcar'){
+    items=Array(ej.T).fill(false);
+    $('#consigna').innerHTML=`Hay <b>${ej.T}</b> ${t.pl} ${enCont(t)}. Marca ${F(ej.n,ej.d)} de ${t.g==='f'?'ellas':'ellos'}.`;
+    aviso('Toca los objetos que quieres marcar y luego pulsa <b>Comprobar</b>.');
+    H.innerHTML=`<button class="btn verde" id="bComp" type="button">✔ Comprobar</button>`;
+    $('#bComp').onclick=comprobar;
+  } else {
+    const idx=barajar([...Array(ej.T).keys()]).slice(0,ej.k); items=Array(ej.T).fill(false); idx.forEach(i=>items[i]=true);
+    $('#consigna').innerHTML=`¿Qué fracción de ${A} ${t.pl} son ${A} ${marc(t)}?`;
+    aviso('Elige la fracción correcta. Mira cuántos hay en total y cuántos están marcados.');
+    const ops=opcionesLeer(ej);
+    H.innerHTML=`<div class="opciones">`+ops.map(([a,b],i)=>`<button class="op" data-i="${i}" type="button">${F(a,b)}</button>`).join('')+`</div>`;
+    H.querySelectorAll('.op').forEach((bt,i)=> bt.onclick=()=>responderLeer(bt,ops[i]));
+  }
+  $('#actPill').textContent=['Fácil','Intermedio','Difícil'][nivelAuto];
+  pintar();
+}
+
+/* ---------- Comprobación ---------- */
+function fin(html){
+  fase='hecho'; pista=false; pintar();
+  if(primero){ reportar(true); racha++; rachaMal=0; } else { racha=0; }
+  registrarCompletado(); tintineo();
+  let extra='';
+  aviso(html+extra,'bien');
+  $('#herram').innerHTML=`<button class="btn siguiente" id="bSig" type="button">Siguiente ➜</button>`;
+  $('#bSig').onclick=nuevo;
+}
+function falla(html){
+  errorSnd();
+  if(primero){ primero=false; reportar(false); racha=0; }
+  errores++; if(errores>=2) pista=true;
+  pintar(); aviso(html,'mal');
+}
+function comprobar(){
+  if(fase!=='jugar') return;
+  const t=tema, {n,d}=ej;
+  if(ej.tipo==='marcar'){
+    const m=items.filter(Boolean).length, objetivo=ej.k*n;
+    if(m===objetivo){
+      fin(`¡Exacto! ${F(n,d)} de ${ej.T} son <b>${objetivo}</b>: cada parte tiene ${ej.k} ${ej.k===1?t.sg:t.pl}.`);
+    } else {
+      let txt = m<objetivo ? 'Todavía faltan por marcar.' : 'Marcaste de más.';
+      if(errores>=1) txt += ` Pista: el grupo se reparte en <b>${d}</b> partes iguales, de <b>${ej.k}</b> ${ej.k===1?t.sg:t.pl} cada una. Marca <b>${n}</b> ${n===1?'parte':'partes'}.`;
+      falla(txt);
+    }
+  }
+}
+function responderLeer(bt,op){
+  if(fase!=='jugar') return;
+  if(op[0]===ej.k && op[1]===ej.T){
+    bt.classList.add('bien');
+    fin(`¡Correcto! Hay ${ej.T} en total y ${ej.k} ${ej.k===1?'está':'están'} ${marc(tema).replace(/s$/,ej.k===1?'':'s')}: ${F(ej.k,ej.T)}.`);
+  } else {
+    bt.classList.add('mal');
+    falla('Todavía no. El denominador es el <b>total</b> de objetos del grupo y el numerador es cuántos están <b>marcados</b>.'+(errores>=1?` Cuenta: ${ej.T} en total, ${ej.k} marcados.`:''));
+  }
+}
+
+/* ---------- Toques sobre la escena ---------- */
+$('#esc').addEventListener('pointerdown',e=>{
+  const g=e.target.closest('[data-i]'); if(!g||!ej) return; marcarActividad();
+  if(fase==='jugar' && ej.tipo==='marcar'){
+    const i=+g.dataset.i; items[i]=!items[i]; tono(items[i]?560:440,.06); pintar(); aviso('');
+  }
+});
+
+/* ---------- Modos (pestañas) ---------- */
+document.querySelectorAll('#tabs [data-modo]').forEach(b=> b.onclick=()=>{
+  modo=b.dataset.modo; ultimoTipo=[];
+  document.querySelectorAll('#tabs [data-modo]').forEach(x=>x.classList.toggle('sel',x===b));
+  nuevo();
+});
+document.getElementById('bVolver').onclick = () => { token++; clearTimeout(tsig); switchScreen('screen-home'); };
+
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('en-juego', id === 'screen-juego');
+  window.scrollTo(0, 0);
+}
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; },'taller-fracciones');
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre){ AlumnoActual=_g; iniciarHeartbeatTiempo(); } }catch(e){}
+function iniciarNivel(cl){
+  nivelAuto = {facil:0, intermedio:1, dificil:2}[cl] || 0; racha=0; rachaMal=0; ultimoTipo=[]; reciente.length=0;
+  switchScreen('screen-juego'); nuevo();
+}
+switchScreen('screen-home');
+// Desafío Online: el profesor puede fijar el tipo de ejercicio (marcar | leer) o dejar la mezcla.
+window.TallerOnlineListo = function(O){
+  O.nivelFijo=true;
+  document.getElementById('bVolver').style.visibility='hidden';
+  document.getElementById('tabs').classList.add('hidden');
+  tipoFijoOnline = ['marcar','leer'].includes(O.sub) ? O.sub : null;
+  switchScreen('screen-juego'); nuevo(); O.iniciar();
+};
+
+</script>
+<script>
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){ var e=document.getElementById('mvChipHome'); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,{grande:true}); } }
+    else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  var raiz=document.documentElement, home=document.getElementById('screen-home'), pend=false;
+  function ajustar(){ pend=false; raiz.style.setProperty('--fz','1');
+    if(!home || !home.classList.contains('active')) return;
+    var f=1,g=0; while(raiz.scrollHeight-window.innerHeight>1 && f>0.5 && g++<16){ f=Math.max(0.5,f-0.04); raiz.style.setProperty('--fz',f.toFixed(2)); } }
+  function pedir(){ if(!pend){ pend=true; requestAnimationFrame(ajustar); } }
+  window.addEventListener('resize',pedir); window.addEventListener('load',function(){ pedir(); setTimeout(pedir,800); });
+  if(home) new MutationObserver(pedir).observe(home,{attributes:true,attributeFilter:['class']});
+  pedir();
+})();
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script>window.TALLER_ACTIVIDAD='grupos';</script>
+<script type="module" src="online-taller.js"></script>
+</body>
+</html>

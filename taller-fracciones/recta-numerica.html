@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Laboratorio de Números</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS DE DISEÑO
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147;
+  --bg-2:#3b1785;
+  --bg-3:#5b21b6;
+  --surface:rgba(255,255,255,.07);
+  --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.14);
+
+  --primary:#34d399;
+  --primary-dark:#0f9d70;
+  --accent:#fbbf24;
+  --accent-soft:#fde68a;
+  --pink:#f472b6;
+  --blue:#38bdf8;
+  --error:#fb7185;
+  --error-soft:#3b0f1f;
+
+  --text:#f6f3ff;
+  --text-dim:#c9bdf0;
+  --text-faint:#8f7fc4;
+
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+
+  --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+  --tap-min: 48px;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100%; overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button, input{ -webkit-user-select:none; user-select:none; }
+input{font-family:inherit;}
+
+.hidden{display:none !important;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* Foco visible para accesibilidad con teclado */
+:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+  padding: clamp(10px, 2.5vw, 24px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 56px 14px 2px;
+  flex-wrap:wrap;
+}
+.app-header .side{
+  display:flex; align-items:center; gap:6px;
+  flex:1 1 auto;
+  min-width:70px;
+}
+.app-header .side.right{ justify-content:flex-end; }
+
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  padding:9px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:clamp(.75rem, 2vw, .9rem);
+  cursor:pointer;
+  min-height:var(--tap-min);
+  transition: background .15s, transform .1s;
+  white-space:nowrap;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.icon-btn:active{ transform:scale(.96); }
+
+.brand{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.2vw, 1.6rem);
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+.brand .plus{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.5em; height:1.5em;
+  background:linear-gradient(135deg, var(--primary), var(--blue));
+  border-radius:10px;
+  color:#0b1a12;
+  font-size:1em;
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+.screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation: fadeSlideIn .35s ease both;
+}
+@keyframes fadeSlideIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.card{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(16px, 4vw, 32px);
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px);
+}
+
+/* =========================================================
+   PANTALLA INICIAL
+   ========================================================= */
+.home-title{
+  text-align:center;
+  font-size:clamp(1.4rem, 5vw, 2.2rem);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.home-sub{
+  text-align:center;
+  color:var(--text-dim);
+  font-size:clamp(.9rem, 2.4vw, 1.05rem);
+  margin:0 auto clamp(18px,4vw,28px);
+  max-width:46ch;
+}
+footer.credits{ text-align:center; color: var(--text-faint); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
+.level-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:clamp(10px, 2.5vw, 16px);
+  width:100%;
+}
+@media (max-width:420px){
+  .level-grid{ grid-template-columns:1fr; }
+}
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:clamp(16px,4vw,22px) 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  cursor:pointer;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1rem, 2.6vw, 1.15rem);
+  min-height:96px;
+  transition:transform .15s, box-shadow .15s;
+}
+.level-btn:hover{ transform:translateY(-3px); }
+.level-btn:active{ transform:scale(.97); }
+.level-btn .emoji{ font-size:clamp(1.6rem, 5vw, 2.1rem); }
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+
+/* =========================================================
+   PANTALLA "CREA TU EJERCICIO"
+   ========================================================= */
+.form-title{ font-size:clamp(1.2rem,3.6vw,1.5rem); font-weight:800; text-align:center; margin-bottom:4px; }
+.form-sub{ color:var(--text-dim); text-align:center; margin-bottom:18px; font-size:.95rem; }
+
+.addend-row{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:12px;
+}
+.addend-index{
+  width:26px; text-align:right; color:var(--text-faint); font-weight:700; flex:0 0 auto;
+}
+.addend-input{
+  flex:0 1 180px;
+  min-width:0;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1.1rem, 3.2vw, 1.35rem);
+  text-align:center;
+  padding:12px 10px;
+  min-height:var(--tap-min);
+  letter-spacing:1px;
+}
+.addend-input::placeholder{ color:var(--text-faint); font-family:var(--font-body); font-weight:600; font-size:.85em;}
+.addend-remove{
+  flex:0 0 auto;
+  width:var(--tap-min); height:var(--tap-min);
+  border-radius:50%;
+  background:rgba(251,113,133,.18);
+  border:1px solid var(--error);
+  color:var(--error);
+  font-size:1.2rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.dashed-btn{
+  width:100%;
+  max-width:220px;
+  margin-left:auto; margin-right:auto;
+  display:block;
+  padding:12px;
+  border-radius:var(--r-sm);
+  border:2px dashed var(--border-soft);
+  background:transparent;
+  color:var(--text-dim);
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap-min);
+  margin-bottom:18px;
+}
+.dashed-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+.dashed-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.primary-btn{
+  width:100%;
+  padding:14px;
+  border-radius:var(--r-md);
+  border:none;
+  background:linear-gradient(135deg, var(--primary), #10b981);
+  color:#062b1c;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1rem, 2.8vw, 1.15rem);
+  cursor:pointer;
+  min-height:52px;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.primary-btn:hover{ transform:translateY(-2px); }
+.primary-btn:active{ transform:scale(.98); }
+.primary-btn:disabled{
+  background:#4b4b5a; color:#9a9aab; box-shadow:none; cursor:not-allowed; transform:none;
+}
+.form-error{
+  color:var(--error);
+  text-align:center;
+  font-weight:700;
+  font-size:.9rem;
+  min-height:1.4em;
+  margin-bottom:10px;
+}
+
+/* =========================================================
+   PANTALLA DE EJERCICIO
+   ========================================================= */
+.hint-box{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:16px;
+  width:100%;
+  font-size:clamp(.82rem, 2.1vw, .95rem);
+  line-height:1.45;
+}
+.hint-box .bulb{ font-size:1.2em; flex:0 0 auto; }
+.hint-box b{ color:var(--accent); }
+.hint-box .ok{ color:var(--primary); }
+
+/* =========================================================
+   MODAL (llevada / totales de columna)
+   ========================================================= */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,4,30,.6);
+  backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  z-index:700;
+}
+.modal-box{
+  width:100%; max-width:400px;
+  background:linear-gradient(160deg, #2c1468, #4c1d95);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(18px,4vw,26px);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.modal-close-x{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:var(--surface); color:var(--text);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:5;
+}
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes monedaFlota{
+  0%{ transform:translateY(0); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translateY(-24px); opacity:0; }
+}
+.modal-eyebrow{
+  font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:6px; text-align:center;
+}
+.modal-title{
+  font-size:clamp(1.05rem, 3.2vw, 1.25rem);
+  text-align:center;
+  margin-bottom:14px;
+  line-height:1.4;
+}
+.modal-title b{ color:var(--accent-soft); }
+.modal-fields{
+  display:flex; gap:12px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;
+}
+.modal-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.modal-field label{ font-size:.8rem; color:var(--text-dim); font-weight:700; text-align:center; max-width:11em; }
+.modal-field input{
+  width:80px;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.3rem;
+  padding:10px 6px;
+  border-radius:var(--r-sm);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  min-height:var(--tap-min);
+}
+.modal-feedback{
+  text-align:center; min-height:1.6em; font-weight:700; margin-bottom:10px; font-size:.9rem;
+}
+.modal-feedback.err{ color:var(--error); }
+.modal-feedback.ok{ color:var(--primary); }
+.modal-actions{ display:flex; gap:10px; }
+.modal-actions button{ flex:1; }
+.secondary-btn{
+  padding:12px; border-radius:var(--r-md); border:1px solid var(--border-soft);
+  background:transparent; color:var(--text-dim); font-weight:700; cursor:pointer;
+  min-height:48px;
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO / CELEBRACIÓN
+   ========================================================= */
+.result-hero{
+  font-size:clamp(2.2rem, 9vw, 3.4rem);
+  text-align:center;
+}
+.result-title{
+  font-size:clamp(1.3rem, 4vw, 1.8rem);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.result-eq{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.6vw, 1.6rem);
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:20px;
+  word-break:break-word;
+}
+.result-actions{
+  display:flex; gap:12px; width:100%; flex-wrap:wrap;
+}
+.result-actions button{ flex:1 1 160px; }
+
+.confetti-piece{
+  position:fixed; top:-10px; z-index:800;
+  border-radius:2px;
+  animation: fall linear forwards;
+  pointer-events:none;
+}
+@keyframes fall{
+  to{ transform:translateY(105vh) rotate(360deg); opacity:.9; }
+}
+
+/* =========================================================
+   BARRA DE PROGRESO DE COLUMNAS
+   ========================================================= */
+.progress-track{
+  display:flex; gap:6px; width:100%; margin-bottom:16px;
+}
+.progress-seg{
+  flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progress-seg .fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--blue));
+  transition:width .4s ease;
+}
+
+/* utilidad de botón de sonido */
+.sound-icon{ font-size:1.1em; }
+
+/* =========================================================
+   MULTIPLICACIÓN ÁRABE — retícula (propio del recurso)
+   ========================================================= */
+:root{
+  --ink:var(--text); --ink-soft:var(--text-dim); --ink-faint:var(--text-faint);
+  --brass:#fbbf24; --brass-dark:#f59e0b; --success:#34d399; --success-bg:rgba(52,211,153,.15);
+  --error-bg:rgba(251,113,133,.15); --radius-s:10px; --radius-m:16px; --radius-l:22px;
+  --font-num:var(--font-display); --font-ui:var(--font-body);
+  --cell-size:calc(var(--cell-base,56px) * var(--f,1));
+}
+#vista{ width:100%; display:flex; flex-direction:column; }
+.hero{ text-align:center; }
+.problema-pill{
+  align-self:center; font-family:var(--font-num); font-weight:800; letter-spacing:.04em;
+  font-size:calc(clamp(1.3rem,4.4vw,1.9rem) * var(--f,1)); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.35); border-radius:16px;
+  padding:calc(6px * var(--f,1)) calc(22px * var(--f,1)); margin:0 0 calc(12px * var(--f,1));
+}
+.lattice-card{ width:100%; display:flex; flex-direction:column; align-items:center; padding:calc(4px * var(--f,1)) 0 0; }
+.lattice-row{ display:flex; align-items:flex-start; gap:6px; }
+.lattice-left{ display:flex; flex-direction:column; }
+.top-digits, .side-digits{ display:flex; }
+.top-digits{ justify-content:flex-end; margin-bottom:5px; gap:4px; }
+.side-digits{ flex-direction:column; margin-top:calc(var(--cell-size) * .62 + 5px); gap:4px; margin-left:4px; }
+.digit-box{
+  width:var(--cell-size); height:calc(var(--cell-size) * .62); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .46); color:#fff;
+  background:linear-gradient(150deg, rgba(124,58,237,.45), rgba(44,20,104,.7)); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45);
+  border:none; border-radius:12px; text-shadow:0 2px 6px rgba(0,0,0,.45);
+}
+.side-digits .digit-box{ width:calc(var(--cell-size) * .72); height:var(--cell-size); }
+.grid-boxes{ display:grid; gap:4px; }
+.lcell{
+  width:var(--cell-size); height:var(--cell-size); position:relative; overflow:hidden; border-radius:10px;
+  border:2px solid rgba(196,181,253,.75); background:rgba(30,17,71,.55); box-shadow:0 0 14px rgba(124,58,237,.25);
+}
+.lcell .tri{ position:absolute; inset:0; transition:background-color .35s ease, opacity .35s ease; }
+.tri-tens{ clip-path:polygon(0 0,100% 0,0 100%); background:rgba(255,255,255,.05); }
+.tri-ones{ clip-path:polygon(100% 0,100% 100%,0 100%); background:rgba(255,255,255,.1); }
+.tri.diag-dim{ opacity:.35; } .tri.diag-active{ opacity:1; }
+.cell-num{
+  position:absolute; z-index:2; font-family:var(--font-num); font-weight:800; line-height:1; pointer-events:none;
+  font-size:calc(var(--cell-size) * .36); color:#fff; text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.cell-num.tens-pos{ top:12%; left:12%; } .cell-num.ones-pos{ bottom:10%; right:12%; }
+.lcell input.cell-input{
+  position:absolute; z-index:2; width:42%; height:42%; border:none; border-radius:7px; padding:0; outline:none;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.5); text-align:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .32); color:#fff; user-select:text; -webkit-user-select:text;
+}
+.lcell input.cell-input.tens-pos{ top:6%; left:6%; } .lcell input.cell-input.ones-pos{ bottom:6%; right:6%; }
+.lcell input.cell-input:focus{ background:rgba(124,58,237,.5); box-shadow:0 0 0 2.5px var(--brass), 0 0 14px rgba(251,191,36,.6); }
+.lcell input.cell-input.wrong-flash{ background:var(--error-bg); box-shadow:0 0 0 2.5px var(--error); }
+
+.diag-section{ margin-top:calc(22px * var(--f,1)); width:100%; display:flex; flex-direction:column; align-items:center; }
+.diag-section h3{ font-size:calc(.86rem * var(--f,1)); font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:calc(30px * var(--f,1)); text-align:center; }
+.diag-row{ display:flex; gap:calc(8px * var(--f,1)); align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.diag-box-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; }
+.carry-badge{
+  position:absolute; top:calc(-24px * var(--f,1)); left:50%; transform:translateX(-50%) scale(0); opacity:0;
+  font-family:var(--font-num); font-weight:800; font-size:.8rem; color:#3b2405; background:var(--brass);
+  border-radius:999px; padding:2px 9px; white-space:nowrap; box-shadow:0 0 10px rgba(251,191,36,.7);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+.carry-badge.show{ transform:translateX(-50%) scale(1); opacity:1; }
+.diag-box{
+  width:calc(clamp(48px,11vw,64px) * var(--f,1)); min-height:calc(clamp(48px,11vw,64px) * var(--f,1));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1));
+  border:2.5px solid var(--border-soft); background:rgba(8,3,26,.4); color:var(--text-faint); transition:all .25s ease;
+}
+.diag-box.pending{ opacity:.55; }
+.diag-box input{ width:100%; height:100%; border:none; background:transparent; text-align:center; font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1)); color:#fff; outline:none; user-select:text; -webkit-user-select:text; }
+.diag-box.wrong{ animation:shake .32s ease; }
+.carry-fly{
+  position:fixed; z-index:3000; font-family:var(--font-num); font-weight:800; font-size:.95rem; color:#3b2405;
+  background:var(--brass); border-radius:999px; padding:4px 10px; pointer-events:none;
+  transition:transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+}
+.final-banner{
+  margin-top:calc(16px * var(--f,1)); text-align:center; background:var(--success-bg); border:2px solid var(--success);
+  color:var(--success); border-radius:16px; padding:calc(10px * var(--f,1)) 20px; font-weight:800;
+  font-family:var(--font-num); font-size:calc(clamp(1.1rem,3.8vw,1.5rem) * var(--f,1));
+}
+.arabe-final{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.arabe-final .mv-fila-chip{ margin-top:calc(8px * var(--f,1)); }
+.arabe-final .result-actions{ margin-top:calc(14px * var(--f,1)); }
+.setup-box{ width:100%; max-width:480px; margin:0 auto; text-align:center; }
+.setup-box label{ display:block; font-weight:700; font-size:.95rem; color:var(--text-dim); margin-bottom:16px; }
+.factor-input-row{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,3vw,18px); }
+.factor-input{
+  width:100%; max-width:150px; font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,7vw,2.2rem);
+  text-align:center; color:#fff; border:none; border-radius:16px; padding:14px 6px; background:rgba(8,3,26,.5);
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); user-select:text;
+}
+.factor-input:focus{ outline:none; box-shadow:0 0 0 3px var(--brass), 0 0 16px rgba(251,191,36,.5); }
+.factor-input::placeholder{ color:var(--text-faint); font-weight:600; }
+.factor-x{ font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,6vw,2.2rem); color:var(--brass); flex-shrink:0; }
+.setup-error{ margin-top:12px; padding:9px 14px; border-radius:10px; background:var(--error-bg); color:var(--error); font-weight:700; font-size:.9rem; display:none; }
+.setup-error.show{ display:block; }
+.mv-universo #screen-custom .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; }
+@media (min-width:900px) and (orientation:landscape){ .mv-universo .mv-home .home-title{ padding:0; } }
+
+.lattice-card[data-fase="diagonales"] .digit-box{ opacity:.4; transition:opacity .25s; }
+.lcell input.cell-input, .diag-box input, .factor-input{ -webkit-touch-callout:none; }
+.lcell input.cell-input::selection, .diag-box input::selection{ background:transparent; }
+.diag-row{ margin-top:calc(26px * var(--f,1)); }
+.result-eq{ font-size:clamp(1.6rem,6vw,2.4rem) !important; }
+
+.lattice-card[data-fase="diagonales"] .cell-num{ opacity:.38; transition:opacity .25s; }
+.lattice-card[data-fase="diagonales"] .cell-num.num-act{ opacity:1; }
+.tri.diag-dim{ opacity:.7 !important; }
+.tri.diag-active{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.55); }
+button, input{ -webkit-user-select:text; user-select:text; }
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+
+#vista .screen{ animation:none; }
+.mv-universo #screen-exercise .hint-box{ margin-bottom:calc(10px * var(--f,1)); }
+.mv-universo #screen-exercise .hint-box{ font-size:calc(.95rem * var(--f,1)); }
+body[data-pantalla="result"] #screen-exercise .hint-box{ display:none; }
+:root{
+  --color-primary:#38bdf8; --color-primary-dark:#7dd3fc; --color-secondary:#fbbf24; --color-success:#34d399;
+  --color-card:rgba(255,255,255,.07); --color-text:#f6f3ff; --color-text-light:#c9bdf0; --surface-soft:rgba(255,255,255,.05);
+  --shadow:0 14px 34px rgba(0,0,0,.4); --shadow-hover:0 20px 44px rgba(0,0,0,.5); --radius:20px; --radius-sm:12px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+  --b-mil:#ef4444; --b-mil-dark:#7f1d1d; --b-cen:#38bdf8; --b-cen-dark:#0369a1; --b-dec:#34d399; --b-dec-dark:#0f9d70; --b-uni:#fbbf24; --b-uni-dark:#b45309;
+}
+
+
+html,body{margin:0}
+#vista{--f:1; zoom:var(--fz,1)}
+.card{background:transparent;border:0;box-shadow:none;padding:6px 10px;position:relative;max-width:980px;margin:0 auto}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance}
+.credits{text-align:center;color:#a99bdc;font-size:.78rem;margin:6px 0 0}
+a.level-btn{text-decoration:none}
+.mv-fila-chip{margin-top:30px !important}
+.mv-niveles.mv-p2{aspect-ratio:100/56;width:min(100%,640px)}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n1{--x:6;--y:10;--w:42}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n2{--x:52;--y:10;--w:42}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:9;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:53;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:31;--y:3;--w:38}
+.mv-niveles.mv-p4{aspect-ratio:100/88}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:7;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:53;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:7;--y:48;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:53;--y:48;--w:40}
+.mv-niveles .level-btn.mv-nivel.n4{--i:3;--a:#451a03;--b:#f59e0b;--c:#fef3c7;--glow:251,191,36;--ang-b:158deg;--fl:6.1s}
+.mv-niveles .level-btn.mv-nivel.n4::after{animation-delay:-3.2s}
+@media (min-width:700px){
+  .mv-niveles.mv-p3{aspect-ratio:100/40}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:11;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:37.5;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:64;--y:8;--w:25}
+  .mv-niveles.mv-p4{width:min(100%,900px);aspect-ratio:100/30}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:2;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:27;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:52;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:77;--y:4;--w:22}
+}
+
+
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --primary:#34d399; --accent:#fbbf24; --error:#fb7185; --blue:#38bdf8; --pink:#f472b6;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --surface:rgba(255,255,255,.07); --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.16);
+  --shadow:0 14px 34px rgba(0,0,0,0.4);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+  --transition: all .2s cubic-bezier(.4,0,.2,1);
+  --hb:clamp(34px,8dvh,60px);
+}
+
+*{ box-sizing:border-box; }
+
+body.en-juego{ overflow:hidden; height:100dvh; min-height:0; }
+
+button{ font-family:inherit; }
+
+h1,h2,h3{ font-family:var(--font-display); margin:0; }
+
+.hidden{ display:none !important; }
+
+
+.screen{ display:none; animation:fadeIn .35s ease; }
+
+.screen.active{ display:block; }
+
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+
+/* ---------- Pantalla de juego (sin scroll) ---------- */
+#screen-juego{ height:100dvh; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+
+#screen-juego.active{ display:grid; }
+
+.topbar-der{ grid-area:der; justify-self:end; display:flex; gap:6px; }
+
+.nivel-pill{
+  grid-area:pill; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4); color:var(--accent);
+  padding:6px 12px; border-radius:999px; font-family:var(--font-display); font-weight:800;
+  font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+}
+
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:var(--transition);
+  background:var(--surface); border:1px solid var(--border-soft); color:var(--text); padding:7px 14px; border-radius:999px;
+}
+
+.btn:hover{ background:var(--surface-strong); }
+
+.btn.icono{ width:38px; height:38px; padding:0; font-size:19px; display:inline-flex; align-items:center; justify-content:center; }
+
+.btn.verde{ background:linear-gradient(140deg,#0f9d70,var(--primary)); color:#04281c; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.siguiente{ background:linear-gradient(140deg,#f59e0b,var(--accent)); color:#3d1f00; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.azul{ background:linear-gradient(140deg,#1d4ed8,var(--blue)); color:#06213a; border-color:transparent; font-weight:800; font-size:14px; padding:8px 18px; }
+
+.btn.corte{ padding:5px 11px; min-width:34px; }
+
+.btn.sel{ background:rgba(56,189,248,.22); border-color:var(--blue); color:var(--blue); }
+
+
+.juego-main{
+  width:100%; max-width:1050px; margin:0 auto; min-height:0; padding:0 14px 40px;
+  display:flex; flex-direction:column; gap:6px;
+}
+
+.escenario{
+  flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:8px;
+  padding:4px 2px; overflow:hidden;
+}
+
+.fila{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:center; }
+
+.fila.fix{ flex-wrap:nowrap; }
+
+.fila .flex1{ flex:1; min-width:0; }
+
+.etq{ font-family:var(--font-display); font-weight:800; font-size:15px; min-width:78px; color:var(--text-dim); }
+
+.estado{ display:flex; justify-content:center; align-items:center; font-family:var(--font-display); font-weight:800; font-size:15px; color:var(--accent); }
+
+.sub{ margin:0; text-align:center; font-size:14px; line-height:1.3; color:var(--text-dim); font-weight:700; }
+
+.sub b{ color:var(--text); }
+
+
+.msg{ min-height:2.7em; margin:0; padding:3px 8px; text-align:center; line-height:1.3; font-size:14px; font-weight:700; color:var(--text-dim); display:block; }
+
+.msg.bien{ color:var(--primary); }
+ .msg.mal{ color:var(--error); }
+ .msg.casi{ color:var(--accent); }
+
+.msg b{ color:inherit; }
+
+
+/* Fracciones */
+.frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; font-weight:800; line-height:1.05; margin:0 3px; }
+
+.frac > span:first-child{ border-bottom:2.5px solid currentColor; padding:0 4px; }
+
+.frac .den{ border-top:3px solid currentColor; padding:0 10px; }
+
+.frac.grande{ font-size:clamp(1.35rem,5.5vw,1.9rem); font-family:var(--font-display); }
+
+.entrada{
+  width:68px; padding:6px; font-size:1.25rem; border-radius:var(--radius-sm); border:2px solid var(--border-soft);
+  text-align:center; background:var(--surface-strong); color:var(--text); font-family:var(--font-display); font-weight:800;
+  -moz-appearance:textfield; appearance:textfield;
+}
+
+.entrada::-webkit-outer-spin-button,.entrada::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+.entrada:focus{ outline:none; border-color:var(--blue); }
+
+
+/* Barras */
+.barra{
+  display:flex; height:var(--hb); border:3px solid var(--text); border-radius:var(--radius-sm); overflow:hidden;
+  background:rgba(255,255,255,.06); transition:outline .2s, transform .5s, opacity .3s; touch-action:none; width:100%;
+}
+
+.barra.entero{ height:calc(var(--hb)*.75); background:rgba(56,189,248,.18); justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; font-family:var(--font-display); }
+
+.trozo{
+  flex:1; min-width:0; border-right:2px solid var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(8px,2.5vw,13px); color:var(--text-dim); user-select:none; touch-action:none; transition:background .15s;
+}
+
+.trozo:last-child{ border-right:none; }
+
+.trozo.on{ background:var(--blue); color:#0c1b3a; font-weight:800; }
+
+.barra.b .trozo.on{ background:var(--accent); color:#3d1f00; }
+
+.barra.coincide{ outline:5px solid var(--primary); }
+
+.sup-z{ position:relative; z-index:3; }
+
+.historial{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; font-size:1.15rem; font-family:var(--font-display); }
+
+.historial .frac{ opacity:.55; }
+ .historial .frac.actual{ opacity:1; color:var(--accent); }
+
+svg text{ font-weight:800; font-family:var(--font-display); }
+
+.balanza{ width:100%; flex:1 1 0; min-height:70px; }
+
+
+@media(max-width:600px){
+  .app-topbar{ padding:6px 62px 2px 8px; }
+  .icon-btn{ padding:7px 11px; font-size:.82rem; }
+  .btn.icono{ width:34px; height:34px; font-size:17px; }
+  .juego-main{ padding:0 8px 40px; }
+  .escenario{ padding:4px 0; }
+  .etq{ min-width:60px; font-size:14px; }
+}
+
+@media(max-height:620px){ :root{ --hb:clamp(30px,6.6dvh,48px); } .escenario{ gap:6px; } }
+
+@media(max-height:480px){
+  :root{ --hb:clamp(28px,9dvh,40px); }
+  .app-topbar{ padding-top:3px; padding-bottom:2px; min-height:52px; }
+  .btn.icono{ width:30px; height:30px; }
+  .juego-main{ padding-bottom:38px; gap:3px; }
+  .escenario{ padding:2px 8px; gap:4px; }
+  .msg{ font-size:12.5px; min-height:2.4em; padding:1px; }
+  .sub{ font-size:12.5px; }
+  .btn.corte{ padding:3px 9px; } .btn.verde,.btn.siguiente,.btn.azul{ padding:5px 14px; }
+  .entrada{ padding:3px; font-size:1.05rem; width:60px; }
+  .frac.grande{ font-size:1.25rem; }
+}
+
+
+/* ---------- Recta numérica ---------- */
+.consigna{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; text-align:center;
+  font-family:var(--font-display); font-weight:800; font-size:clamp(.95rem,3.4vw,1.25rem); color:var(--text);
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:22px; padding:6px 20px; margin:2px auto 0; max-width:100%; line-height:1.15; }
+
+.consigna > span{ display:block; text-align:center; }
+
+.consigna .frac{ color:var(--accent); font-size:1.45em; }
+
+.consigna .frac span:first-child{ border-bottom-color:var(--accent); }
+
+.mixto{ display:inline-flex; align-items:center; gap:3px; }
+
+.mixto > b, b.ent{ font-family:var(--font-display); font-weight:800; font-size:1.25em; }
+
+.msg .frac{ color:var(--accent); font-size:1.2em; }
+
+.escenario.recta{ justify-content:flex-start; gap:4px; }
+
+svg.recta{ width:100%; flex:1 1 0; min-height:90px; max-height:100%; touch-action:none; cursor:crosshair; display:block; margin:0 auto; max-width:920px; }
+
+.herram{ display:flex; justify-content:center; gap:8px; flex-wrap:wrap; min-height:42px; align-items:center; }
+
+.opciones{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+.op{ min-width:84px; padding:6px 16px; border-radius:var(--radius-sm); cursor:pointer; color:var(--text);
+  background:var(--surface-strong); border:2px solid var(--border-soft); font-size:clamp(1.15rem,4.4vw,1.55rem); transition:var(--transition); }
+
+.op:hover{ border-color:var(--blue); }
+
+.op .frac{ color:inherit; margin:0; }
+
+.op.mal{ border-color:var(--error); opacity:.45; pointer-events:none; }
+
+.op.bien{ border-color:var(--primary); background:rgba(52,211,153,.22); }
+
+.hint-fase{ font-size:.72rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; }
+
+@media(max-height:480px){ .consigna{ padding:2px 14px; } .herram{ min-height:34px; } .op{ padding:3px 12px; } }
+
+
+
+#screen-juego{align-items:stretch}
+body.mv-universo{margin:0}
+.app-topbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;max-width:1050px;margin:0 auto;padding:6px 10px 4px}
+.app-topbar>*,.app-topbar .nivel-pill{grid-area:auto !important}
+.app-topbar{grid-template-areas:none !important;grid-template-rows:auto}
+.app-topbar .centro{justify-self:center;display:flex;align-items:center;gap:6px;min-width:0}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.topbar-der{justify-self:end;display:flex;gap:6px;align-items:center}
+.nivel-pill{display:inline-flex;align-items:center;justify-content:center;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:var(--accent);padding:6px 12px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.niv-leyenda{list-style:none;margin:2px auto 0;padding:0;max-width:430px;display:grid;gap:3px;font-size:.84rem;color:#d9d0f7}
+.niv-leyenda li{display:flex;align-items:center;gap:8px}
+.niv-leyenda .pt{flex:none;width:10px;height:10px;border-radius:50%}
+.niv-leyenda b{color:#fff;min-width:78px}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/84}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}}
+.mv-items-card{padding-bottom:10px}
+
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="st3d" viewBox="-11 -11 22 22" overflow="visible"><polygon points="0.00,-10.00 2.53,-3.48 9.51,-3.09 4.09,1.33 5.88,8.09 0.00,4.30 -5.88,8.09 -4.09,1.33 -9.51,-3.09 -2.53,-3.48" fill="#92400e" stroke="#92400e" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0,0 -2.53,-3.48 0.00,-10.00" fill="#fff6c2"/><polygon points="0,0 0.00,-10.00 2.53,-3.48" fill="#f59e0b"/><polygon points="0,0 2.53,-3.48 9.51,-3.09" fill="#fcd34d"/><polygon points="0,0 9.51,-3.09 4.09,1.33" fill="#b45309"/><polygon points="0,0 4.09,1.33 5.88,8.09" fill="#fcd34d"/><polygon points="0,0 5.88,8.09 0.00,4.30" fill="#b45309"/><polygon points="0,0 0.00,4.30 -5.88,8.09" fill="#fcd34d"/><polygon points="0,0 -5.88,8.09 -4.09,1.33" fill="#f59e0b"/><polygon points="0,0 -4.09,1.33 -9.51,-3.09" fill="#fff6c2"/><polygon points="0,0 -9.51,-3.09 -2.53,-3.48" fill="#f59e0b"/><ellipse cx="-2.6" cy="-3.6" rx="1.7" ry="1" fill="#fff" opacity=".85" transform="rotate(-30 -2.6 -3.6)"/></symbol>
+<linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1ecff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+<linearGradient id="gXp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+<linearGradient id="gInf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<radialGradient id="gCara" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></radialGradient>
+<filter id="fSombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="fIco" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.1" flood-color="#000" flood-opacity=".55"/></filter>
+</defs></svg>
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen" id="screen-juego">
+  <div class="app-topbar"><button class="icon-btn btn-orbita v-azul" id="bVolver" type="button" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button><div class="centro"><span class="nivel-pill" id="actPill"></span></div><div class="topbar-der"><button class="btn icono" id="bSon" title="Sonido" aria-label="Sonido">🔊</button><button class="btn icono" id="bFull" title="Pantalla completa" aria-label="Pantalla completa">⛶</button><a class="icon-btn btn-orbita v-violeta" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></div>
+  <main class="juego-main">
+    <div class="consigna" id="consigna"></div>
+    <section class="escenario recta" id="escenario">
+      <svg class="recta" id="sv" viewBox="0 0 1000 300" aria-label="Recta numérica">
+        <g id="segs"></g>
+        <line x1="60" y1="135" x2="940" y2="135" stroke="#e7e3ff" stroke-width="6" stroke-linecap="round"/>
+        <g id="ticks"></g>
+        <g id="rotulos"></g>
+        <g id="flag"></g>
+      </svg>
+      <div class="herram" id="herram"></div>
+    </section>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </main>
+</div>
+<script>
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rnd(0,arr.length-1)];
+const barajar = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function pickW(lista){ let r=Math.random(), a=0; for(const [t,p] of lista){ a+=p; if(r<a) return t; } return lista[lista.length-1][0]; }
+const $ = s => document.querySelector(s);
+
+/* Toda fracción se escribe con el numerador sobre el denominador y con barra fraccionaria */
+const F = (n,d,cls='')=> `<span class="frac ${cls}"><span>${n}</span><span>${d}</span></span>`;
+function fmt(p,m,formato='impropia'){
+  if(p%m===0) return `<b class="ent">${p/m}</b>`;
+  if(formato==='mixta' && p>m){ const w=Math.floor(p/m), r=p%m; return `<span class="mixto"><b>${w}</b>${F(r,m)}</span>`; }
+  return F(p,m);
+}
+/* Lo mismo, dibujado dentro del SVG */
+function svgFrac(cx,y,n,d,fs,col){
+  const w = Math.max(String(n).length,String(d).length)*fs*.36 + fs*.22;
+  return `<text x="${cx}" y="${y-fs*.16}" font-size="${fs}" fill="${col}" text-anchor="middle">${n}</text>`+
+         `<line x1="${cx-w}" x2="${cx+w}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="${Math.max(2.5,fs*.09)}" stroke-linecap="round"/>`+
+         `<text x="${cx}" y="${y+fs*.86}" font-size="${fs}" fill="${col}" text-anchor="middle">${d}</text>`;
+}
+function svgNum(cx,y,p,m,formato,fs,col){
+  if(p%m===0) return `<text x="${cx}" y="${y+fs*.34}" font-size="${fs*1.15}" fill="${col}" text-anchor="middle">${p/m}</text>`;
+  if(formato==='mixta' && p>m){
+    const w=Math.floor(p/m), r=p%m;
+    const fw = Math.max(String(r).length,String(m).length)*fs*.36 + fs*.22;
+    const ww = String(w).length*fs*.62, tot = ww+8+fw*2, x0 = cx-tot/2;
+    return `<text x="${x0+ww/2}" y="${y+fs*.34}" font-size="${fs*1.15}" fill="${col}" text-anchor="middle">${w}</text>`+svgFrac(x0+ww+8+fw,y,r,m,fs,col);
+  }
+  return svgFrac(cx,y,p,m,fs,col);
+}
+
+/* Sonido (Web Audio, sin archivos externos) */
+let sonidoOn = true, ctx;
+function tono(f=880, dur=.15, tipo='sine'){
+  if(!sonidoOn) return;
+  try{
+    ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=tipo; o.frequency.value=f; g.gain.setValueAtTime(.15,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+const tintineo = ()=>{ tono(988,.12); setTimeout(()=>tono(1319,.2),110); };
+const errorSnd = ()=> tono(220,.25,'triangle');
+$('#bSon').onclick = e => { sonidoOn=!sonidoOn; e.currentTarget.textContent = sonidoOn?'🔊':'🔇'; };
+$('#bFull').onclick = ()=> document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+
+function aviso(html, tipo=''){ const m=$('#msg'); m.className='msg '+tipo; m.innerHTML=html; }
+function setConsigna(html){ $('#consigna').innerHTML='<span>'+html+'</span>'; }
+
+/* Progreso al resto del sitio */
+let AlumnoActual = null;
+function registrarCompletado(){
+  if(AlumnoActual && typeof window.reportarProgresoPractica === 'function'){
+    window.reportarProgresoPractica(AlumnoActual.id, 'taller-fracciones', 1, 0, ({leer:1, ubicar:2, dividir:3})[ej && ej.tipo] || 1);
+  }
+}
+const marcarActividad = () => document.dispatchEvent(new Event('click'));
+function reportar(ok){ try{ if(window.TallerOnline && window.TallerOnline.activo) window.TallerOnline.resultado(ok); }catch(e){} }
+
+/* =========================================================
+   NIVELES Y GENERADOR DE EJERCICIOS
+   Tres tipos de ejercicio:
+     dividir  → el alumno pone las marcas que dividen la recta en partes iguales y luego ubica la fracción
+     ubicar   → la recta ya viene dividida; hay que tocar la marca de la fracción (a veces la recta tiene
+                más partes que el denominador: ahí aparecen las fracciones equivalentes)
+     leer     → una bandera marca un punto y hay que elegir qué fracción es
+   ========================================================= */
+const X0=60, X1=940, L=880, YL=135;
+const NIVELES = {
+  unico: { nom:'📏 Recta numérica', R:1, tipos:[['dividir',.3],['ubicar',.4],['leer',.3]],
+           denDiv:[2,3,4,5,6,8,10], denUbi:[2,3,4,5,6,7,8,9,10,12], denLeer:[2,3,4,5,6,7,8,9,10,12], equiv:.3,
+           pares:[[2,4],[2,6],[2,8],[2,10],[2,12],[3,6],[3,9],[3,12],[4,8],[4,12],[5,10],[6,12]] }
+};
+const NOMBRE_TIPO = { dividir:'Dividir', ubicar:'Ubicar', leer:'Leer' };
+
+function numerador(R,d){
+  if(R===1) return rnd(1,d-1);
+  let n; do{ n = Math.random()<.78 ? rnd(d+1,2*d-1) : rnd(1,d-1); }while(n%d===0);
+  return n;
+}
+function crear(cfg){
+  const R=cfg.R, tipo = tipoFijo || pickW(cfg.tipos);
+  let d,m,n,p=null;
+  if(tipo==='dividir'){ d=pick(cfg.denDiv); m=d; n=numerador(R,d); }
+  else if(tipo==='ubicar'){
+    if(cfg.equiv && Math.random()<cfg.equiv){ [d,m]=pick(cfg.pares); } else { d=pick(cfg.denUbi); m=d; }
+    n=numerador(R,d);
+  } else { m=pick(cfg.denLeer); d=m; do{ p=rnd(1,R*m-1); }while(p%m===0); n=p; }
+  const formato = (R===2 && n>d) ? pick(['mixta','impropia']) : 'propia';
+  return { tipo, R, d, m, n, p, formato, clave:[tipo,R,d,m,n].join('-') };
+}
+/* Para que no se repita lo mismo: se recuerdan los últimos ejercicios (por valor de la fracción, no por cómo se escribe)
+   y no se repiten ni la fracción de los últimos 6 ni el mismo tipo más de dos veces seguidas. */
+const reciente=[];
+const mcd=(a,b)=>b?mcd(b,a%b):a;
+const valorDe=e=>{ const g=mcd(e.n,e.d)||1; return (e.n/g)+'-'+(e.d/g); };
+function generar(){
+  const cfg=NIVELES[nivel]; let e, k=0, mejor=null;
+  do{
+    e=crear(cfg); k++;
+    const v=valorDe(e), ult=reciente.slice(-6).map(x=>x.v);
+    if(v==='1-2' && Math.random()<.7) continue;      // la mitad aparece de muchas formas (2/4, 3/6…): se modera
+    const tipoRep = !tipoFijo && reciente.length>=2 && reciente.slice(-2).every(x=>x.t===e.tipo);
+    if(!ult.includes(v) && !tipoRep){ mejor=e; break; }
+    if(!mejor && !ult.slice(-2).includes(v)) mejor=e;      // plan B: al menos que no sea de las 2 últimas
+  }while(k<80);
+  e=mejor||e; reciente.push({v:valorDe(e),t:e.tipo}); if(reciente.length>12) reciente.shift();
+  return e;
+}
+
+/* =========================================================
+   ESTADO Y DIBUJO
+   ========================================================= */
+let nivel='unico', tipoFijo=null, ej=null, fase='', marcas=[], fijos=[], hist=[], colsFase=null;
+let drag=-1, movido=false, errores=0, primero=true, pistaNum=false, token=0, tsig;
+const sv = $('#sv');
+
+function interiores(){
+  if(ej.tipo==='dividir'){
+    return [...fijos.map(x=>({x,fijo:true})), ...marcas.map((x,k)=>({x,k}))].sort((a,b)=>a.x-b.x);
+  }
+  const tot=ej.R*ej.m, a=[];
+  for(let k=1;k<tot;k++) a.push({ x:X0+L*k/tot, fijo:k%ej.m===0 });
+  return a;
+}
+const clampX = x => Math.max(95, Math.min(905, x));
+
+function bandera(x,col,etq){
+  return `<line x1="${x}" y1="${YL}" x2="${x}" y2="45" stroke="${col}" stroke-width="4"/>`+
+         `<path d="M${x} 45 L${x+46} 57 L${x} 69Z" fill="${col}"/>`+etq;
+}
+
+function pintar(cols=colsFase){
+  const it=interiores(), pts=[X0,...it.map(t=>t.x),X1];
+  let h='';
+  if(cols) for(let k=0;k<pts.length-1;k++) if(cols[k]) h+=`<line x1="${pts[k]}" y1="${YL}" x2="${pts[k+1]}" y2="${YL}" stroke="${cols[k]}" stroke-width="12"/>`;
+  if(pistaNum) for(let k=0;k<pts.length-1;k++) h+=`<text x="${(pts[k]+pts[k+1])/2}" y="${YL-46}" font-size="24" fill="#c9bdf0" text-anchor="middle">${k+1}</text>`;
+  $('#segs').innerHTML=h;
+
+  const tap=(fase==='marcar'||fase==='ubicar');
+  const hw = ej.tipo==='dividir' ? 22 : Math.max(10, Math.min(22, L/(ej.R*ej.m)/2));
+  let t='', r='';
+  const fijoTick=(x,attr)=>`<g ${attr}><rect x="${x-hw}" y="${YL-48}" width="${2*hw}" height="96" fill="transparent"/><line x1="${x}" y1="${YL-34}" x2="${x}" y2="${YL+34}" stroke="#e7e3ff" stroke-width="6"/></g>`;
+  t+=fijoTick(X0,'')+fijoTick(X1,'');
+  r+=`<text x="${X0}" y="${YL+80}" font-size="40" fill="#e7e3ff" text-anchor="middle">0</text><text x="${X1}" y="${YL+80}" font-size="40" fill="#e7e3ff" text-anchor="middle">${ej.R}</text>`;
+  it.forEach((q,i)=>{
+    const attr = tap ? `data-p="${i+1}" style="cursor:pointer"` : (q.k!=null ? `data-k="${q.k}" style="cursor:grab"` : '');
+    if(q.fijo){
+      t+=fijoTick(q.x,attr);
+      r+=`<text x="${q.x}" y="${YL+80}" font-size="40" fill="#e7e3ff" text-anchor="middle">${Math.round((q.x-X0)/L*ej.R)}</text>`;
+    } else {
+      t+=`<g ${attr}><rect x="${q.x-hw}" y="${YL-48}" width="${2*hw}" height="96" fill="transparent"/><line x1="${q.x}" y1="${YL-26}" x2="${q.x}" y2="${YL+26}" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/><circle cx="${q.x}" cy="${YL-26}" r="9" fill="#38bdf8"/></g>`;
+    }
+  });
+  $('#ticks').innerHTML=t; $('#rotulos').innerHTML=r;
+}
+
+function textoInicio(){
+  const {R,d}=ej;
+  return R===1
+    ? `Toca la recta para poner las marcas que la dividen en <b>${d}</b> partes iguales. Arrastra una marca para moverla o sácala de la recta para quitarla.`
+    : `La recta llega hasta 2. Divide <b>cada entero</b> en <b>${d}</b> partes iguales (en total, ${2*d} partes). Arrastra una marca para moverla o sácala de la recta para quitarla.`;
+}
+
+/* ---------- Un ejercicio nuevo ---------- */
+function nuevo(){
+  clearTimeout(tsig); token++;
+  ej=generar(); errores=0; primero=true; pistaNum=false; marcas=[]; hist=[]; fijos=[]; colsFase=null;
+  for(let k=1;k<ej.R;k++) fijos.push(X0+L*k/ej.R);
+  $('#flag').innerHTML=''; const H=$('#herram'); H.innerHTML='';
+  const {tipo,d,m,n,R,formato}=ej;
+  if(tipo==='dividir'){
+    fase='dividir';
+    setConsigna(`Divide ${R===1?'la recta de 0 a 1':'cada entero'} en <b>${d}</b> partes iguales y ubica ${fmt(n,d,formato)}`);
+    aviso(textoInicio());
+    H.innerHTML=`<button class="btn" id="bDesh" type="button">↶ Deshacer</button><button class="btn" id="bBorrar" type="button">Borrar todo</button>`;
+    $('#bDesh').onclick=()=>{ if(fase!=='dividir'||!hist.length) return; marcas=hist.pop(); revisar(); };
+    $('#bBorrar').onclick=()=>{ if(fase!=='dividir'||!marcas.length) return; hist.push([...marcas]); marcas=[]; revisar(); };
+  } else if(tipo==='ubicar'){
+    fase='ubicar';
+    setConsigna(`Toca la marca donde está ${fmt(n,d,formato)}`);
+    aviso(m===d ? `La recta ya está dividida. Cuenta las partes desde el 0 hasta encontrar ${fmt(n,d,formato)}.`
+                : `La recta ya está dividida, pero en <b>${m}</b> partes por cada entero. ¿Dónde queda ${fmt(n,d,formato)}?`);
+  } else {
+    fase='leer';
+    setConsigna(`¿Qué número marca la bandera? 🚩`);
+    aviso(`Cuenta cuántas partes forman cada entero y cuántas hay desde el 0 hasta la bandera.`);
+    const x=X0+L*ej.p/(R*m);
+    $('#flag').innerHTML=bandera(x,'#fbbf24',`<text x="${clampX(x)}" y="250" font-size="52" fill="#fbbf24" text-anchor="middle">?</text>`);
+    const ops=opcionesLeer();
+    H.innerHTML=`<div class="opciones">`+ops.map(([a,b],i)=>`<button class="op" data-i="${i}" type="button">${fmt(a,b,formato)}</button>`).join('')+`</div>`;
+    H.querySelectorAll('.op').forEach((bt,i)=> bt.onclick=()=>responderLeer(bt,ops[i]));
+  }
+  pintar();
+}
+function opcionesLeer(){
+  const {p,m,R}=ej, vistos=[p/m], malas=[];
+  barajar([[p-1,m],[p+1,m],[p,m+1],[p,m-1],[R*m-p,m],[p+2,m],[p-2,m]]).forEach(([a,b])=>{
+    if(a<=0||b<=1||a%b===0) return;
+    const v=a/b; if(v>R||(R===1&&a>=b)) return;
+    if(vistos.some(x=>Math.abs(x-v)<1e-9)) return;
+    vistos.push(v); malas.push([a,b]);
+  });
+  return barajar([[p,m],...malas.slice(0,3)]);
+}
+
+/* ---------- Fase 1: dividir ---------- */
+function revisar(){
+  const it=interiores(), pts=[X0,...it.map(t=>t.x),X1], tot=ej.R*ej.d, nP=pts.length-1;
+  colsFase=null;
+  if(!marcas.length){ aviso(textoInicio()); pintar(); return; }
+  if(nP<tot){ aviso(`Tienes ${nP} partes. Faltan ${tot-nP} para llegar a ${tot}.`,'casi'); pintar(); return; }
+  if(nP>tot){ aviso(`Tienes ${nP} partes, sobran ${nP-tot}. Saca una marca de la recta arrastrándola hacia fuera.`,'mal'); pintar(); return; }
+  const ideal=L/tot, tol=Math.max(6,ideal*.22);
+  const cols=pts.slice(0,-1).map((x,k)=> Math.abs(pts[k+1]-x-ideal)<=tol ? '#34d399' : '#fb7185');
+  if(cols.every(c=>c==='#34d399')){
+    marcas=[]; for(let k=1;k<tot;k++) if(k%ej.d!==0) marcas.push(X0+L*k/tot);   // se acomodan justo en su lugar
+    fase='marcar'; colsFase=cols; hist=[]; $('#herram').innerHTML='';
+    tintineo(); pintar();
+    setConsigna(`Ahora toca la marca donde está ${fmt(ej.n,ej.d,ej.formato)}`);
+    aviso(`¡Recta bien dividida! Ahora toca la marca de ${fmt(ej.n,ej.d,ej.formato)}.`,'bien');
+  } else {
+    pintar(cols);
+    aviso('Las partes rojas no miden lo mismo que las verdes. Mueve las marcas hasta que todas las partes sean iguales.','mal');
+  }
+}
+
+/* ---------- Fase 2 (y tipo ubicar): tocar una marca ---------- */
+function elegir(pos){
+  const mm = ej.tipo==='dividir' ? ej.d : ej.m;
+  const x = interiores()[pos-1].x;
+  if(pos*ej.d === ej.n*mm) exito(pos,mm,x); else fallo(pos,mm,x);
+}
+function terminar(pos, x, col, etqSvg, html){
+  fase='hecho';
+  const it=interiores(), cols=Array(it.length+1).fill(null).map((_,k)=> k<pos ? '#fbbf24' : null);
+  colsFase=cols; pistaNum=false; pintar();
+  $('#flag').innerHTML=bandera(x,col,etqSvg);
+  if(primero){ reportar(true); }
+  registrarCompletado(); tintineo();
+  aviso(html,'bien');
+  $('#herram').innerHTML=`<button class="btn siguiente" id="bSig" type="button">Siguiente ➜</button>`;
+  $('#bSig').onclick=nuevo;
+}
+function exito(pos,mm,x){
+  const {n,d,m,R,formato}=ej;
+  let html;
+  if(mm!==d) html=`¡Exacto! ${fmt(n,d,formato)} y ${fmt(pos,mm)} están en el mismo lugar: son fracciones equivalentes.`;
+  else if(R===2 && n>d) html=`¡Exacto! Pasaste el 1 y avanzaste ${n-d} partes más: eso es ${fmt(n,d,formato)}.`;
+  else html=`¡Exacto! Desde el 0 avanzaste ${n} de ${d} partes: eso es ${fmt(n,d,formato)}.`;
+  terminar(pos,x,'#fbbf24',svgNum(clampX(x),235,n,d,formato,34,'#fbbf24'),html);
+}
+function falloComun(){
+  errorSnd();
+  if(primero){ primero=false; reportar(false); }
+  errores++; if(errores>=2) pistaNum=true;
+}
+function fallo(pos,mm,x){
+  const {n,d,formato}=ej;
+  falloComun(); pintar();
+  $('#flag').innerHTML=bandera(x,'#fb7185',svgNum(clampX(x),235,pos,mm,formato,34,'#fb7185'));
+  if(mm===d) aviso(`Esa marca es ${fmt(pos,mm,formato)}: contaste ${pos} partes desde el 0. Busca ${fmt(n,d,formato)}.`,'mal');
+  else aviso(`Esa marca es ${fmt(pos,mm)}. Ojo: la recta tiene ${mm} partes por cada entero, pero buscas ${fmt(n,d,formato)}. Piensa en una fracción equivalente.`,'mal');
+}
+
+/* ---------- Tipo leer ---------- */
+function responderLeer(bt,op){
+  if(fase!=='leer') return;
+  const {p,m,R,formato}=ej;
+  if(op[0]===p && op[1]===m){
+    bt.classList.add('bien');
+    const x=X0+L*p/(R*m);
+    terminar(p,x,'#fbbf24',svgNum(clampX(x),235,p,m,formato,34,'#fbbf24'),
+      `¡Correcto! Cada entero tiene ${m} partes y hasta la bandera hay ${p}: la bandera marca ${fmt(p,m,formato)}.`);
+    $('#herram').insertAdjacentHTML('afterbegin','');
+  } else {
+    bt.classList.add('mal'); falloComun(); pintar();
+    aviso('Todavía no. Fíjate en cuántas partes forman cada entero (eso es el denominador) y cuántas hay desde el 0 hasta la bandera (eso es el numerador).','mal');
+  }
+}
+
+/* ---------- Puntero ---------- */
+function pt(e){
+  const m=sv.getScreenCTM(); if(!m) return {x:0,y:0};
+  const q=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());
+  return { x:q.x, y:q.y };
+}
+const muyCerca = x => interiores().some(t=>Math.abs(t.x-x)<16);
+sv.addEventListener('pointerdown',e=>{
+  if(!ej) return; marcarActividad();
+  const p=pt(e), g=e.target.closest('[data-k]'), q=e.target.closest('[data-p]');
+  if(fase==='dividir'){
+    if(g){ drag=+g.dataset.k; movido=false; hist.push([...marcas]); try{ sv.setPointerCapture(e.pointerId); }catch(_){} return; }
+    if(p.x>X0+8 && p.x<X1-8 && Math.abs(p.y-YL)<95 && !muyCerca(p.x)){
+      hist.push([...marcas]); marcas.push(p.x); tono(520,.06); revisar();
+    }
+    return;
+  }
+  if((fase==='marcar'||fase==='ubicar') && q) elegir(+q.dataset.p);
+});
+sv.addEventListener('pointermove',e=>{
+  if(drag<0) return; const p=pt(e); movido=true;
+  marcas[drag]=Math.max(X0+8,Math.min(X1-8,p.x)); pintar();
+  const g=sv.querySelector(`[data-k="${drag}"]`); if(g) g.style.opacity = Math.abs(p.y-YL)>110 ? .3 : 1;
+});
+function soltar(e){
+  if(drag<0) return; const p=pt(e);
+  if(Math.abs(p.y-YL)>110) marcas.splice(drag,1); else if(!movido) hist.pop();
+  drag=-1; revisar();
+}
+sv.addEventListener('pointerup',soltar); sv.addEventListener('pointercancel',soltar);
+
+/* ---------- Pantallas ---------- */
+function empezar(){
+  ej=null; $('#actPill').textContent = NIVELES[nivel].nom;
+  switchScreen('screen-juego'); nuevo();
+}
+document.getElementById('bVolver').onclick = () => { token++; clearTimeout(tsig); location.href='representacion.html'; };
+
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('en-juego', id === 'screen-juego');
+  window.scrollTo(0, 0);
+}
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; },'taller-fracciones');
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre){ AlumnoActual=_g; iniciarHeartbeatTiempo(); } }catch(e){}
+empezar();
+// Desafío Online: no hay niveles que fijar; solo cuenta aciertos y errores (y el reloj en contrarreloj).
+window.TallerOnlineListo = function(O){
+  O.nivelFijo=true;
+  document.getElementById('bVolver').style.visibility='hidden';
+  empezar(); O.iniciar();
+};
+
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<script>window.TALLER_ACTIVIDAD='recta';</script>
+<script type="module" src="online-taller.js"></script>
+</body>
+</html>
