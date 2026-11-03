@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Los 24</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark; --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6; --text:#f6f3ff; --text-dim:#c9bdf0; --accent:#fbbf24; --primary:#34d399; --error:#fb7185;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;color:var(--text);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 15% 0%,var(--bg-3),transparent 55%),radial-gradient(circle at 85% 100%,#2a0f66,transparent 55%),linear-gradient(160deg,var(--bg-1),var(--bg-2));background-attachment:fixed}
+button{font-family:inherit}
+.hidden{display:none !important}
+.screen{display:none;flex-direction:column;align-items:center;position:relative;z-index:1}
+.screen.active{display:flex}
+#app{width:100%;max-width:900px;margin:0 auto;padding:clamp(10px,2.5vw,24px);display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}
+.card{width:100%;position:relative;max-width:980px;margin:0 auto;padding:6px 10px}
+.home-title{text-align:center;font-family:var(--font-display);font-weight:800;margin:0 0 6px;line-height:1.1}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance;font-family:var(--font-display);font-size:1.25rem;margin:6px 0 2px}
+.icon-btn{display:inline-flex;align-items:center;cursor:pointer}
+.mv-fila-chip{margin-top:30px}
+.mv-atras-home{position:absolute;left:6px;top:6px;z-index:5}
+.mv-casa-home{position:absolute;right:6px;top:6px;z-index:5}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/90}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+.mv-nivel .ico{width:46%;height:auto;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mv-universo .mv-home .home-title{padding:0 48px}
+@media (min-width:900px) and (orientation:landscape){.mv-universo .mv-home .home-title{padding:0}}
+/* ---- pantalla de juego ---- */
+#screen-juego{align-items:stretch;width:100%}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+body.en-juego #screen-juego{height:100dvh}
+.app-header.app-topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;width:100%;max-width:900px;margin:0 auto;padding:2px 10px 0;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(56px,14vw,84px);height:clamp(56px,14vw,84px)}
+#mvCelebra{position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:99990;pointer-events:none;opacity:0;width:min(86vw,300px)}
+#mvCelebra.on{animation:mvCelPop 1.6s ease both}
+@keyframes mvCelPop{0%{opacity:0;transform:translateX(-50%) scale(.55)}14%{opacity:1;transform:translateX(-50%) scale(1.1)}24%{transform:translateX(-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+#mvCelebra .mv-info{display:none}
+.cuerpo{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:760px;margin:0 auto;padding:2px 12px 12px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.chip{padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4);font-family:var(--font-display);font-weight:800;font-size:1rem}
+#stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#stage > svg{width:100%;height:100%;max-height:100%;overflow:visible}
+.msg{flex:none;min-height:2.7em;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:clamp(1rem,.85rem + .7vw,1.3rem);line-height:1.25;text-wrap:balance;max-width:640px}
+.msg.mal{color:#fda4af}.msg.bien{color:#6ee7b7}.msg.pista{color:#fde68a}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex:none}
+.btn-orbita.ancho{font-size:1.15rem;padding-right:2em}
+.btn-orbita[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .32s}
+
+
+.regla{flex:none;text-align:center;color:#d9d0f7;font-weight:700;font-size:clamp(.82rem,.76rem + .35vw,1rem);text-wrap:balance;max-width:520px}
+#log{flex:none;min-height:2.1em;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+.paso{padding:3px 12px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.35);font-family:var(--font-display);font-weight:800;font-size:.98rem;color:#e9e1ff}
+#tiles{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;gap:clamp(8px,2.4vw,18px);flex-wrap:wrap;align-content:center}
+.tile{width:clamp(70px,20vw,104px);height:clamp(70px,20vw,104px);border-radius:50%;border:none;cursor:pointer;display:grid;place-items:center;color:#1e1147;font-family:var(--font-display);font-weight:800;font-size:clamp(1.8rem,6.4vw,2.8rem);
+  background:radial-gradient(circle at 34% 28%,#fff,#ddd6fe 55%,#8b5cf6);box-shadow:inset -4px -6px 10px rgba(0,0,0,.28),0 5px 10px rgba(0,0,0,.4);transition:transform .15s,box-shadow .15s}
+.tile.sel{transform:scale(1.12);background:radial-gradient(circle at 34% 28%,#fff,#fde68a 55%,#f59e0b);box-shadow:0 0 0 4px rgba(253,230,138,.55),0 0 22px #fbbf24,inset -4px -6px 10px rgba(0,0,0,.25)}
+.tile.nuevo{animation:pop .35s}
+.tile.meta{background:radial-gradient(circle at 34% 28%,#fff,#6ee7b7 55%,#059669);box-shadow:0 0 22px #34d399,inset -4px -6px 10px rgba(0,0,0,.25)}
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.14)}100%{transform:scale(1)}}
+.fr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;font-size:.62em}
+.fr b{display:block;padding:0 .18em}
+.fr b:first-child{border-bottom:.1em solid currentColor;padding-bottom:.08em}
+.fr b:last-child{padding-top:.08em}
+#ops{flex:none;display:flex;gap:clamp(10px,3vw,18px);justify-content:center}
+.op{width:clamp(50px,14vw,64px);height:clamp(50px,14vw,64px);border-radius:50%;border:none;cursor:pointer;font-family:var(--font-display);font-weight:800;font-size:2rem;line-height:1;color:#fff;
+  background:radial-gradient(circle at 34% 28%,#fbcfe8,#db2777 55%,#500724);box-shadow:inset -3px -4px 6px rgba(0,0,0,.4),0 3px 6px rgba(0,0,0,.4);transition:transform .15s}
+.op.sel{transform:scale(1.14);box-shadow:0 0 0 4px rgba(253,230,138,.6),0 0 18px #fbbf24,inset -3px -4px 6px rgba(0,0,0,.4)}
+.op:disabled{opacity:.35;cursor:default}
+
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen active" id="screen-home"><div id="app"><main id="main"><div class="card mv-items-card">
+<a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem)">Los 24</h1>
+<div class="mv-fila-chip" id="mvChipHome"></div>
+<h2 class="mv-pregunta">Elige tu nivel</h2>
+<p class="items-sub">Llega a 24 con los cuatro números</p>
+<div class="mv-niveles mv-p3 mv-lv"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="empezar(1)" aria-label="Fácil, números pequeños"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><text x="50" y="52" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="40" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="3" paint-order="stroke">24</text><text x="28.7" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">+</text><text x="50.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">−</text><text x="71.3" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">×</text></svg><span class="t">Fácil</span></button><button type="button" class="level-btn mv-nivel n2" onclick="empezar(2)" aria-label="Medio, con números más altos"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><text x="50" y="52" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="40" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="3" paint-order="stroke">24</text><text x="26.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">+</text><text x="42.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">−</text><text x="58.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">×</text><text x="74.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">÷</text></svg><span class="t">Medio</span></button><button type="button" class="level-btn mv-nivel n3" onclick="empezar(3)" aria-label="Difícil, pocas soluciones"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><text x="50" y="52" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="40" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="3" paint-order="stroke">24</text><text x="26.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">+</text><text x="42.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">−</text><text x="58.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">×</text><text x="74.0" y="82" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fde68a" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke">÷</text></svg><span class="t">Difícil</span></button>
+</div></div></main></div></div>
+<div class="screen" id="screen-juego">
+<header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" title="Niveles" aria-label="Niveles"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right"><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+
+<div class="cuerpo">
+  <div class="chips"><span class="chip">🎯 Llega a 24</span></div>
+  <div class="regla">Usa los 4 números, una vez cada uno. Toca un número, una operación y otro número.</div>
+  <div id="log"></div>
+  <div id="tiles"></div>
+  <div id="ops">
+    <button class="op" data-o="+" type="button" aria-label="Sumar">+</button>
+    <button class="op" data-o="-" type="button" aria-label="Restar">−</button>
+    <button class="op" data-o="*" type="button" aria-label="Multiplicar">×</button>
+    <button class="op" data-o="/" type="button" aria-label="Dividir">÷</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="fila" id="filaAcc">
+    <button class="btn-orbita v-azul" id="bDes" type="button"><span class="bola">↶</span>Deshacer</button>
+    <button class="btn-orbita v-rosa" id="bRei" type="button"><span class="bola">↺</span>Empezar de nuevo</button>
+    <button class="btn-orbita v-violeta sutil" id="bOtro" type="button"><span class="bola">🎲</span>Otro desafío</button>
+  </div>
+  <div class="fila hidden" id="filaSig"><button class="btn-orbita v-verde ancho" id="bSig" type="button"><span class="bola">▶</span>Siguiente</button></div>
+</div>
+
+</div>
+<script>
+window.mvExito = function(){
+  try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){}
+  var h=document.getElementById('mvCelebra'); if(!h) return;
+  var img=h.querySelector('.mv-av img'); if(!img || !img.getAttribute('src')) return;
+  h.classList.remove('on'); void h.offsetWidth; h.classList.add('on');
+  clearTimeout(h._t); h._t=setTimeout(function(){ h.classList.remove('on'); },1700);
+};
+window.mvFallo = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} };
+const RECURSO = 'los-24';
+let AlumnoActual = null;
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre) AlumnoActual=_g; }catch(e){}
+function reportar(peso){ if(AlumnoActual && typeof window.reportarProgresoPractica==='function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, RECURSO, 1, 0, peso); }catch(e){} } }
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; }, RECURSO);
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+if(AlumnoActual) iniciarHeartbeatTiempo();
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+function pantalla(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active'); document.body.classList.toggle('en-juego', id==='screen-juego'); window.scrollTo(0,0);
+}
+
+const POOL={"F": "1,1,2,6;1,1,3,6;1,1,3,7;1,1,4,5;1,1,4,6;1,1,4,7;1,1,5,5;1,1,5,6;1,2,2,5;1,2,2,6;1,2,2,7;1,2,3,4;1,2,3,5;1,2,3,6;1,2,3,7;1,2,4,4;1,2,4,5;1,2,4,6;1,2,4,7;1,2,5,6;1,2,5,7;1,2,6,6;1,2,6,7;1,3,3,4;1,3,3,5;1,3,3,7;1,3,4,4;1,3,4,5;1,3,4,7;1,3,5,6;1,3,6,6;1,3,6,7;1,4,4,5;1,4,4,7;1,4,5,5;1,5,6,6;2,2,2,3;2,2,2,4;2,2,3,3;2,2,3,6;2,2,4,5;2,2,4,6;2,2,4,7;2,2,6,6;2,3,3,6;2,3,3,7;2,3,4,4;2,3,4,5;2,3,4,6;2,3,4,7;2,3,5,5;2,3,5,6;2,3,5,7;2,3,6,6;2,3,6,7;2,4,4,4;2,4,4,6;2,4,4,7;2,4,5,6;2,4,5,7;2,4,6,6;2,4,6,7;2,5,6,7;2,6,6,6;3,3,3,6;3,3,4,5;3,3,4,6;3,3,5,6;3,3,6,7;3,4,4,5;3,4,4,6;3,4,5,5;3,4,5,7;3,4,6,6;3,4,7,7;3,5,6,6;3,5,6,7;3,6,6,6;3,6,6,7;3,7,7,7;4,4,4,6;4,4,5,6;4,5,5,6;4,5,6,6;4,5,6,7;4,6,6,6;4,6,6,7;4,6,7,7;5,5,6,7;5,5,7,7;5,6,6,7", "M": "1,1,2,9;1,1,4,9;1,1,5,8;1,1,6,8;1,2,2,8;1,2,2,9;1,2,4,9;1,2,5,9;1,2,7,8;1,2,7,9;1,2,8,9;1,3,3,8;1,3,4,8;1,3,5,8;1,3,6,9;1,3,7,8;1,3,7,9;1,3,8,8;1,3,9,9;1,4,4,9;1,4,5,8;1,4,5,9;1,4,6,9;1,4,7,9;1,4,8,9;1,5,5,9;1,5,6,8;1,5,7,8;1,5,7,9;1,5,8,9;1,6,6,9;1,6,7,9;1,6,8,8;1,8,8,8;2,2,2,8;2,2,3,9;2,2,4,9;2,2,5,9;2,2,6,9;2,2,7,8;2,2,8,8;2,2,8,9;2,3,3,9;2,3,4,8;2,3,5,8;2,3,5,9;2,3,6,8;2,3,7,8;2,3,7,9;2,3,8,8;2,3,8,9;2,3,9,9;2,4,5,9;2,4,6,9;2,4,7,8;2,4,7,9;2,4,8,9;2,5,5,9;2,5,6,9;2,5,7,9;2,5,8,8;2,6,6,8;2,6,6,9;2,6,7,8;2,6,8,9;2,6,9,9;2,7,8,8;2,8,8,8;2,8,8,9;3,3,4,8;3,3,4,9;3,3,5,9;3,3,6,8;3,3,7,8;3,3,7,9;3,3,8,9;3,3,9,9;3,4,4,9;3,4,5,9;3,4,6,9;3,4,7,9;3,4,9,9;3,5,7,8;3,5,8,9;3,5,9,9;3,6,7,9;3,6,8,8;3,6,8,9;3,6,9,9;3,7,8,8;3,7,8,9;3,7,9,9;3,8,8,9;3,9,9,9;4,4,4,8;4,4,5,8;4,4,6,8;4,4,6,9;4,4,7,8;4,4,8,9;4,5,5,9;4,5,6,8;4,5,7,9;4,5,8,8;4,5,8,9;4,6,6,9;4,6,7,8;4,6,7,9;4,6,8,9;4,7,7,8;4,7,8,8;4,7,8,9;4,8,8,8;4,8,8,9;5,5,5,9;5,5,7,8;5,5,8,9;5,6,7,8;5,6,8,8;5,6,8,9;5,6,9,9;5,7,7,9;5,7,8,8;5,7,8,9;5,8,8,8;5,8,8,9;6,6,6,8;6,6,6,9;6,6,7,9;6,6,8,8;6,6,8,9;6,7,8,9;6,7,9,9;6,8,8,9;6,8,9,9", "D": "1,1,1,11;1,1,1,13;1,1,3,10;1,1,3,11;1,1,3,13;1,1,4,10;1,1,6,12;1,1,7,10;1,2,7,12;1,2,8,10;1,2,9,11;1,3,8,10;1,3,8,11;1,3,9,10;1,4,4,11;1,4,5,13;1,4,6,10;1,4,7,11;1,4,9,13;1,4,10,12;1,4,12,12;1,5,5,10;1,5,5,11;1,5,5,12;1,5,6,11;1,5,7,10;1,5,8,13;1,5,9,12;1,5,9,13;1,5,10,11;1,5,10,13;1,5,11,11;1,5,11,12;1,5,12,12;1,6,10,12;1,6,10,13;1,6,11,13;1,7,7,12;1,7,9,10;1,7,9,11;1,7,10,12;1,7,10,13;1,7,12,12;1,7,12,13;1,7,13,13;1,8,8,10;1,8,9,13;1,8,10,11;1,8,11,12;1,8,11,13;1,8,12,12;1,9,9,12;1,9,10,12;1,9,10,13;1,9,11,11;1,9,11,13;1,9,12,12;1,10,10,12;1,11,11,12;1,11,11,13;1,11,12,12;1,11,13,13;1,12,12,12;1,12,12,13;1,12,13,13;2,2,2,11;2,2,2,13;2,2,3,10;2,2,3,11;2,2,3,13;2,2,4,12;2,2,6,11;2,2,6,13;2,2,7,10;2,2,9,10;2,2,10,11;2,2,11,11;2,2,12,13;2,2,13,13;2,3,3,10;2,3,3,11;2,3,5,12;2,3,8,13;2,3,9,12;2,3,10,10;2,3,11,11;2,3,13,13;2,4,4,11;2,4,4,13;2,4,7,12;2,4,8,13;2,4,10,10;2,4,10,11;2,4,11,12;2,5,5,10;2,5,5,11;2,5,8,12;2,5,10,12;2,5,11,12;2,6,6,11;2,6,6,13;2,6,7,10;2,6,7,11;2,6,9,10;2,6,12,13;2,7,7,10;2,7,7,11;2,7,7,13;2,7,10,10;2,7,12,12;2,7,12,13;2,8,8,11;2,8,11,11;2,8,11,12;2,8,12,13;2,8,13,13;2,9,9,11;2,9,9,13;2,9,13,13;2,10,10,11;2,10,10,13;2,10,11,11;2,11,11,11;2,13,13,13;3,3,3,10;3,3,3,11;3,3,4,13;3,3,6,13;3,3,7,13;3,3,8,13;3,3,9,10;3,3,9,13;3,4,4,10;3,4,4,12;3,4,6,13;3,4,8,13;3,4,9,13;3,4,10,10;3,5,5,12;3,5,6,13;3,5,7,11;3,5,7,13;3,5,8,12;3,5,8,13;3,5,10,10;3,5,12,12;3,5,12,13;3,6,6,10;3,6,6,11;3,6,7,10;3,6,8,10;3,6,10,10;3,6,11,13;3,6,12,13;3,6,13,13;3,7,7,12;3,7,9,13;3,7,11,11;3,7,13,13;3,8,8,10;3,8,8,12;3,8,10,12;3,9,9,10;3,9,9,13;3,9,10,10;3,9,11,11;3,9,11,13;3,9,13,13;3,10,11,12;3,11,11,12;3,11,12,12;3,12,12,12;3,12,12,13;3,12,13,13;4,4,4,10;4,4,4,11;4,4,5,10;4,4,5,12;4,4,6,11;4,4,6,13;4,4,7,10;4,4,7,13;4,4,8,13;4,4,9,11;4,4,9,12;4,4,10,10;4,5,6,11;4,5,6,12;4,5,6,13;4,5,7,10;4,5,7,13;4,5,9,12;4,5,10,10;4,5,11,11;4,5,13,13;4,6,6,10;4,6,6,12;4,6,8,10;4,6,8,13;4,7,8,10;4,7,8,11;4,7,9,11;4,7,10,10;4,7,11,11;4,7,11,12;4,7,11,13;4,7,12,12;4,7,13,13;4,8,8,11;4,8,8,13;4,8,9,10;4,8,10,11;4,8,12,12;4,8,13,13;4,9,9,12;4,9,10,11;4,9,10,12;4,9,11,11;4,10,10,11;4,10,10,12;4,10,11,13;4,10,12,13;5,5,5,12;5,5,7,10;5,5,7,11;5,5,8,10;5,5,8,11;5,5,8,12;5,5,9,10;5,5,9,11;5,5,10,10;5,5,10,11;5,5,11,11;5,5,13,13;5,6,8,13;5,6,9,11;5,6,9,13;5,6,10,10;5,6,10,12;5,6,11,11;5,6,13,13;5,7,7,10;5,7,7,11;5,7,8,10;5,7,9,10;5,7,9,11;5,7,9,12;5,7,10,10;5,7,10,11;5,7,10,13;5,7,11,13;5,7,12,12;5,8,9,13;5,8,10,12;5,8,12,12;5,9,10,11;5,9,11,13;5,10,10,11;5,10,10,13;5,10,11,11;5,10,12,13;5,11,12,12;6,6,6,10;6,6,6,11;6,6,7,10;6,6,7,11;6,6,8,11;6,6,8,13;6,6,9,10;6,6,9,13;6,6,12,13;6,7,7,10;6,7,7,11;6,7,8,12;6,7,10,10;6,7,11,11;6,8,8,11;6,8,9,10;6,8,9,11;6,8,10,11;6,8,10,13;6,8,11,12;6,9,9,10;6,9,9,11;6,9,10,12;6,9,11,12;6,9,11,13;6,10,10,13;6,10,11,12;6,10,12,13;6,11,11,12;6,11,12,12;6,11,12,13;6,12,12,12;6,12,12,13;6,12,13,13;7,7,7,12;7,7,8,11;7,7,9,10;7,8,8,10;7,8,8,11;7,8,8,12;7,8,8,13;7,8,9,10;7,8,9,13;7,8,10,10;7,8,10,11;7,9,10,11;7,9,11,12;7,9,12,12;7,10,10,12;7,10,11,13;7,10,12,12;7,10,12,13;7,12,12,13;8,8,8,10;8,8,8,11;8,8,8,12;8,8,8,13;8,8,9,11;8,8,9,12;8,8,9,13;8,8,10,12;8,8,12,13;8,9,9,12;8,9,10,12;8,9,11,11;8,10,12,12;8,10,12,13;8,11,12,12;9,9,9,12;9,11,12,12;9,11,12,13;9,12,12,12;10,10,10,12;10,10,12,13;10,12,12,12"};
+const PESO={1:4,2:7,3:12};
+const G={nivel:1,items:[],ini:[],hist:[],log:[],sel:-1,op:null,fin:false,cola:{1:[],2:[],3:[]},actual:null};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;};
+function fr(n,d){ if(d<0){n=-n;d=-d;} const g=gcd(n,d); return {n:n/g,d:d/g}; }
+function aplicar(a,o,b){
+  if(o==='+') return fr(a.n*b.d+b.n*a.d,a.d*b.d);
+  if(o==='-') return fr(a.n*b.d-b.n*a.d,a.d*b.d);
+  if(o==='*') return fr(a.n*b.n,a.d*b.d);
+  if(b.n===0) return null; return fr(a.n*b.d,a.d*b.n);
+}
+const SIM={'+':'+','-':'−','*':'×','/':'÷'};
+function txt(v){ return v.d===1 ? String(v.n).replace('-','−') : (v.n<0?'−':'')+Math.abs(v.n)+'/'+v.d; }
+function html(v){ return v.d===1 ? String(v.n).replace('-','−') : (v.n<0?'−':'')+`<span class="fr"><b>${Math.abs(v.n)}</b><b>${v.d}</b></span>`; }
+function barajar(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function siguienteDesafio(nivel){
+  if(!G.cola[nivel].length){
+    const todos=POOL[['','F','M','D'][nivel]].split(';').map(s=>s.split(',').map(Number));
+    G.cola[nivel]=barajar(todos);
+  }
+  return barajar(G.cola[nivel].pop().slice());
+}
+function empezar(nivel){ G.nivel=nivel; nuevo(); pantalla('screen-juego'); }
+function nuevo(){
+  G.ini=siguienteDesafio(G.nivel); reiniciar();
+}
+function reiniciar(){
+  G.items=G.ini.map(n=>({n:n,d:1})); G.hist=[]; G.log=[]; G.sel=-1; G.op=null; G.fin=false;
+  $('filaSig').classList.add('hidden'); $('filaAcc').classList.remove('hidden');
+  msg(MSG_INI); pintar(-1);
+}
+const MSG_INI='Toca un número para empezar.';
+function msg(t,tipo){ const m=$('msg'); m.textContent=t; m.className='msg'+(tipo?' '+tipo:''); }
+function pintar(nuevoIdx){
+  const T=$('tiles'); T.innerHTML='';
+  G.items.forEach((v,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='tile'+(G.sel===i?' sel':'')+(i===nuevoIdx?' nuevo':'')+(G.fin&&i===0?' meta':'');
+    b.innerHTML=html(v); b.addEventListener('click',()=>tocarNum(i)); T.appendChild(b);
+  });
+  $('log').innerHTML=G.log.map(l=>`<span class="paso">${l}</span>`).join('');
+  document.querySelectorAll('#ops .op').forEach(b=>{ b.classList.toggle('sel',b.dataset.o===G.op); b.disabled=G.fin; });
+  $('bDes').disabled=G.fin||!G.hist.length;
+}
+function tocarNum(i){
+  if(G.fin) return;
+  if(G.sel<0){ G.sel=i; msg('Ahora elige una operación.'); pintar(-1); return; }
+  if(G.sel===i){ G.sel=-1; G.op=null; msg(MSG_INI); pintar(-1); return; }
+  if(!G.op){ G.sel=i; msg('Ahora elige una operación.'); pintar(-1); return; }
+  const a=G.items[G.sel], b=G.items[i], r=aplicar(a,G.op,b);
+  if(!r){ msg('No se puede dividir por 0. Prueba otra combinación.','mal'); try{ mvFallo(); }catch(e){} G.sel=-1; G.op=null; pintar(-1); return; }
+  G.hist.push({items:G.items.map(x=>({n:x.n,d:x.d})),log:G.log.slice()});
+  G.log.push(`${txt(a)} ${SIM[G.op]} ${txt(b)} = ${txt(r)}`);
+  const hi=Math.max(G.sel,i), lo=Math.min(G.sel,i);
+  G.items.splice(hi,1); G.items[lo]=r; G.sel=-1; G.op=null;
+  if(G.items.length===1){
+    if(r.d===1 && r.n===24){ ganar(); return; }
+    msg(`Te quedó ${txt(r)}, no 24. Toca Deshacer o Empezar de nuevo y prueba otro camino.`,'mal'); try{ mvFallo(); }catch(e){}
+    pintar(0); return;
+  }
+  msg(MSG_INI); pintar(lo);
+}
+function ganar(){
+  G.fin=true; pintar(0);
+  msg('🎉 ¡Lo lograste, llegaste a 24!','bien'); try{ mvExito(); }catch(e){}
+  reportar(PESO[G.nivel]||5);
+  $('filaAcc').classList.add('hidden'); $('filaSig').classList.remove('hidden');
+}
+document.querySelectorAll('#ops .op').forEach(b=>b.addEventListener('click',()=>{
+  if(G.fin) return;
+  if(G.sel<0){ msg('Primero toca un número.','mal'); return; }
+  G.op=(G.op===b.dataset.o)?null:b.dataset.o;
+  msg(G.op?'Ahora toca el otro número.':'Elige una operación.'); pintar(-1);
+}));
+$('bDes').addEventListener('click',()=>{ if(G.fin||!G.hist.length) return; const h=G.hist.pop(); G.items=h.items; G.log=h.log; G.sel=-1; G.op=null; msg(MSG_INI); pintar(-1); });
+$('bRei').addEventListener('click',()=>{ if(!G.fin) reiniciar(); });
+$('bOtro').addEventListener('click',()=>{ if(!G.fin) nuevo(); });
+$('bSig').addEventListener('click',()=>nuevo());
+window.empezar=empezar;
+
+$('btn-back').addEventListener('click', function(){ pantalla('screen-home'); });
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipHeader',{grande:false}]].forEach(function(p){
+        var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' || e.repeat || e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+    var b=document.querySelector('#bSig'); if(!b || b.offsetParent===null || b.disabled || document.activeElement===b) return;
+    e.preventDefault(); b.click();
+  });
+})();
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+</body>
+</html>
