@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#2e1065">
+<title>Mis Notas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mathverse-ui.css">
+<style>
+:root{
+  color-scheme:dark;
+  --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6;
+  --verde:#34d399; --rojo:#fb7185; --oro:#fbbf24;
+  --text:#f6f3ff; --text-dim:#c9bdf0; --text-faint:#8f7fc4;
+  --border-soft:rgba(255,255,255,.16);
+  --font-display:'Baloo 2', system-ui, sans-serif; --font-body:'Nunito', system-ui, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; min-height:100%; font-family:var(--font-body); font-weight:700; color:var(--text);
+  background:radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%), radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%), linear-gradient(160deg,var(--bg-1),var(--bg-2));
+  background-attachment:fixed; }
+body{ padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0); }
+.hidden{ display:none !important; }
+.nt-wrap{ position:relative; z-index:1; max-width:640px; margin:0 auto; padding:14px 16px 50px; }
+.nt-top{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+.nt-top .btn-orbita{ flex:none; }
+.nt-top .bola{ width:2.5em; height:2.5em; }
+.nt-tit{ flex:1; min-width:0; }
+.nt-tit h1{ margin:0; font-family:var(--font-display); font-weight:800; font-size:clamp(1.4rem,5vw,2rem); line-height:1.05; }
+.nt-tit small{ display:block; margin-top:2px; color:var(--text-dim); font-weight:700; font-size:.88rem; }
+
+/* sin sesión / mensajes */
+.nt-centro{ text-align:center; padding:34px 10px 10px; }
+.nt-esfera{ display:inline-grid; place-items:center; width:104px; height:104px; border-radius:50%; font-size:2.6rem; margin-bottom:14px;
+  background:radial-gradient(120% 120% at 28% 22%, var(--c,#ede9fe) -10%, var(--b,#8b5cf6) 38%, var(--a,#4c1d95) 100%);
+  box-shadow:inset -.5em -.7em 1.2em rgba(0,0,0,.45), inset .2em .3em .6em rgba(255,255,255,.4), 0 0 36px rgba(var(--glow,167,139,250),.55), 0 14px 28px rgba(0,0,0,.45);
+  animation:nt-flota 5s ease-in-out infinite; }
+.nt-esfera.oro{ --a:#7c2d12; --b:#f59e0b; --c:#fef9c3; --glow:251,191,36; }
+.nt-esfera.azul{ --a:#172554; --b:#3b82f6; --c:#e0f2fe; --glow:56,189,248; }
+.nt-esfera.rosa{ --a:#500724; --b:#ec4899; --c:#fce7f3; --glow:244,114,182; }
+@keyframes nt-flota{ 0%,100%{ translate:0 0; } 50%{ translate:0 -8px; } }
+.nt-centro h2{ margin:0 0 6px; font-family:var(--font-display); font-weight:800; font-size:clamp(1.3rem,4.6vw,1.8rem); }
+.nt-centro p{ margin:0 auto 18px; max-width:380px; color:var(--text-dim); line-height:1.5; font-weight:600; }
+
+/* trimestres: 3 esferas */
+.nt-tri{ display:flex; justify-content:center; gap:clamp(14px,5vw,30px); margin:10px 0 4px; }
+.tri{ position:relative; width:clamp(74px,22vw,96px); aspect-ratio:1; border:none; border-radius:50%; cursor:pointer; color:#fff; font-family:var(--font-display); font-weight:800; display:grid; place-items:center; align-content:center; line-height:1;
+  background:radial-gradient(120% 120% at 28% 22%, var(--c) -10%, var(--b) 38%, var(--a) 100%);
+  box-shadow:inset -.4em -.6em 1em rgba(0,0,0,.45), inset .15em .25em .5em rgba(255,255,255,.4), 0 0 14px rgba(var(--glow),.35), 0 8px 18px rgba(0,0,0,.4);
+  opacity:.62; transform:scale(.88); transition:transform .3s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .25s; -webkit-tap-highlight-color:transparent; text-shadow:0 2px 6px rgba(0,0,0,.55); }
+.tri .n{ font-size:clamp(1.8rem,7vw,2.4rem); } .tri .t{ font-size:.66rem; letter-spacing:.04em; margin-top:2px; }
+.tri.t1{ --a:#172554; --b:#3b82f6; --c:#e0f2fe; --glow:56,189,248; }
+.tri.t2{ --a:#7c2d12; --b:#f59e0b; --c:#fef9c3; --glow:251,191,36; }
+.tri.t3{ --a:#500724; --b:#ec4899; --c:#fce7f3; --glow:244,114,182; }
+.tri.activo{ opacity:1; transform:scale(1.08); box-shadow:inset -.4em -.6em 1em rgba(0,0,0,.4), inset .15em .25em .5em rgba(255,255,255,.5), 0 0 34px rgba(var(--glow),.95), 0 10px 22px rgba(0,0,0,.45); }
+.tri:focus-visible{ outline:3px solid #fde68a; outline-offset:4px; }
+.tri.vacio::after{ content:""; position:absolute; right:6%; top:6%; width:.9rem; height:.9rem; border-radius:50%; background:rgba(255,255,255,.18); box-shadow:0 0 0 2px rgba(255,255,255,.35); }
+
+/* promedio: planeta grande */
+.nt-prom{ display:flex; flex-direction:column; align-items:center; margin:18px 0 8px; }
+.prom-esfera{ display:grid; place-items:center; align-content:center; width:clamp(150px,44vw,196px); aspect-ratio:1; border-radius:50%; text-align:center; --a:#022c22; --b:#10b981; --c:#d1fae5; --glow:52,211,153; color:#fff;
+  background:radial-gradient(120% 120% at 28% 22%, var(--c) -12%, var(--b) 40%, var(--a) 100%);
+  box-shadow:inset -.6em -.8em 1.4em rgba(0,0,0,.45), inset .2em .3em .7em rgba(255,255,255,.4), 0 0 44px rgba(var(--glow),.65), 0 16px 32px rgba(0,0,0,.45); animation:nt-flota 5.5s ease-in-out infinite; position:relative; }
+.prom-esfera::after{ content:""; position:absolute; inset:-9% -30%; border:3px solid rgba(var(--glow),.5); border-radius:50%; transform:rotate(-18deg) scaleY(.28); pointer-events:none; }
+.prom-esfera.rojo{ --a:#4c0519; --b:#f43f5e; --c:#ffe4e6; --glow:251,113,133; }
+.prom-esfera.neutro{ --a:#312e81; --b:#8b5cf6; --c:#ede9fe; --glow:167,139,250; }
+.prom-esfera .num{ font-family:var(--font-display); font-weight:800; font-size:clamp(2.6rem,13vw,3.6rem); line-height:1; text-shadow:0 3px 10px rgba(0,0,0,.5); }
+.prom-esfera .num.chico{ font-size:1.15rem; padding:0 14px; line-height:1.15; }
+.prom-esfera .et{ font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; margin-top:4px; text-shadow:0 2px 6px rgba(0,0,0,.55); }
+
+/* lista de notas */
+.nt-lista{ margin-top:22px; background:rgba(255,255,255,.06); border:1px solid var(--border-soft); border-radius:28px; padding:6px 16px; backdrop-filter:blur(6px); }
+.nota-fila{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 2px; border-bottom:1px solid rgba(255,255,255,.12); }
+.nota-fila:last-child{ border-bottom:none; }
+.nota-label{ color:var(--text-dim); font-weight:700; font-size:.95rem; overflow-wrap:anywhere; }
+.nota-chip{ flex:none; min-width:3.3rem; text-align:center; padding:.28rem .9rem; border-radius:999px; font-family:var(--font-display); font-weight:800; font-size:1.05rem; color:#fff;
+  background:rgba(255,255,255,.1); box-shadow:inset 0 0 0 2px rgba(196,181,253,.4); }
+.nota-chip.ok{ background:rgba(52,211,153,.22); box-shadow:inset 0 0 0 2px rgba(52,211,153,.8), 0 0 12px rgba(52,211,153,.3); color:#a7f3d0; }
+.nota-chip.mal{ background:rgba(251,113,133,.2); box-shadow:inset 0 0 0 2px rgba(251,113,133,.8), 0 0 12px rgba(251,113,133,.3); color:#fecdd3; }
+.nota-chip.pend{ background:rgba(251,191,36,.18); box-shadow:inset 0 0 0 2px rgba(251,191,36,.75); color:#fde68a; font-size:.9rem; }
+.nota-chip.vacia{ background:none; box-shadow:none; color:var(--text-faint); }
+@media (prefers-reduced-motion:reduce){ .nt-esfera,.prom-esfera{ animation:none; } }
+</style>
+</head>
+<body class="mv-universo">
+<div class="nt-wrap">
+
+  <div class="nt-top">
+    <a class="icon-btn btn-orbita v-violeta" href="index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+    <div class="nt-tit"><h1>Mis Notas</h1><small id="jugandoComo">&nbsp;</small></div>
+  </div>
+
+  <!-- Sin sesión: se entra con la cuenta del inicio (no hay login propio) -->
+  <div id="pantallaLogin" class="nt-centro">
+    <div class="nt-esfera azul">📋</div>
+    <h2>Primero entra con tu cuenta</h2>
+    <p>Inicia sesión en el inicio con tu usuario y contraseña, y luego vuelve a Mis Notas.</p>
+    <a class="btn-orbita v-verde" href="index.html"><span class="bola">➜</span>Ir al inicio</a>
+  </div>
+
+  <div id="pantallaPrincipal" class="hidden">
+    <div class="nt-tri hidden" id="tabsTrimestre"></div>
+    <div id="contenidoNotas"></div>
+  </div>
+
+</div>
+
+<script>
+const CLAVE_SESION_COMPARTIDA = 'profehoracio_alumno_actual';
+let AlumnoActual = null;
+
+// Mismo mapeo curso -> planilla que usa el Panel del Profesor. Si
+// algún día cambia el id de alguna planilla, hay que actualizarlo
+// en los dos archivos.
+const SHEETS_CURSO = {
+  '3': '1671geytpEY7Xqr_QTBfdN_M3awU2tmPJ1g_azh7jfsI',
+  '4': '1oNH5gdO-qmiNj1fpxHlZpNLKh_PYcvorziatNsLoK2Q',
+  '5': '1UdR8d0Jj_h2st0Dgc0tkXucJ2VsAlPaJLrg1enIHHMI',
+  '6': '1ff2HhI9A0bhGQHKYZ_JePsMdFO_6gA4Ocu8xHyNx1Xo',
+  '7': '167AU4m_h0rZUW_9JEvvhAx36i4_q-Et78bd-WY7TRmM',
+  '8': '17VZwrjXCmA6eWG8nZQdQUx4rfK71nCsortOwGD1QdwY',
+};
+const NOMBRES_TRIMESTRES = ['Primer Trimestre', 'Segundo Trimestre', 'Tercer Trimestre'];
+
+function parsearCSV(texto){
+  const filas = [];
+  let fila = [], campo = '', dentroComillas = false;
+  for(let i = 0; i < texto.length; i++){
+    const c = texto[i];
+    if(dentroComillas){
+      if(c === '"'){
+        if(texto[i+1] === '"'){ campo += '"'; i++; }
+        else dentroComillas = false;
+      } else campo += c;
+    } else {
+      if(c === '"') dentroComillas = true;
+      else if(c === ','){ fila.push(campo); campo = ''; }
+      else if(c === '\n'){ fila.push(campo); filas.push(fila); fila = []; campo = ''; }
+      else if(c === '\r'){ /* se ignora, \n ya cierra la fila */ }
+      else campo += c;
+    }
+  }
+  if(campo.length > 0 || fila.length > 0){ fila.push(campo); filas.push(fila); }
+  return filas;
+}
+
+// Busca, dentro de una pestaña de trimestre, la fila cuyo nombre
+// (columna A) coincide exactamente con el nombre vinculado del
+// alumno. Devuelve null si la pestaña no existe o el alumno no
+// aparece ahí todavía (por ejemplo, se integró recién otro trimestre).
+async function obtenerFilaTrimestre(sheetId, nombreHoja, nombreBuscado){
+  try{
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nombreHoja)}`;
+    const resp = await fetch(url);
+    if(!resp.ok) return null;
+    const texto = await resp.text();
+    const filas = parsearCSV(texto);
+    const encabezado = filas[0] || [];
+    const fila = filas.slice(1).find(f => (f[0] || '').trim() === nombreBuscado);
+    if(!fila) return null;
+    return { encabezado, fila };
+  } catch(err){
+    console.error(`No se pudo leer "${nombreHoja}":`, err);
+    return null;
+  }
+}
+
+function mensajeCentro(icono, titulo, texto, color){
+  document.getElementById('contenidoNotas').innerHTML =
+    `<div class="nt-centro"><div class="nt-esfera ${color || 'azul'}">${icono}</div><h2>${titulo}</h2><p>${texto}</p></div>`;
+}
+function mostrarMensaje(icono, texto, titulo, color){
+  document.getElementById('tabsTrimestre').classList.add('hidden');
+  mensajeCentro(icono, titulo || 'Aviso', texto, color);
+}
+
+function letraColumna(indice){
+  // indice 0 = A, 1 = B, 2 = C... (alcanza de sobra para una planilla de notas)
+  return indice < 26 ? String.fromCharCode(65 + indice) : `col.${indice + 1}`;
+}
+
+/* Verde desde 4,0; rojo bajo 4,0 (mismo criterio de las planillas) */
+function claseNota(n){ return n === null ? '' : (n >= 4 ? 'ok' : 'mal'); }
+
+function renderizarTrimestre(datos){
+  const cont = document.getElementById('contenidoNotas');
+  if(!datos){
+    mensajeCentro('🗒️', 'Aún sin registros', 'Todavía no hay notas para este trimestre.', 'azul');
+    return;
+  }
+  const { encabezado, fila } = datos;
+
+  // Si en cualquier celda de la fila aparece "X", es un alumno que
+  // se retiró del establecimiento durante este trimestre.
+  const seRetiro = fila.some(v => (v || '').trim() === 'X');
+  if(seRetiro){
+    mensajeCentro('🚪', 'Retiro del establecimiento', 'Este estudiante se retiró del establecimiento durante este trimestre.', 'rosa');
+    return;
+  }
+
+  let promedioHtml = '';
+  let filasHtml = '';
+  for(let i = 1; i < encabezado.length; i++){
+    let etiqueta = (encabezado[i] || '').trim();
+    const crudo = (fila[i] || '').trim();
+    if(!etiqueta && !crudo) continue; // columna realmente vacía en toda la fila: nada que mostrar
+    if(!etiqueta) etiqueta = `Columna ${letraColumna(i)} (sin título en la planilla)`; // para que una nota nunca desaparezca solo por faltar el encabezado
+    let valor, clase = '', num = null;
+    const esPuntos = /^punto/i.test(etiqueta) && /^\d+$/.test(crudo);
+    if(crudo === ''){ valor = '—'; clase = 'vacia'; }
+    else if(crudo.toUpperCase() === 'P'){ valor = 'Pendiente'; clase = 'pend'; }
+    else if(crudo === '#DIV/0!'){ valor = 'Sin evaluaciones aún'; clase = 'vacia'; }
+    else if(esPuntos){ valor = crudo; clase = ''; }   // puntos de participación: número entero, sin color ni coma
+    else if(i >= 2 && /^\d{2}$/.test(crudo) && +crudo >= 10 && +crudo <= 70){
+      // La planilla guarda las notas sin coma (55 = 5,5): se muestran con coma.
+      num = +crudo / 10;
+      valor = num.toFixed(1).replace('.', ',');
+    }
+    else { valor = crudo; }
+    if(num === null && /^\d(?:[.,]\d{1,2})?$/.test(crudo) && !esPuntos && +crudo.replace(',', '.') >= 1 && +crudo.replace(',', '.') <= 7){ num = +crudo.replace(',', '.'); }
+    if(num !== null){ clase = claseNota(num); if(i === 1 || /^\d[.,]\d{1,2}$/.test(crudo)) valor = String(crudo).replace('.', ','); }
+
+    if(etiqueta.toLowerCase().startsWith('promedio')){
+      const esNum = num !== null;
+      const grande = esNum ? `<span class="num">${valor}</span>` : `<span class="num chico">${valor}</span>`;
+      promedioHtml = `<div class="nt-prom"><div class="prom-esfera ${esNum ? (num >= 4 ? '' : 'rojo') : 'neutro'}">${grande}<span class="et">Promedio</span></div></div>`;
+      continue;
+    }
+    filasHtml += `<div class="nota-fila"><span class="nota-label">${etiqueta}</span><span class="nota-chip ${clase}">${valor}</span></div>`;
+  }
+  cont.innerHTML = `${promedioHtml}${filasHtml ? `<div class="nt-lista">${filasHtml}</div>` : ''}`;
+}
+
+async function entrarConDatos(id, nombre){
+  AlumnoActual = { id, nombre };
+  document.getElementById('pantallaLogin').classList.add('hidden');
+  document.getElementById('pantallaPrincipal').classList.remove('hidden');
+  document.getElementById('jugandoComo').textContent = `Hola, ${nombre}`;
+  mensajeCentro('⏳', 'Cargando', 'Buscando tus notas…', 'oro');
+
+  const curso = id.split('-').pop();
+  const sheetId = SHEETS_CURSO[curso];
+  if(!sheetId){
+    mostrarMensaje('🤔', 'Esta cuenta no está asociada a ningún curso con planilla de notas.', 'Sin planilla', 'azul');
+    return;
+  }
+
+  const datos = await window.obtenerDatosAlumno(id);
+  if(!datos || !datos.nombrePlanilla){
+    mostrarMensaje('🔗', 'Tu profesor todavía no vinculó esta cuenta con la planilla de notas. Pídele que lo haga desde el Panel del Profesor.', 'Falta vincular', 'oro');
+    return;
+  }
+
+  const resultados = {};
+  for(const hoja of NOMBRES_TRIMESTRES){
+    resultados[hoja] = await obtenerFilaTrimestre(sheetId, hoja, datos.nombrePlanilla);
+  }
+
+  const tabsCont = document.getElementById('tabsTrimestre');
+  tabsCont.classList.remove('hidden');
+  tabsCont.innerHTML = NOMBRES_TRIMESTRES.map((h, i) =>
+    `<button type="button" class="tri t${i+1}${resultados[h] ? '' : ' vacio'}" data-hoja="${h}" aria-label="${h}"><span class="n">${i+1}°</span><span class="t">TRIMESTRE</span></button>`
+  ).join('');
+  tabsCont.querySelectorAll('.tri').forEach(btn => {
+    btn.onclick = () => {
+      tabsCont.querySelectorAll('.tri').forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      renderizarTrimestre(resultados[btn.dataset.hoja]);
+    };
+  });
+
+  // Por defecto se muestra el último trimestre que ya tenga registros.
+  let trimestreInicial = NOMBRES_TRIMESTRES[0];
+  NOMBRES_TRIMESTRES.forEach(h => { if(resultados[h]) trimestreInicial = h; });
+  tabsCont.querySelectorAll('.tri').forEach(b => b.classList.toggle('activo', b.dataset.hoja === trimestreInicial));
+  renderizarTrimestre(resultados[trimestreInicial]);
+}
+
+function intentarSesionCompartida(){
+  try{
+    const guardado = JSON.parse(sessionStorage.getItem(CLAVE_SESION_COMPARTIDA) || 'null');
+    if(!guardado || !guardado.id) return false;
+    entrarConDatos(guardado.id, guardado.nombre);
+    return true;
+  } catch(e){ return false; }
+}
+
+function iniciar(){
+  if(typeof window.obtenerDatosAlumno !== 'function'){
+    setTimeout(iniciar, 100);
+    return;
+  }
+  intentarSesionCompartida();
+}
+iniciar();
+</script>
+
+<script type="module" src="mathverse-core.js"></script>
+</body>
+</html>
