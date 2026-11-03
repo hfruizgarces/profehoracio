@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mastermind numérico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark; --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6; --text:#f6f3ff; --text-dim:#c9bdf0; --accent:#fbbf24; --primary:#34d399; --error:#fb7185;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;color:var(--text);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 15% 0%,var(--bg-3),transparent 55%),radial-gradient(circle at 85% 100%,#2a0f66,transparent 55%),linear-gradient(160deg,var(--bg-1),var(--bg-2));background-attachment:fixed}
+button{font-family:inherit}
+.hidden{display:none !important}
+.screen{display:none;flex-direction:column;align-items:center;position:relative;z-index:1}
+.screen.active{display:flex}
+#app{width:100%;max-width:900px;margin:0 auto;padding:clamp(10px,2.5vw,24px);display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}
+.card{width:100%;position:relative;max-width:980px;margin:0 auto;padding:6px 10px}
+.home-title{text-align:center;font-family:var(--font-display);font-weight:800;margin:0 0 6px;line-height:1.1}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance;font-family:var(--font-display);font-size:1.25rem;margin:6px 0 2px}
+.icon-btn{display:inline-flex;align-items:center;cursor:pointer}
+.mv-fila-chip{margin-top:30px}
+.mv-atras-home{position:absolute;left:6px;top:6px;z-index:5}
+.mv-casa-home{position:absolute;right:6px;top:6px;z-index:5}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/90}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+.mv-nivel .ico{width:46%;height:auto;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mv-universo .mv-home .home-title{padding:0 48px}
+@media (min-width:900px) and (orientation:landscape){.mv-universo .mv-home .home-title{padding:0}}
+/* ---- pantalla de juego ---- */
+#screen-juego{align-items:stretch;width:100%}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+body.en-juego #screen-juego{height:100dvh}
+.app-header.app-topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;width:100%;max-width:900px;margin:0 auto;padding:2px 10px 0;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(56px,14vw,84px);height:clamp(56px,14vw,84px)}
+#mvCelebra{position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:99990;pointer-events:none;opacity:0;width:min(86vw,300px)}
+#mvCelebra.on{animation:mvCelPop 1.6s ease both}
+@keyframes mvCelPop{0%{opacity:0;transform:translateX(-50%) scale(.55)}14%{opacity:1;transform:translateX(-50%) scale(1.1)}24%{transform:translateX(-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+#mvCelebra .mv-info{display:none}
+.cuerpo{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:760px;margin:0 auto;padding:2px 12px 12px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.chip{padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4);font-family:var(--font-display);font-weight:800;font-size:1rem}
+#stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#stage > svg{width:100%;height:100%;max-height:100%;overflow:visible}
+.msg{flex:none;min-height:2.7em;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:clamp(1rem,.85rem + .7vw,1.3rem);line-height:1.25;text-wrap:balance;max-width:640px}
+.msg.mal{color:#fda4af}.msg.bien{color:#6ee7b7}.msg.pista{color:#fde68a}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex:none}
+.btn-orbita.ancho{font-size:1.15rem;padding-right:2em}
+.btn-orbita[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .32s}
+
+
+.regla{flex:none;text-align:center;color:#d9d0f7;font-weight:700;font-size:clamp(.82rem,.76rem + .35vw,1rem);text-wrap:balance;max-width:560px}
+#hist{flex:1;min-height:60px;width:100%;max-width:440px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px;scrollbar-width:thin}
+.intento{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(196,181,253,.3)}
+.intento .num{width:1.6em;text-align:center;color:#a99bdc;font-weight:800;font-size:.85rem}
+.intento .cifras{display:flex;gap:6px;flex:1;justify-content:center}
+.cif{width:clamp(30px,8vw,38px);height:clamp(30px,8vw,38px);border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:#1e1147;background:radial-gradient(circle at 34% 28%,#fff,#ddd6fe 60%,#a78bfa)}
+.pegs{display:flex;gap:4px;min-width:84px;justify-content:flex-end;align-items:center}
+.peg{width:15px;height:15px;border-radius:50%}
+.peg.b{background:radial-gradient(circle at 34% 28%,#d1fae5,#10b981);box-shadow:0 0 6px #34d399}
+.peg.m{background:transparent;border:3px solid #fbbf24}
+.peg.v{background:rgba(255,255,255,.1)}
+#actual{flex:none;display:flex;gap:10px;justify-content:center}
+.slot{width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);border-radius:50%;border:3px dashed rgba(196,181,253,.7);background:rgba(255,255,255,.05);color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.7rem;cursor:pointer}
+.slot.lleno{border-style:solid;border-color:#fde68a;background:radial-gradient(circle at 34% 28%,#fff,#fde68a 60%,#f59e0b);color:#1e1147}
+#pad{flex:none;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:420px}
+.dig{width:clamp(40px,10.5vw,48px);height:clamp(40px,10.5vw,48px);border-radius:50%;border:none;cursor:pointer;font-family:var(--font-display);font-weight:800;font-size:1.3rem;color:#fff;background:radial-gradient(circle at 34% 28%,#e9d5ff,#7c3aed 55%,#3b0764);box-shadow:inset -3px -4px 6px rgba(0,0,0,.4),0 3px 6px rgba(0,0,0,.4)}
+.dig:disabled{opacity:.3;cursor:default}
+
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen active" id="screen-home"><div id="app"><main id="main"><div class="card mv-items-card">
+<a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem)">Mastermind numérico</h1>
+<div class="mv-fila-chip" id="mvChipHome"></div>
+<h2 class="mv-pregunta">Elige tu nivel</h2>
+<p class="items-sub">Descifra el código secreto del bot</p>
+<div class="mv-niveles mv-p3 mv-lv"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="empezar(1)" aria-label="Fácil, código de 3 cifras"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="23.3" cy="50" r="11.2" fill="#f87171" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="23.3" y="56" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="16" fill="#1e1147">?</text><circle cx="50.0" cy="50" r="11.2" fill="#fbbf24" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="50.0" y="56" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="16" fill="#1e1147">?</text><circle cx="76.7" cy="50" r="11.2" fill="#34d399" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="76.7" y="56" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="16" fill="#1e1147">?</text></svg><span class="t">Fácil</span></button><button type="button" class="level-btn mv-nivel n2" onclick="empezar(2)" aria-label="Medio, código de 4 cifras"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="20.0" cy="50" r="8.4" fill="#f87171" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="20.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="40.0" cy="50" r="8.4" fill="#fbbf24" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="40.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="60.0" cy="50" r="8.4" fill="#34d399" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="60.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="80.0" cy="50" r="8.4" fill="#38bdf8" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="80.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text></svg><span class="t">Medio</span></button><button type="button" class="level-btn mv-nivel n3" onclick="empezar(3)" aria-label="Difícil, código de 4 cifras del 0 al 9"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="20.0" cy="50" r="8.4" fill="#f87171" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="20.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="40.0" cy="50" r="8.4" fill="#fbbf24" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="40.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="60.0" cy="50" r="8.4" fill="#34d399" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="60.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text><circle cx="80.0" cy="50" r="8.4" fill="#38bdf8" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><text x="80.0" y="55" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#1e1147">?</text></svg><span class="t">Difícil</span></button>
+</div></div></main></div></div>
+<div class="screen" id="screen-juego">
+<header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" title="Niveles" aria-label="Niveles"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right"><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+
+<div class="cuerpo">
+  <div class="chips"><span class="chip" id="chInt">Intentos 0</span></div>
+  <div class="regla" id="regla"></div>
+  <div id="hist"></div>
+  <div id="actual"></div>
+  <div id="pad"></div>
+  <div class="msg" id="msg"></div>
+  <div class="fila" id="filaAcc">
+    <button class="btn-orbita v-verde ancho" id="bProbar" type="button" disabled><span class="bola">✔</span>Probar</button>
+  </div>
+  <div class="fila hidden" id="filaFin"><button class="btn-orbita v-verde ancho" id="bSig" type="button"><span class="bola">▶</span>Siguiente</button></div>
+</div>
+
+</div>
+<script>
+window.mvExito = function(){
+  try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){}
+  var h=document.getElementById('mvCelebra'); if(!h) return;
+  var img=h.querySelector('.mv-av img'); if(!img || !img.getAttribute('src')) return;
+  h.classList.remove('on'); void h.offsetWidth; h.classList.add('on');
+  clearTimeout(h._t); h._t=setTimeout(function(){ h.classList.remove('on'); },1700);
+};
+window.mvFallo = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} };
+const RECURSO = 'mastermind';
+let AlumnoActual = null;
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre) AlumnoActual=_g; }catch(e){}
+function reportar(peso){ if(AlumnoActual && typeof window.reportarProgresoPractica==='function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, RECURSO, 1, 0, peso); }catch(e){} } }
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; }, RECURSO);
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+if(AlumnoActual) iniciarHeartbeatTiempo();
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+function pantalla(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active'); document.body.classList.toggle('en-juego', id==='screen-juego'); window.scrollTo(0,0);
+}
+
+const CFG={1:{n:3,min:1,max:6,peso:4},2:{n:4,min:1,max:6,peso:10},3:{n:4,min:0,max:9,peso:16}};
+const M={nivel:1,secreto:[],hist:[],actual:[],fin:false};
+function empezar(l){ M.nivel=l; nuevo(); pantalla('screen-juego'); }
+function nuevo(){
+  const c=CFG[M.nivel], dig=[]; for(let d=c.min;d<=c.max;d++) dig.push(d);
+  for(let i=dig.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [dig[i],dig[j]]=[dig[j],dig[i]]; }
+  M.secreto=dig.slice(0,c.n); M.hist=[]; M.actual=Array(c.n).fill(null); M.fin=false;
+  $('filaFin').classList.add('hidden'); $('filaAcc').classList.remove('hidden');
+  $('regla').textContent=`Descubre el código secreto de ${c.n} cifras (de ${c.min} a ${c.max}, sin repetir). Verde ● = cifra correcta en su lugar · Amarillo ○ = cifra correcta en otro lugar.`;
+  msg('Arma una combinación y pulsa Probar.'); dibujar();
+}
+function msg(t,tipo){ const m=$('msg'); m.textContent=t; m.className='msg'+(tipo?' '+tipo:''); }
+function evaluar(g){ let b=0, com=0; g.forEach((d,i)=>{ if(d===M.secreto[i]) b++; if(M.secreto.indexOf(d)>=0) com++; }); return {b,m:com-b}; }
+function dibujar(){
+  const c=CFG[M.nivel];
+  $('hist').innerHTML=M.hist.map((h,i)=>`<div class="intento"><span class="num">${i+1}</span><span class="cifras">${h.g.map(d=>`<span class="cif">${d}</span>`).join('')}</span><span class="pegs" aria-label="${h.f.b} bien colocadas, ${h.f.m} en otro lugar">${'<i class="peg b"></i>'.repeat(h.f.b)}${'<i class="peg m"></i>'.repeat(h.f.m)}${'<i class="peg v"></i>'.repeat(c.n-h.f.b-h.f.m)}</span></div>`).join('');
+  const hs=$('hist'); hs.scrollTop=hs.scrollHeight;
+  $('chInt').textContent='Intentos '+M.hist.length;
+  $('actual').innerHTML = M.fin ? '' : M.actual.map((d,i)=>`<button type="button" class="slot${d!==null?' lleno':''}" data-i="${i}" aria-label="Posición ${i+1}">${d===null?'':d}</button>`).join('');
+  let pad=''; if(!M.fin) for(let d=c.min;d<=c.max;d++) pad+=`<button type="button" class="dig" data-d="${d}" ${M.actual.indexOf(d)>=0?'disabled':''}>${d}</button>`;
+  $('pad').innerHTML=pad;
+  $('actual').querySelectorAll('.slot').forEach(b=>b.addEventListener('click',()=>{ M.actual[+b.dataset.i]=null; dibujar(); }));
+  $('pad').querySelectorAll('.dig').forEach(b=>b.addEventListener('click',()=>poner(+b.dataset.d)));
+  $('bProbar').disabled = M.fin || M.actual.some(x=>x===null);
+}
+function poner(d){ if(M.fin||M.actual.indexOf(d)>=0) return; const i=M.actual.indexOf(null); if(i<0) return; M.actual[i]=d; dibujar(); }
+function probar(){
+  if(M.fin||M.actual.some(x=>x===null)) return;
+  const g=M.actual.slice(), f=evaluar(g); M.hist.push({g,f});
+  if(f.b===CFG[M.nivel].n){
+    M.fin=true; dibujar();
+    msg(`🎉 ¡Descifraste el código en ${M.hist.length} ${M.hist.length===1?'intento':'intentos'}!`,'bien'); try{ mvExito(); }catch(e){}
+    reportar(CFG[M.nivel].peso); $('filaAcc').classList.add('hidden'); $('filaFin').classList.remove('hidden'); return;
+  }
+  M.actual=Array(CFG[M.nivel].n).fill(null);
+  msg(f.b===0&&f.m===0 ? 'Ninguna de esas cifras está en el código. ¡Eso también es una pista!' : `${f.b} en su lugar y ${f.m} en otro lugar. Sigue probando.`);
+  dibujar();
+}
+$('bProbar').addEventListener('click',probar);
+$('bSig').addEventListener('click',nuevo);
+document.addEventListener('keydown',e=>{
+  if(!$('screen-juego').classList.contains('active')||M.fin) return;
+  if(/^[0-9]$/.test(e.key)){ const d=+e.key, c=CFG[M.nivel]; if(d>=c.min&&d<=c.max) poner(d); }
+  else if(e.key==='Backspace'){ for(let i=M.actual.length-1;i>=0;i--) if(M.actual[i]!==null){ M.actual[i]=null; dibujar(); break; } }
+  else if(e.key==='Enter'){ probar(); }
+});
+window.empezar=empezar;
+
+$('btn-back').addEventListener('click', function(){ pantalla('screen-home'); });
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipHeader',{grande:false}]].forEach(function(p){
+        var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' || e.repeat || e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+    var b=document.querySelector('#bSig'); if(!b || b.offsetParent===null || b.disabled || document.activeElement===b) return;
+    e.preventDefault(); b.click();
+  });
+})();
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+</body>
+</html>
