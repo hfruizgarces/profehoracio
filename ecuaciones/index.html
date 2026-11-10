@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Laboratorio de Números</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS DE DISEÑO
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --bg-1:#1e1147;
+  --bg-2:#3b1785;
+  --bg-3:#5b21b6;
+  --surface:rgba(255,255,255,.07);
+  --surface-strong:rgba(255,255,255,.12);
+  --border-soft:rgba(255,255,255,.14);
+
+  --primary:#34d399;
+  --primary-dark:#0f9d70;
+  --accent:#fbbf24;
+  --accent-soft:#fde68a;
+  --pink:#f472b6;
+  --blue:#38bdf8;
+  --error:#fb7185;
+  --error-soft:#3b0f1f;
+
+  --text:#f6f3ff;
+  --text-dim:#c9bdf0;
+  --text-faint:#8f7fc4;
+
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+
+  --font-display:'Baloo 2', system-ui, sans-serif;
+  --font-body:'Nunito', system-ui, sans-serif;
+
+  --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+  --tap-min: 48px;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100%; overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% 0%, var(--bg-3), transparent 55%),
+    radial-gradient(circle at 85% 100%, #2a0f66, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button, input{ -webkit-user-select:none; user-select:none; }
+input{font-family:inherit;}
+
+.hidden{display:none !important;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* Foco visible para accesibilidad con teclado */
+:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+  padding: clamp(10px, 2.5vw, 24px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 56px 14px 2px;
+  flex-wrap:wrap;
+}
+.app-header .side{
+  display:flex; align-items:center; gap:6px;
+  flex:1 1 auto;
+  min-width:70px;
+}
+.app-header .side.right{ justify-content:flex-end; }
+
+.icon-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  padding:9px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:clamp(.75rem, 2vw, .9rem);
+  cursor:pointer;
+  min-height:var(--tap-min);
+  transition: background .15s, transform .1s;
+  white-space:nowrap;
+}
+.icon-btn:hover{ background:var(--surface-strong); }
+.icon-btn:active{ transform:scale(.96); }
+
+.brand{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.2vw, 1.6rem);
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+.brand .plus{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.5em; height:1.5em;
+  background:linear-gradient(135deg, var(--primary), var(--blue));
+  border-radius:10px;
+  color:#0b1a12;
+  font-size:1em;
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+.screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation: fadeSlideIn .35s ease both;
+}
+@keyframes fadeSlideIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.card{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(16px, 4vw, 32px);
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px);
+}
+
+/* =========================================================
+   PANTALLA INICIAL
+   ========================================================= */
+.home-title{
+  text-align:center;
+  font-size:clamp(1.4rem, 5vw, 2.2rem);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.home-sub{
+  text-align:center;
+  color:var(--text-dim);
+  font-size:clamp(.9rem, 2.4vw, 1.05rem);
+  margin:0 auto clamp(18px,4vw,28px);
+  max-width:46ch;
+}
+footer.credits{ text-align:center; color: var(--text-faint); font-weight:700; font-size:.78rem; padding:20px 10px 4px; }
+.level-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:clamp(10px, 2.5vw, 16px);
+  width:100%;
+}
+@media (max-width:420px){
+  .level-grid{ grid-template-columns:1fr; }
+}
+.level-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:clamp(16px,4vw,22px) 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--border-soft);
+  color:var(--text);
+  cursor:pointer;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1rem, 2.6vw, 1.15rem);
+  min-height:96px;
+  transition:transform .15s, box-shadow .15s;
+}
+.level-btn:hover{ transform:translateY(-3px); }
+.level-btn:active{ transform:scale(.97); }
+.level-btn .emoji{ font-size:clamp(1.6rem, 5vw, 2.1rem); }
+.level-btn.easy{ background:linear-gradient(140deg,#0f9d70,#34d399); }
+.level-btn.mid{ background:linear-gradient(140deg,#1d4ed8,#38bdf8); }
+.level-btn.hard{ background:linear-gradient(140deg,#b91c66,#f472b6); }
+.level-btn.custom{ background:linear-gradient(140deg,#92400e,#fbbf24); color:#fff; }
+
+/* =========================================================
+   PANTALLA "CREA TU EJERCICIO"
+   ========================================================= */
+.form-title{ font-size:clamp(1.2rem,3.6vw,1.5rem); font-weight:800; text-align:center; margin-bottom:4px; }
+.form-sub{ color:var(--text-dim); text-align:center; margin-bottom:18px; font-size:.95rem; }
+
+.addend-row{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:12px;
+}
+.addend-index{
+  width:26px; text-align:right; color:var(--text-faint); font-weight:700; flex:0 0 auto;
+}
+.addend-input{
+  flex:0 1 180px;
+  min-width:0;
+  background:var(--surface-strong);
+  border:2px solid var(--border-soft);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(1.1rem, 3.2vw, 1.35rem);
+  text-align:center;
+  padding:12px 10px;
+  min-height:var(--tap-min);
+  letter-spacing:1px;
+}
+.addend-input::placeholder{ color:var(--text-faint); font-family:var(--font-body); font-weight:600; font-size:.85em;}
+.addend-remove{
+  flex:0 0 auto;
+  width:var(--tap-min); height:var(--tap-min);
+  border-radius:50%;
+  background:rgba(251,113,133,.18);
+  border:1px solid var(--error);
+  color:var(--error);
+  font-size:1.2rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.dashed-btn{
+  width:100%;
+  max-width:220px;
+  margin-left:auto; margin-right:auto;
+  display:block;
+  padding:12px;
+  border-radius:var(--r-sm);
+  border:2px dashed var(--border-soft);
+  background:transparent;
+  color:var(--text-dim);
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap-min);
+  margin-bottom:18px;
+}
+.dashed-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+.dashed-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.primary-btn{
+  width:100%;
+  padding:14px;
+  border-radius:var(--r-md);
+  border:none;
+  background:linear-gradient(135deg, var(--primary), #10b981);
+  color:#062b1c;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1rem, 2.8vw, 1.15rem);
+  cursor:pointer;
+  min-height:52px;
+  box-shadow:0 6px 18px rgba(52,211,153,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.primary-btn:hover{ transform:translateY(-2px); }
+.primary-btn:active{ transform:scale(.98); }
+.primary-btn:disabled{
+  background:#4b4b5a; color:#9a9aab; box-shadow:none; cursor:not-allowed; transform:none;
+}
+.form-error{
+  color:var(--error);
+  text-align:center;
+  font-weight:700;
+  font-size:.9rem;
+  min-height:1.4em;
+  margin-bottom:10px;
+}
+
+/* =========================================================
+   PANTALLA DE EJERCICIO
+   ========================================================= */
+.hint-box{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:16px;
+  width:100%;
+  font-size:clamp(.82rem, 2.1vw, .95rem);
+  line-height:1.45;
+}
+.hint-box .bulb{ font-size:1.2em; flex:0 0 auto; }
+.hint-box b{ color:var(--accent); }
+.hint-box .ok{ color:var(--primary); }
+
+/* =========================================================
+   MODAL (llevada / totales de columna)
+   ========================================================= */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,4,30,.6);
+  backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  z-index:700;
+}
+.modal-box{
+  width:100%; max-width:400px;
+  background:linear-gradient(160deg, #2c1468, #4c1d95);
+  border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(18px,4vw,26px);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.modal-close-x{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:var(--surface); color:var(--text);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:5;
+}
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes monedaFlota{
+  0%{ transform:translateY(0); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translateY(-24px); opacity:0; }
+}
+.modal-eyebrow{
+  font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:6px; text-align:center;
+}
+.modal-title{
+  font-size:clamp(1.05rem, 3.2vw, 1.25rem);
+  text-align:center;
+  margin-bottom:14px;
+  line-height:1.4;
+}
+.modal-title b{ color:var(--accent-soft); }
+.modal-fields{
+  display:flex; gap:12px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;
+}
+.modal-field{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.modal-field label{ font-size:.8rem; color:var(--text-dim); font-weight:700; text-align:center; max-width:11em; }
+.modal-field input{
+  width:80px;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.3rem;
+  padding:10px 6px;
+  border-radius:var(--r-sm);
+  border:2px solid var(--border-soft);
+  background:var(--surface-strong);
+  color:var(--text);
+  min-height:var(--tap-min);
+}
+.modal-feedback{
+  text-align:center; min-height:1.6em; font-weight:700; margin-bottom:10px; font-size:.9rem;
+}
+.modal-feedback.err{ color:var(--error); }
+.modal-feedback.ok{ color:var(--primary); }
+.modal-actions{ display:flex; gap:10px; }
+.modal-actions button{ flex:1; }
+.secondary-btn{
+  padding:12px; border-radius:var(--r-md); border:1px solid var(--border-soft);
+  background:transparent; color:var(--text-dim); font-weight:700; cursor:pointer;
+  min-height:48px;
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO / CELEBRACIÓN
+   ========================================================= */
+.result-hero{
+  font-size:clamp(2.2rem, 9vw, 3.4rem);
+  text-align:center;
+}
+.result-title{
+  font-size:clamp(1.3rem, 4vw, 1.8rem);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.result-eq{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(1.1rem, 3.6vw, 1.6rem);
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:20px;
+  word-break:break-word;
+}
+.result-actions{
+  display:flex; gap:12px; width:100%; flex-wrap:wrap;
+}
+.result-actions button{ flex:1 1 160px; }
+
+.confetti-piece{
+  position:fixed; top:-10px; z-index:800;
+  border-radius:2px;
+  animation: fall linear forwards;
+  pointer-events:none;
+}
+@keyframes fall{
+  to{ transform:translateY(105vh) rotate(360deg); opacity:.9; }
+}
+
+/* =========================================================
+   BARRA DE PROGRESO DE COLUMNAS
+   ========================================================= */
+.progress-track{
+  display:flex; gap:6px; width:100%; margin-bottom:16px;
+}
+.progress-seg{
+  flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progress-seg .fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--blue));
+  transition:width .4s ease;
+}
+
+/* utilidad de botón de sonido */
+.sound-icon{ font-size:1.1em; }
+
+/* =========================================================
+   MULTIPLICACIÓN ÁRABE — retícula (propio del recurso)
+   ========================================================= */
+:root{
+  --ink:var(--text); --ink-soft:var(--text-dim); --ink-faint:var(--text-faint);
+  --brass:#fbbf24; --brass-dark:#f59e0b; --success:#34d399; --success-bg:rgba(52,211,153,.15);
+  --error-bg:rgba(251,113,133,.15); --radius-s:10px; --radius-m:16px; --radius-l:22px;
+  --font-num:var(--font-display); --font-ui:var(--font-body);
+  --cell-size:calc(var(--cell-base,56px) * var(--f,1));
+}
+#vista{ width:100%; display:flex; flex-direction:column; }
+.hero{ text-align:center; }
+.problema-pill{
+  align-self:center; font-family:var(--font-num); font-weight:800; letter-spacing:.04em;
+  font-size:calc(clamp(1.3rem,4.4vw,1.9rem) * var(--f,1)); color:#fff;
+  background:linear-gradient(150deg, rgba(44,20,104,.75), rgba(30,17,71,.75));
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.35); border-radius:16px;
+  padding:calc(6px * var(--f,1)) calc(22px * var(--f,1)); margin:0 0 calc(12px * var(--f,1));
+}
+.lattice-card{ width:100%; display:flex; flex-direction:column; align-items:center; padding:calc(4px * var(--f,1)) 0 0; }
+.lattice-row{ display:flex; align-items:flex-start; gap:6px; }
+.lattice-left{ display:flex; flex-direction:column; }
+.top-digits, .side-digits{ display:flex; }
+.top-digits{ justify-content:flex-end; margin-bottom:5px; gap:4px; }
+.side-digits{ flex-direction:column; margin-top:calc(var(--cell-size) * .62 + 5px); gap:4px; margin-left:4px; }
+.digit-box{
+  width:var(--cell-size); height:calc(var(--cell-size) * .62); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .46); color:#fff;
+  background:linear-gradient(150deg, rgba(124,58,237,.45), rgba(44,20,104,.7)); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45);
+  border:none; border-radius:12px; text-shadow:0 2px 6px rgba(0,0,0,.45);
+}
+.side-digits .digit-box{ width:calc(var(--cell-size) * .72); height:var(--cell-size); }
+.grid-boxes{ display:grid; gap:4px; }
+.lcell{
+  width:var(--cell-size); height:var(--cell-size); position:relative; overflow:hidden; border-radius:10px;
+  border:2px solid rgba(196,181,253,.75); background:rgba(30,17,71,.55); box-shadow:0 0 14px rgba(124,58,237,.25);
+}
+.lcell .tri{ position:absolute; inset:0; transition:background-color .35s ease, opacity .35s ease; }
+.tri-tens{ clip-path:polygon(0 0,100% 0,0 100%); background:rgba(255,255,255,.05); }
+.tri-ones{ clip-path:polygon(100% 0,100% 100%,0 100%); background:rgba(255,255,255,.1); }
+.tri.diag-dim{ opacity:.35; } .tri.diag-active{ opacity:1; }
+.cell-num{
+  position:absolute; z-index:2; font-family:var(--font-num); font-weight:800; line-height:1; pointer-events:none;
+  font-size:calc(var(--cell-size) * .36); color:#fff; text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.cell-num.tens-pos{ top:12%; left:12%; } .cell-num.ones-pos{ bottom:10%; right:12%; }
+.lcell input.cell-input{
+  position:absolute; z-index:2; width:42%; height:42%; border:none; border-radius:7px; padding:0; outline:none;
+  background:rgba(8,3,26,.55); box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.5); text-align:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(var(--cell-size) * .32); color:#fff; user-select:text; -webkit-user-select:text;
+}
+.lcell input.cell-input.tens-pos{ top:6%; left:6%; } .lcell input.cell-input.ones-pos{ bottom:6%; right:6%; }
+.lcell input.cell-input:focus{ background:rgba(124,58,237,.5); box-shadow:0 0 0 2.5px var(--brass), 0 0 14px rgba(251,191,36,.6); }
+.lcell input.cell-input.wrong-flash{ background:var(--error-bg); box-shadow:0 0 0 2.5px var(--error); }
+
+.diag-section{ margin-top:calc(22px * var(--f,1)); width:100%; display:flex; flex-direction:column; align-items:center; }
+.diag-section h3{ font-size:calc(.86rem * var(--f,1)); font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:calc(30px * var(--f,1)); text-align:center; }
+.diag-row{ display:flex; gap:calc(8px * var(--f,1)); align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.diag-box-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; }
+.carry-badge{
+  position:absolute; top:calc(-24px * var(--f,1)); left:50%; transform:translateX(-50%) scale(0); opacity:0;
+  font-family:var(--font-num); font-weight:800; font-size:.8rem; color:#3b2405; background:var(--brass);
+  border-radius:999px; padding:2px 9px; white-space:nowrap; box-shadow:0 0 10px rgba(251,191,36,.7);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+.carry-badge.show{ transform:translateX(-50%) scale(1); opacity:1; }
+.diag-box{
+  width:calc(clamp(48px,11vw,64px) * var(--f,1)); min-height:calc(clamp(48px,11vw,64px) * var(--f,1));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1));
+  border:2.5px solid var(--border-soft); background:rgba(8,3,26,.4); color:var(--text-faint); transition:all .25s ease;
+}
+.diag-box.pending{ opacity:.55; }
+.diag-box input{ width:100%; height:100%; border:none; background:transparent; text-align:center; font-family:var(--font-num); font-weight:800; font-size:calc(1.6rem * var(--f,1)); color:#fff; outline:none; user-select:text; -webkit-user-select:text; }
+.diag-box.wrong{ animation:shake .32s ease; }
+.carry-fly{
+  position:fixed; z-index:3000; font-family:var(--font-num); font-weight:800; font-size:.95rem; color:#3b2405;
+  background:var(--brass); border-radius:999px; padding:4px 10px; pointer-events:none;
+  transition:transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+}
+.final-banner{
+  margin-top:calc(16px * var(--f,1)); text-align:center; background:var(--success-bg); border:2px solid var(--success);
+  color:var(--success); border-radius:16px; padding:calc(10px * var(--f,1)) 20px; font-weight:800;
+  font-family:var(--font-num); font-size:calc(clamp(1.1rem,3.8vw,1.5rem) * var(--f,1));
+}
+.arabe-final{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.arabe-final .mv-fila-chip{ margin-top:calc(8px * var(--f,1)); }
+.arabe-final .result-actions{ margin-top:calc(14px * var(--f,1)); }
+.setup-box{ width:100%; max-width:480px; margin:0 auto; text-align:center; }
+.setup-box label{ display:block; font-weight:700; font-size:.95rem; color:var(--text-dim); margin-bottom:16px; }
+.factor-input-row{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,3vw,18px); }
+.factor-input{
+  width:100%; max-width:150px; font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,7vw,2.2rem);
+  text-align:center; color:#fff; border:none; border-radius:16px; padding:14px 6px; background:rgba(8,3,26,.5);
+  box-shadow:inset 0 0 0 2px rgba(196,181,253,.45); user-select:text;
+}
+.factor-input:focus{ outline:none; box-shadow:0 0 0 3px var(--brass), 0 0 16px rgba(251,191,36,.5); }
+.factor-input::placeholder{ color:var(--text-faint); font-weight:600; }
+.factor-x{ font-family:var(--font-num); font-weight:800; font-size:clamp(1.6rem,6vw,2.2rem); color:var(--brass); flex-shrink:0; }
+.setup-error{ margin-top:12px; padding:9px 14px; border-radius:10px; background:var(--error-bg); color:var(--error); font-weight:700; font-size:.9rem; display:none; }
+.setup-error.show{ display:block; }
+.mv-universo #screen-custom .primary-btn{ display:block; max-width:220px; margin:20px auto 0; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+.mv-universo .mv-home .home-title{ padding:0 48px; line-height:1.1; }
+@media (min-width:900px) and (orientation:landscape){ .mv-universo .mv-home .home-title{ padding:0; } }
+
+.lattice-card[data-fase="diagonales"] .digit-box{ opacity:.4; transition:opacity .25s; }
+.lcell input.cell-input, .diag-box input, .factor-input{ -webkit-touch-callout:none; }
+.lcell input.cell-input::selection, .diag-box input::selection{ background:transparent; }
+.diag-row{ margin-top:calc(26px * var(--f,1)); }
+.result-eq{ font-size:clamp(1.6rem,6vw,2.4rem) !important; }
+
+.lattice-card[data-fase="diagonales"] .cell-num{ opacity:.38; transition:opacity .25s; }
+.lattice-card[data-fase="diagonales"] .cell-num.num-act{ opacity:1; }
+.tri.diag-dim{ opacity:.7 !important; }
+.tri.diag-active{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.55); }
+button, input{ -webkit-user-select:text; user-select:text; }
+.btn-orbita, .icon-btn, .level-btn, .modo-btn, .primary-btn{ -webkit-user-select:none; user-select:none; }
+
+#vista .screen{ animation:none; }
+.mv-universo #screen-exercise .hint-box{ margin-bottom:calc(10px * var(--f,1)); }
+.mv-universo #screen-exercise .hint-box{ font-size:calc(.95rem * var(--f,1)); }
+body[data-pantalla="result"] #screen-exercise .hint-box{ display:none; }
+:root{
+  --color-primary:#38bdf8; --color-primary-dark:#7dd3fc; --color-secondary:#fbbf24; --color-success:#34d399;
+  --color-card:rgba(255,255,255,.07); --color-text:#f6f3ff; --color-text-light:#c9bdf0; --surface-soft:rgba(255,255,255,.05);
+  --shadow:0 14px 34px rgba(0,0,0,.4); --shadow-hover:0 20px 44px rgba(0,0,0,.5); --radius:20px; --radius-sm:12px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+  --b-mil:#ef4444; --b-mil-dark:#7f1d1d; --b-cen:#38bdf8; --b-cen-dark:#0369a1; --b-dec:#34d399; --b-dec-dark:#0f9d70; --b-uni:#fbbf24; --b-uni-dark:#b45309;
+}
+
+
+html,body{margin:0}
+#vista{--f:1; zoom:var(--fz,1)}
+.card{background:transparent;border:0;box-shadow:none;padding:6px 10px;position:relative;max-width:980px;margin:0 auto}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance}
+.credits{text-align:center;color:#a99bdc;font-size:.78rem;margin:6px 0 0}
+a.level-btn{text-decoration:none}
+.mv-fila-chip{margin-top:30px !important}
+.mv-niveles.mv-p2{aspect-ratio:100/56;width:min(100%,640px)}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n1{--x:6;--y:10;--w:42}
+.mv-niveles.mv-p2 .level-btn.mv-nivel.n2{--x:52;--y:10;--w:42}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:9;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:53;--y:47;--w:38}
+.mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:31;--y:3;--w:38}
+.mv-niveles.mv-p4{aspect-ratio:100/88}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:7;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:53;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:7;--y:48;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:53;--y:48;--w:40}
+.mv-niveles .level-btn.mv-nivel.n4{--i:3;--a:#451a03;--b:#f59e0b;--c:#fef3c7;--glow:251,191,36;--ang-b:158deg;--fl:6.1s}
+.mv-niveles .level-btn.mv-nivel.n4::after{animation-delay:-3.2s}
+@media (min-width:700px){
+  .mv-niveles.mv-p3{aspect-ratio:100/40}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n1{--x:11;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n2{--x:37.5;--y:8;--w:25}
+  .mv-niveles.mv-p3 .level-btn.mv-nivel.n3{--x:64;--y:8;--w:25}
+  .mv-niveles.mv-p4{width:min(100%,900px);aspect-ratio:100/30}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:2;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:27;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:52;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:77;--y:4;--w:22}
+}
+
+
+/* ==========================================================================
+   LABORATORIO DE ECUACIONES
+   Hoja de estilos: tokens de diseño + componentes
+   ========================================================================== */
+:root{
+  color-scheme: dark;
+  /* --- Paleta ------------------------------------------------------------ */
+  --bg-1:          #1e1147;
+  --bg-2:          #3b1785;
+  --bg-3:          #5b21b6;
+  --bg-line:       rgba(255,255,255,.05);
+  --surface:       rgba(255,255,255,.07);
+  --surface-soft:  rgba(255,255,255,.05);
+  --border-soft:   rgba(255,255,255,.16);
+  --ink:           #f6f3ff;   /* tinta principal */
+  --ink-soft:      #c9bdf0;
+  --ink-faint:     #8f7fc4;
+
+  --wall:          #fbbf24;   /* viga / pivote de la balanza (= acento de la colección) */
+  --wall-dark:     #f59e0b;
+  --wall-light:    rgba(251,191,36,.35);
+
+  --num:           #38bdf8;   /* piezas numéricas (constantes) */
+  --num-dark:      #7dd3fc;
+  --num-bg:        rgba(56,189,248,.22);
+
+  --var:           #f472b6;   /* piezas de la incógnita / coeficiente / denominador */
+  --var-dark:      #f9a8d4;
+  --var-bg:        rgba(244,114,182,.24);
+
+  --success:       #34d399;
+  --success-bg:    rgba(52,211,153,.16);
+  --error:         #fb7185;
+  --error-bg:      rgba(251,113,133,.16);
+
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 26px;
+  --shadow-piece: 0 6px 0 rgba(0,0,0,0.25), 0 10px 18px rgba(0,0,0,0.35);
+  --shadow-card: 0 14px 34px rgba(0,0,0,0.4);
+
+  --font-display: 'Baloo 2', 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', sans-serif;
+}
+
+
+*{ box-sizing: border-box; }
+
+
+
+
+button{ font-family:inherit; }
+
+
+h1,h2,h3{ font-family: var(--font-display); margin:0; color: var(--ink); }
+
+
+::selection{ background: var(--wall-light); }
+
+
+:focus-visible{
+  outline: 3px solid var(--wall-dark);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+
+/* ==========================================================================
+   Layout general
+   ========================================================================== */
+
+
+.wrap{
+  width:100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+
+.top-nav{
+  width:100%; max-width:980px; margin:0 auto 14px;
+  display:flex; align-items:center; justify-content:space-between;
+  gap: 10px; flex-wrap:wrap; padding-right:56px;
+}
+
+
+.ghost-btn{
+  border: 2px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 9px 16px;
+  border-radius: 999px;
+  cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px;
+  transition: transform .15s ease, box-shadow .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.ghost-btn:hover{ transform: translateY(-2px); border-color: var(--wall); color: var(--wall-dark); box-shadow: 0 6px 14px rgba(23,50,74,0.08); }
+
+.ghost-btn:active{ transform: translateY(0); }
+
+@media (max-width:480px){ .level-grid{ grid-template-columns:1fr; } }
+
+
+/* ==========================================================================
+   Pantallas: Selección de nivel / tipo
+   ========================================================================== */
+.step-title{ text-align:center; margin-bottom: 26px; }
+
+.step-title h2{ font-size: clamp(1.5rem,4vw,2.1rem); }
+
+.step-title p{ color: var(--ink-soft); font-weight:600; margin-top:6px; }
+
+
+.option-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; }
+
+
+.option-card{
+  background: var(--surface); backdrop-filter: blur(6px); border: 2.5px solid var(--border-soft); border-radius: var(--radius-m);
+  padding: 20px; text-align:center; cursor:pointer; box-shadow: 0 8px 20px rgba(23,50,74,0.08);
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.option-card:hover{ transform: translateY(-4px); border-color: var(--wall); box-shadow: 0 14px 26px rgba(23,50,74,0.14); }
+
+.option-card .badge{
+  display:inline-block; font-family:var(--font-display); font-weight:700; font-size: 1.5rem; color: var(--num-dark);
+  background: var(--num-bg); border-radius: 12px; padding: 10px 18px; margin-bottom:12px;
+}
+
+.option-card.mid .badge{ color: var(--num-dark); background: var(--num-bg); }
+
+.option-card.hard .badge{ color: var(--var-dark); background: var(--var-bg); }
+
+.option-card h3{ font-size:1.1rem; margin-bottom:4px; }
+
+.option-card p{ margin:0; color:var(--ink-soft); font-weight:700; font-size:.92rem; }
+
+.option-card .formula{ font-family: var(--font-display); font-size: 1.2rem; color: var(--ink); margin-top: 6px; }
+
+
+/* ==========================================================================
+   Pantalla: crear ecuación propia (formulario)
+   ========================================================================== */
+.param-card{
+  background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px); border-radius: var(--radius-l); padding: 28px 26px;
+  box-shadow: var(--shadow-card); max-width: 560px; margin: 0 auto;
+}
+
+
+.ec-input{
+  width:100%; font-family:var(--font-display); font-size:1.5rem; text-align:center;
+  border:2.5px solid var(--border-soft); border-radius:14px; padding:14px 10px; color:var(--ink);
+  background: var(--surface); letter-spacing:.5px; margin-bottom:14px;
+}
+
+.ec-input:focus{ border-color:var(--wall); outline:none; }
+
+.ec-op-row{ display:flex; justify-content:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+
+.ec-op-btn{
+  width:48px; height:48px; border-radius:50%; border:2px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--ink); font-family:var(--font-display); font-weight:800;
+  font-size:1.2rem; cursor:pointer; transition: border-color .15s, transform .15s;
+}
+
+.ec-op-btn:hover{ border-color:var(--wall); transform:translateY(-2px); }
+
+.param-preview{ background: var(--surface-soft); border-radius:14px; padding:16px; margin-bottom:12px; display:flex; justify-content:center; }
+
+.param-warning{ text-align:center; font-weight:800; font-size:.9rem; padding:9px 12px; border-radius:10px; margin-bottom:16px; display:none; }
+
+.param-warning.show{ display:block; background:rgba(251,191,36,.14); color:var(--wall-dark); }
+
+.param-warning.show.ok{ background:var(--success-bg); color:var(--success); }
+
+.param-warning.show.error{ background:var(--error-bg); color:var(--error); }
+
+#btnCrearManual{ width:100%; }
+
+#btnCrearManual:disabled{ opacity:.5; cursor:not-allowed; }
+
+
+/* ==========================================================================
+   Pantalla: Laboratorio
+   ========================================================================== */
+.lab-header{ text-align:center; margin-bottom: 6px; }
+
+.lab-header .level-pill{
+  display:inline-block; font-weight:800; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--wall-dark); background:rgba(251,191,36,.14); border:1px solid rgba(251,191,36,.4); padding:5px 14px; border-radius:999px; margin-bottom:10px;
+}
+
+.lab-header h2{ font-size: clamp(1.3rem, 3.6vw, 1.7rem); color: var(--ink-soft); font-weight:800; }
+
+
+.progress-dots{ display:flex; gap:8px; justify-content:center; margin: 12px 0 6px; }
+
+.progress-dots span{ width:10px; height:10px; border-radius:50%; background:var(--border-soft); }
+
+.progress-dots span.done{ background: var(--success); }
+
+.progress-dots span.now{ background: var(--wall); box-shadow: 0 0 0 4px var(--wall-light); }
+
+
+.hint-banner{
+  text-align:center; font-weight:700; color: var(--ink-soft);
+  background: var(--surface-soft); border: 1.5px dashed var(--border-soft);
+  border-radius: 14px; padding: 10px 16px; margin: 14px auto 8px; max-width: 620px; font-size: .95rem;
+}
+
+.hint-banner b{ color: var(--wall-dark); }
+
+
+.lab-stage{
+  position:relative; background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px); border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+  padding: clamp(22px, 5vw, 46px) clamp(10px, 4vw, 30px); margin-top: 14px; min-height: 190px;
+  display:flex; align-items:center; justify-content:center; gap: clamp(10px, 3vw, 28px); overflow: visible;
+}
+
+
+.stage-side{
+  flex: 1 1 0; min-width: 0; display:flex; align-items:center; justify-content: center;
+  flex-wrap: nowrap; gap: 10px; min-height: 84px; transition: opacity .2s ease;
+}
+
+.stage-side.left{ justify-content:flex-end; transform-origin: right center; }
+
+.stage-side.right{ justify-content:flex-start; transform-origin: left center; }
+
+@media (max-width: 560px){ .stage-side.left, .stage-side.right{ justify-content:center; transform-origin: center center; } }
+
+
+/* Celulares angostos: se prioriza achicar fichas y pared sobre amontonarlas */
+@media (max-width: 480px){
+  .lab-stage{ gap: clamp(6px, 2vw, 14px); padding: 16px 8px; }
+  .stage-side{ gap: 6px; }
+  .piece{ font-size: clamp(1.05rem, 4.8vw, 1.5rem); padding: 8px 12px; }
+  .sign-static{ font-size: clamp(.95rem, 4vw, 1.2rem); }
+  .equals-wall{ width: 44px; min-width: 44px; height: 100px; }
+  .equals-wall .eq-text{ font-size: clamp(1.5rem, 6vw, 2rem); }
+}
+
+
+/* --- Piezas -------------------------------------------------------------- */
+.piece{
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+  border: none; border-radius: var(--radius-s); padding: 12px 18px; cursor: grab;
+  user-select:none; -webkit-user-select:none; touch-action: none;
+  box-shadow: var(--shadow-piece); transition: transform .15s ease, box-shadow .15s ease, opacity .25s ease;
+  line-height:1; display:inline-flex; align-items:center; justify-content:center;
+}
+
+.piece:active{ cursor:grabbing; }
+
+.piece.dragging{ cursor:grabbing; z-index: 500; box-shadow: 0 14px 26px rgba(23,50,74,0.28); }
+
+.piece.locked{ cursor: default; opacity:.55; }
+
+.piece.tight-left{ margin-right:-6px; }
+
+
+.piece-num{ background: var(--num-bg); color: var(--num-dark); }
+
+.piece-var, .piece-coef, .piece-den{ background: var(--var-bg); color: var(--var-dark); }
+
+.piece-placeholder{ visibility:hidden; }
+
+
+/* Fracción "viva": x y denominador son piezas separadas y arrastrables,
+   apiladas visualmente para que se vean como una sola fracción. */
+.frac-live{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+
+.frac-live .piece-den{ border-top: 3px solid var(--var-dark); border-radius: 0 0 var(--radius-s) var(--radius-s); padding-top:9px; }
+
+.frac-live .piece-var{ border-radius: var(--radius-s) var(--radius-s) 0 0; padding-bottom:9px; }
+
+
+.sign-static{ font-family:var(--font-display); font-weight:700; font-size:clamp(1.2rem,3.6vw,1.7rem); color:var(--ink-soft); padding: 0 2px; }
+
+
+/* --- Pared / balanza ------------------------------------------------------ */
+.equals-wall{
+  position:relative; background:none; border:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  width: 70px; min-width:70px; height: 120px; font-family: var(--font-display); font-weight:800; color: var(--ink);
+}
+
+.equals-wall .eq-text{ font-size: clamp(2rem, 5vw, 2.6rem); transition: opacity .2s ease, transform .2s ease; }
+
+.equals-wall.active .eq-text{ opacity:0; transform: scale(.6); position:absolute; }
+
+
+.wall-pillar{
+  position:relative; width: 16px; height: 0px; border-radius: 10px;
+  background: linear-gradient(180deg, var(--wall-light), var(--wall) 45%, var(--wall-dark));
+  box-shadow: 0 4px 12px rgba(201,127,31,0.35);
+  transition: height .45s cubic-bezier(.34,1.56,.64,1);
+}
+
+.equals-wall.active .wall-pillar{ height: 108px; }
+
+
+.wall-foot{
+  position:absolute; left:50%; transform: translateX(-50%) scale(0); width: 0; height:0;
+  border-left: 12px solid transparent; border-right: 12px solid transparent; transition: transform .3s ease .1s;
+}
+
+.equals-wall.active .wall-foot{ transform: translateX(-50%) scale(1); }
+
+.wall-foot.top{ top:-2px; border-bottom: 14px solid var(--wall-dark); }
+
+.wall-foot.bottom{ bottom:-2px; border-top: 14px solid var(--wall-dark); }
+
+
+.wall-notch{
+  position:absolute; left:50%; width: 30px; height:5px; border-radius:3px;
+  background: var(--surface-soft); transform: translateX(-50%) scaleX(0); transition: transform .25s ease .2s;
+}
+
+.equals-wall.active .wall-notch{ transform: translateX(-50%) scaleX(1); }
+
+.wall-notch.n1{ top: 40%; }
+
+.wall-notch.n2{ top: 58%; }
+
+
+.wall-tap-hint{
+  position:absolute; bottom:-26px; left:50%; transform:translateX(-50%);
+  font-family: var(--font-body); font-weight:700; font-size:.72rem; color: var(--wall-dark);
+  white-space:nowrap; animation: bob 1.4s ease-in-out infinite;
+}
+
+@keyframes bob{ 0%,100%{ transform:translate(-50%,0);} 50%{ transform:translate(-50%,-4px);} }
+
+@keyframes monedaFlota{ 0%{ transform:translateY(0); opacity:0; } 15%{ opacity:1; } 100%{ transform:translateY(-24px); opacity:0; } }
+
+
+/* --- Historial -------------------------------------------------------------- */
+.history-panel{
+  margin-top: 22px; background: var(--surface); border:1px solid var(--border-soft); backdrop-filter: blur(6px); border-radius: var(--radius-m);
+  box-shadow: 0 8px 20px rgba(23,50,74,0.08); padding: 16px clamp(12px,4vw,24px) 20px;
+}
+
+.history-panel h4{
+  font-family: var(--font-body); font-weight:800; color: var(--ink-soft);
+  font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; margin-bottom: 10px;
+}
+
+.history-row{
+  display:flex; align-items:center; justify-content:center; gap: 10px; padding: 9px 4px;
+  font-family: var(--font-display); font-size: 1.15rem; border-top: 1px dashed var(--border-soft); flex-wrap:wrap;
+}
+
+.history-row:first-child{ border-top:none; }
+
+.history-row.final{ color: var(--success); font-weight:800; }
+
+.history-row .mini-piece{ padding: 4px 9px; border-radius:8px; font-size:1rem; }
+
+.history-row .mini-lado{ display:inline-flex; align-items:center; flex-wrap:wrap; gap:2px; }
+
+.history-row .mini-num{ background: var(--num-bg); color:var(--num-dark); }
+
+.history-row .mini-var{ background: var(--var-bg); color:var(--var-dark); }
+
+.history-row .mini-expr{ color: var(--ink-soft); font-weight:700; font-size:.95rem; }
+
+.history-row .mini-frac{ display:inline-flex; flex-direction:column; align-items:center; font-size:.85em; line-height:1.1; }
+
+.history-row .mini-frac .fd{ border-top:2px solid var(--var-dark); padding-top:2px; min-width:1.2em; text-align:center; }
+
+.history-row .mini-eq{ color:var(--ink-faint); font-weight:800; }
+
+
+/* ==========================================================================
+   Modal (elegir operación / calcular)
+   ========================================================================== */
+.overlay{
+  position:fixed; inset:0; background: rgba(10,4,30,.6); display:flex; align-items:center; justify-content:center;
+  z-index:1000; padding: 18px; backdrop-filter: blur(3px); animation: fadeIn .18s ease;
+}
+
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+
+.modal-card{
+  position:relative;
+  background: linear-gradient(160deg, #2c1468, #4c1d95); border:1px solid var(--border-soft); border-radius: var(--radius-l); padding: 28px 26px; max-width: 420px; width:100%;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.28); text-align:center; animation: pop .22s cubic-bezier(.34,1.56,.64,1);
+}
+
+.modal-cerrar{
+  position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-soft); background:rgba(255,255,255,.08); color:var(--ink);
+  font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+
+@keyframes pop{ from{ transform: scale(.85); opacity:0;} to{ transform:scale(1); opacity:1;} }
+
+
+.modal-card h3{ font-size:1.25rem; margin-bottom: 6px; }
+
+.modal-card .modal-sub{ color: var(--ink-soft); font-weight:700; font-size:.95rem; margin-bottom:18px; }
+
+
+.op-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+
+.op-btn{
+  font-family: var(--font-display); font-size: 1.7rem; font-weight:800;
+  background: var(--surface-soft); border: 2px solid var(--border-soft); color: var(--ink);
+  border-radius: 14px; padding: 14px 0; cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.op-btn:hover{ transform: translateY(-2px); border-color: var(--wall); background: rgba(251,191,36,.18); }
+
+.op-btn:active{ transform: translateY(0); }
+
+
+.compute-expr{ font-family: var(--font-display); font-size: 1.8rem; color: var(--ink); background: var(--surface-soft); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
+
+.compute-input-row{ display:flex; gap:10px; }
+
+.compute-input{ flex:1; font-family:var(--font-display); font-size:1.4rem; text-align:center; border: 2.5px solid var(--border-soft); border-radius: 12px; padding: 10px; color:var(--ink); min-width:0; background:var(--surface); }
+
+.compute-input:focus{ border-color: var(--wall); outline:none; }
+
+.compute-submit{ background: var(--wall); color:#3b2405; border:none; border-radius:12px; padding: 0 22px; font-weight:800; font-size:1rem; cursor:pointer; }
+
+.compute-submit:hover{ background: var(--wall-dark); }
+
+
+.modal-msg{ margin-top: 14px; padding: 10px 12px; border-radius:12px; font-weight:700; font-size:.92rem; display:none; }
+
+.modal-msg.show{ display:block; animation: shake .3s ease; }
+
+.modal-msg.error{ background: var(--error-bg); color: var(--error); }
+
+.modal-msg.ok{ background: var(--success-bg); color: var(--success); }
+
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-7px);} 40%,60%{transform:translateX(7px);} }
+
+
+/* --- Celebración ------------------------------------------------------- */
+.celebrate-card{ text-align:center; }
+
+.celebrate-emoji{ font-size: 3rem; margin-bottom:6px; }
+
+.celebrate-card .result-line{
+  font-family: var(--font-display); font-size: 2.1rem; color: var(--success); font-weight:800;
+  background: var(--success-bg); border-radius: 14px; padding: 14px; margin: 14px 0 18px;
+}
+
+.primary-btn{
+  background: var(--wall); color:#3b2405; border:none; border-radius: 999px; padding: 13px 26px;
+  font-weight:800; font-size:1rem; cursor:pointer; box-shadow: 0 8px 18px rgba(232,163,61,0.4);
+}
+
+.primary-btn:hover{ background: var(--wall-dark); }
+
+.secondary-btn{
+  background: var(--surface-soft); color: var(--ink-soft); border:2px solid var(--border-soft);
+  border-radius:999px; padding: 11px 22px; font-weight:800; font-size:.95rem; cursor:pointer; margin-top:10px;
+}
+
+.btn-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+
+
+.hidden{ display:none !important; }
+
+.timer-pill-fixed{
+  position:fixed; top:14px; left:14px; z-index:500; display:inline-flex; align-items:center; gap:6px;
+  background:rgba(10,4,30,.55); backdrop-filter:blur(4px); border:1px solid var(--border-soft);
+  padding:8px 14px; border-radius:999px; font-weight:800; font-family:var(--font-display); font-size:.85rem;
+  color:var(--wall);
+}
+
+.timer-pill-fixed.contador{ top:56px; color:var(--success); }
+
+.modo-opciones{ display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+
+.modo-btn{
+  padding:16px 14px; border-radius:var(--radius-m); border:2px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--ink); cursor:pointer;
+  font-family:var(--font-display); font-weight:800; font-size:1rem; line-height:1.6;
+  transition: transform .12s, border-color .15s, background .15s;
+}
+
+.modo-btn:hover{ transform:translateY(-2px); border-color:var(--wall); }
+
+.modo-btn:active{ transform:scale(.97); }
+
+.modo-desc{ font-size:.75rem; font-weight:600; color:var(--ink-soft); }
+
+.modal-campo{
+  width:100%; padding:12px; margin-bottom:10px; border-radius:var(--radius-m); border:2px solid var(--border-soft);
+  background:var(--surface-soft); color:var(--ink); font-family:var(--font-display); font-weight:700; font-size:1.05rem; text-align:center;
+}
+
+.modal-feedback{ text-align:center; min-height:1.5em; font-weight:700; font-size:.88rem; margin-bottom:8px; }
+
+.modal-feedback.err{ color:#fb7185; }
+
+/* Quitar las flechas nativas de subir/bajar en los inputs numéricos */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+input[type="number"]{ -moz-appearance:textfield; appearance:textfield; }
+
+
+/* REVISOR-AUTO */
+.timer-pill-fixed{ top:auto !important; right:auto !important; bottom:12px !important; left:12px !important; }
+
+.timer-pill-fixed.contador{ top:auto !important; right:auto !important; bottom:12px !important; left:124px !important; }
+
+
+
+#screen-juego{align-items:stretch}
+body.mv-universo{margin:0}
+.app-header.app-topbar{width:100%;max-width:1050px;margin:0 auto}
+body.mv-universo .app-header.app-topbar{padding:2px 10px 0;gap:6px;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px}
+.app-topbar .side.right{justify-content:flex-end}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.app-topbar .nivel-pill{display:none}
+.topbar-der{display:flex;gap:6px;align-items:center}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(64px,17vw,92px);height:clamp(64px,17vw,92px)}
+#mvCelebra{position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:99990;pointer-events:none;opacity:0;width:min(86vw,300px)}
+#mvCelebra.on{animation:mvCelPop 1.6s ease both}
+@keyframes mvCelPop{0%{opacity:0;transform:translateX(-50%) scale(.55)}14%{opacity:1;transform:translateX(-50%) scale(1.1)}24%{transform:translateX(-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+#mvCelebra .mv-info{display:none}
+.niv-leyenda{list-style:none;margin:2px auto 0;padding:0;max-width:430px;display:grid;gap:3px;font-size:.84rem;color:#d9d0f7}
+.niv-leyenda li{display:flex;align-items:center;gap:8px}
+.niv-leyenda .pt{flex:none;width:10px;height:10px;border-radius:50%}
+.niv-leyenda b{color:#fff;min-width:78px}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/90}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+.mv-items-card{padding-bottom:10px}
+
+.sub{font-size:clamp(1.05rem,.9rem + .8vw,1.45rem) !important;line-height:1.35 !important}
+.msg{font-size:clamp(1rem,.85rem + .7vw,1.3rem) !important;min-height:2.6em}
+.estado{font-size:clamp(1rem,.9rem + .5vw,1.25rem) !important}
+.etq{font-size:clamp(.95rem,.85rem + .4vw,1.15rem) !important}
+.historial{font-size:clamp(1.3rem,1rem + 1vw,1.9rem) !important}
+.entrada{font-size:clamp(1.2rem,1rem + 1vw,1.7rem) !important}
+.btn.verde,.btn.siguiente,.btn.azul{font-size:clamp(1rem,.9rem + .4vw,1.2rem) !important}
+
+body.mv-universo{padding:0 !important;min-height:100dvh;display:block;height:auto}
+.screen{display:none}
+.screen.active{display:flex}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+#screen-juego{height:100dvh;overflow:hidden;align-items:stretch}
+.juego-main{width:100%;max-width:980px;margin:0 auto;flex:1 1 0;min-height:0;overflow-y:auto;padding:4px 14px 18px}
+.card.mv-items-card{margin-bottom:0}
+.mv-items-card .mv-crear{display:flex;margin:10px auto 0}
+.mv-crear:disabled{filter:saturate(.2) brightness(.65);cursor:not-allowed}
+#btnCrearManual{width:auto}
+.btn-siguiente{border:none;cursor:pointer;margin-top:10px;padding:11px 34px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:1.05rem;background:linear-gradient(135deg,#fde68a,#f59e0b);color:#3b2405;box-shadow:0 4px 0 #b45309,0 8px 18px rgba(0,0,0,.35)}
+.btn-siguiente:active{transform:translateY(3px);box-shadow:0 1px 0 #b45309}
+.mv-niveles.mv-p3.mv-lv{margin-bottom:6px}
+
+
+/* ===== Del texto a la ecuación (TX) ===== */
+.tx-root{width:100%;max-width:560px;margin:0 auto;padding:8px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;box-sizing:border-box}
+.tx-chip{font-weight:800;font-size:.8rem;background:rgba(255,255,255,.1);border-radius:999px;padding:2px 12px;color:#fff}
+.tx-enun{margin:0;text-align:center;font-weight:800;color:#fff;text-wrap:balance;font-size:clamp(1.05rem,.95rem + .6vw,1.35rem);line-height:1.3}
+.tx-preg{font-weight:800;color:#c4b5fd;text-align:center;font-size:clamp(.9rem,.85rem + .35vw,1.05rem);text-wrap:balance}
+.tx-slots{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.6vw,10px)}
+.tx-slot{width:clamp(48px,14vw,70px);height:clamp(54px,15vw,74px);border-radius:16px;border:2.5px dashed rgba(196,181,253,.85);background:rgba(255,255,255,.07);color:#fff;font-family:var(--font-display,inherit);font-weight:800;font-size:1.7rem;cursor:pointer;padding:0}
+.tx-slot.lleno{border-style:solid;border-color:rgba(255,255,255,.7)}
+.tx-fichas{display:flex;gap:clamp(5px,1.8vw,12px);justify-content:center;flex-wrap:nowrap}
+.tx-ficha{width:clamp(40px,11.5vw,62px);height:clamp(40px,11.5vw,62px);border-radius:50%;border:3px solid rgba(255,255,255,.7);color:#fff;font-family:var(--font-display,inherit);font-weight:800;font-size:1.45rem;cursor:pointer;padding:0;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.tx-ficha:disabled{opacity:.25;cursor:default;box-shadow:none}
+.c-x{background:#ec4899}.c-a{background:#0ea5e9}.c-b{background:#16a34a}.c-mas{background:#7c3aed}.c-menos{background:#ea580c}.c-rel{background:#0d9488}
+.tx-slot.lleno.c-x{background:#ec4899}.tx-slot.lleno.c-a{background:#0ea5e9}.tx-slot.lleno.c-b{background:#16a34a}.tx-slot.lleno.c-mas{background:#7c3aed}.tx-slot.lleno.c-menos{background:#ea580c}.tx-slot.lleno.c-rel{background:#0d9488}
+.tx-msg{min-height:2.6em;text-align:center;font-weight:800;font-size:.98rem;color:#fff;text-wrap:balance}.tx-msg.bien{color:#6ee7b7}.tx-msg.mal{color:#fda4af}
+.tx-ok{font-family:var(--font-display,inherit);font-weight:800;font-size:1.6rem;color:#6ee7b7;text-align:center}
+.tx-acc{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.tx-shake{animation:txsh .35s}@keyframes txsh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+body.en-juego #screen-juego .tx-root{justify-content:flex-start}
+.tx-ficha svg,.tx-slot svg{width:1.15em;height:1.15em;display:block;margin:auto}
+.tx-g{display:inline-block;vertical-align:middle}.tx-g svg{width:1em;height:1em;display:block}
+/* esfera "Problemas" + diseño de 4 esferas */
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n4{--a:#2e1065;--b:#8b5cf6;--c:#ede9fe;--glow:167,139,250;--ang-b:160deg;--fl:6s}
+.mv-niveles.mv-p3.mv-lv.p4{aspect-ratio:100/100}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n3{--x:50;--y:0;--w:46}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n4{--x:4;--y:2;--w:40}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n1{--x:6;--y:55;--w:34}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n2{--x:50;--y:50;--w:42}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv.p4{aspect-ratio:100/34}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n1{--x:2;--y:14;--w:19}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n2{--x:24;--y:8;--w:23}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n3{--x:50;--y:0;--w:27}
+.mv-niveles.mv-p3.mv-lv.p4 .level-btn.mv-nivel.n4{--x:80;--y:10;--w:19}}
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="st3d" viewBox="-11 -11 22 22" overflow="visible"><polygon points="0.00,-10.00 2.53,-3.48 9.51,-3.09 4.09,1.33 5.88,8.09 0.00,4.30 -5.88,8.09 -4.09,1.33 -9.51,-3.09 -2.53,-3.48" fill="#92400e" stroke="#92400e" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0,0 -2.53,-3.48 0.00,-10.00" fill="#fff6c2"/><polygon points="0,0 0.00,-10.00 2.53,-3.48" fill="#f59e0b"/><polygon points="0,0 2.53,-3.48 9.51,-3.09" fill="#fcd34d"/><polygon points="0,0 9.51,-3.09 4.09,1.33" fill="#b45309"/><polygon points="0,0 4.09,1.33 5.88,8.09" fill="#fcd34d"/><polygon points="0,0 5.88,8.09 0.00,4.30" fill="#b45309"/><polygon points="0,0 0.00,4.30 -5.88,8.09" fill="#fcd34d"/><polygon points="0,0 -5.88,8.09 -4.09,1.33" fill="#f59e0b"/><polygon points="0,0 -4.09,1.33 -9.51,-3.09" fill="#fff6c2"/><polygon points="0,0 -9.51,-3.09 -2.53,-3.48" fill="#f59e0b"/><ellipse cx="-2.6" cy="-3.6" rx="1.7" ry="1" fill="#fff" opacity=".85" transform="rotate(-30 -2.6 -3.6)"/></symbol>
+<linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1ecff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+<linearGradient id="gXp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+<linearGradient id="gInf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<radialGradient id="gCara" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></radialGradient>
+<filter id="fSombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="fIco" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.1" flood-color="#000" flood-opacity=".55"/></filter>
+</defs></svg>
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen" id="screen-home"><div id="app"><main id="main"><div id="vista"><div class="card mv-items-card"><a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a><a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a><h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem);padding:0 46px">Ecuaciones</h1><div class="mv-fila-chip" id="mvChipHome"></div><h2 class="mv-pregunta">Elige un nivel</h2><p class="items-sub">Aísla la x con equivalencias</p><p id="indicadorOnline" class="hidden" style="text-align:center;margin:0 0 6px;font-size:.85rem;font-weight:800;color:#6ee7b7">🟢 Conectado en vivo como <span id="nombreOnline"></span></p><div class="mv-niveles mv-p3 mv-lv p4"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div><button type="button" class="level-btn mv-nivel n1" data-nivel="facil" onclick="iniciarNivel('facil')" aria-label="Fácil"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="eq1l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="0.00,-13.00 3.51,-4.84 12.36,-4.02 5.69,1.85 7.64,10.52 0.00,5.98 -7.64,10.52 -5.69,1.85 -12.36,-4.02 -3.51,-4.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#eq1l0" startOffset="50%" text-anchor="middle">Fácil</textPath></text></svg></button><button type="button" class="level-btn mv-nivel n2" data-nivel="intermedio" onclick="iniciarNivel('intermedio')" aria-label="Intermedio"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="eq2l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="-9.00,-9.50 -6.43,-3.54 0.04,-2.94 -4.84,1.35 -3.42,7.69 -9.00,4.37 -14.58,7.69 -13.16,1.35 -18.04,-2.94 -11.57,-3.54" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="9.00,-9.50 11.57,-3.54 18.04,-2.94 13.16,1.35 14.58,7.69 9.00,4.37 3.42,7.69 4.84,1.35 -0.04,-2.94 6.43,-3.54" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#eq2l0" startOffset="50%" text-anchor="middle">Intermedio</textPath></text></svg></button><button type="button" class="level-btn mv-nivel n3" data-nivel="dificil" onclick="iniciarNivel('dificil')" aria-label="Difícil"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="eq3l0" d="M 4 80 Q 50 92 96 80"/></defs><g transform="translate(50 46) scale(1.22)" filter="url(#fIco)"><polygon points="0.00,-15.50 2.30,-10.16 8.08,-9.63 3.72,-5.79 5.00,-0.12 0.00,-3.09 -5.00,-0.12 -3.72,-5.79 -8.08,-9.63 -2.30,-10.16" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="-10.00,-2.50 -7.70,2.84 -1.92,3.37 -6.28,7.21 -5.00,12.88 -10.00,9.91 -15.00,12.88 -13.72,7.21 -18.08,3.37 -12.30,2.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/><polygon points="10.00,-2.50 12.30,2.84 18.08,3.37 13.72,7.21 15.00,12.88 10.00,9.91 5.00,12.88 6.28,7.21 1.92,3.37 7.70,2.84" fill="#fde68a" stroke="#92400e" stroke-width="1" stroke-linejoin="round"/></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#eq3l0" startOffset="50%" text-anchor="middle">Difícil</textPath></text></svg></button><button type="button" class="level-btn mv-nivel n4" data-nivel="texto" onclick="TX.abrir()" aria-label="Del texto a la ecuación"><span class="fondo"></span><svg class="plan-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="txl0" d="M 4 80 Q 50 92 96 80"/></defs><g filter="url(#fIco)"><path d="M26 22H74A5 5 0 0 1 79 27V50A5 5 0 0 1 74 55H48L36 66V55H26A5 5 0 0 1 21 50V27A5 5 0 0 1 26 22Z" fill="#fff" stroke="#4c1d95" stroke-width="1.5" stroke-linejoin="round"/><rect x="28" y="30" width="30" height="3.5" rx="1.7" fill="#8b5cf6"/><rect x="28" y="38" width="40" height="3.5" rx="1.7" fill="#8b5cf6"/><text x="64" y="52" font-size="16" font-weight="800" text-anchor="middle" fill="#ec4899" font-family="Baloo 2,sans-serif">x</text></g><text class="sv-t" font-size="11" style="font-size:11px"><textPath href="#txl0" startOffset="50%" text-anchor="middle">Problemas</textPath></text></svg></button></div><button class="mv-crear btn-orbita v-oro" type="button" onclick="irACrear()"><span class="bola"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/></svg></span><span>Crea tu ecuación</span></button></div></div></main></div></div>
+<div class="screen" id="screen-crear"><div id="app"><main id="main"><div id="vista"><div class="card mv-items-card"><button type="button" class="icon-btn btn-orbita v-azul mv-atras-home" onclick="irA('inicio')" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button><a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a><h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem);padding:0 46px">Crea tu ecuación</h1><div class="mv-fila-chip" id="mvChipCrear"></div><p class="items-sub">Usa <b>x</b> como incógnita. Ej: <b>3x+5=17</b> o <b>x/4-2=6</b></p><div id="crearRoot"></div></div></div></main></div></div>
+<div class="screen" id="screen-juego">
+  <header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" onclick="reiniciarTodo()" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right topbar-der"><span class="icon-btn hidden" id="timer-pill" style="cursor:default"></span><span class="icon-btn hidden" id="contador-pill" style="cursor:default"></span><button class="icon-btn btn-orbita v-rosa" id="btnNuevaEc" type="button" onclick="nuevaEcuacionMismoTipo()" title="Nueva ecuación" aria-label="Nueva ecuación"><span class="bola"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span></button><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+  <main class="juego-main"><div id="labRoot"></div></main>
+</div>
+<div id="modal-root"></div>
+<div class="mv-celebra" id="mvCelebra" aria-hidden="true"></div>
+<script>
+window.mvExito = function(){
+  try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){}
+  var h=document.getElementById('mvCelebra'); if(!h) return;
+  var img=h.querySelector('.mv-av img'); if(!img || !img.getAttribute('src')) return;
+  h.classList.remove('on'); void h.offsetWidth; h.classList.add('on');
+  clearTimeout(h._t); h._t=setTimeout(function(){ h.classList.remove('on'); },1700);
+};
+window.mvFallo = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} };
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('en-juego', id === 'screen-juego');
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================================
+   LABORATORIO DE ECUACIONES — lógica de la aplicación
+   Estructura del archivo:
+     1. Utilidades numéricas y de identificadores
+     2. Motor de ecuaciones: construcción de términos (compartido entre
+        generación aleatoria y creación manual) + generación aleatoria
+     3. Estado global de la aplicación (máquina de pantallas)
+     4. Render de pantallas (inicio, nivel, tipo, formulario manual, laboratorio)
+     5. Render del "stage" interactivo (piezas, fracciones, pared, historial)
+     6. Arrastre (Pointer Events, compatible mouse + táctil)
+     7. Validación de movimientos (elegir operación inversa + calcular)
+     8. Modal de operación / cálculo / celebración final
+
+   NOTA DE DISEÑO — fracciones:
+   La incógnita (x) y el denominador de una fracción son DOS piezas
+   independientes que se muestran apiladas (una fracción visual), pero solo
+   el denominador se arrastra al cruzar la pared: la x permanece fija en su
+   lugar, tal como al aislar una incógnita en papel.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1. UTILIDADES
+   ------------------------------------------------------------------------- */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+let _uid = 0;
+function uid(prefix){ return prefix + (++_uid); }
+
+function prefersReducedMotion(){
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/* ---------------------------------------------------------------------------
+   2. MOTOR DE ECUACIONES
+   Cada término es un objeto:
+     { id, kind: 'num'|'var'|'coef'|'den', side: 'left'|'right',
+       value (num/coef/den: magnitud >=0), sign (1|-1, solo 'num'),
+       fracGroup (id compartido entre 'var' y 'den' de una misma fracción) }
+   ------------------------------------------------------------------------- */
+const TIPOS_FACIL = ['suma','resta','mult','div'];
+const TIPOS_DIFICIL = ['ax+b','ax-b','x/a+b','x/a-b'];
+
+const ETIQUETAS_TIPO = {
+  suma:   { titulo:'Suma',                   formula:'x + b = c' },
+  resta:  { titulo:'Resta',                  formula:'x − b = c' },
+  mult:   { titulo:'Multiplicación',         formula:'a·x = c' },
+  div:    { titulo:'División',               formula:'x/a = c' },
+  'ax+b': { titulo:'Multiplicación y suma',  formula:'a·x + b = d' },
+  'ax-b': { titulo:'Multiplicación y resta', formula:'a·x − b = d' },
+  'x/a+b':{ titulo:'División y suma',        formula:'x/a + b = d' },
+  'x/a-b':{ titulo:'División y resta',       formula:'x/a − b = d' },
+};
+
+/* --- Construcción de términos a partir de valores explícitos (compartida) --- */
+function crearTerminosFacil(tipo, vals){
+  const varT = {id:uid('t'), kind:'var'};
+  let left, right, moveQueue, solution;
+
+  if(tipo === 'suma'){
+    const b = Math.abs(vals.b), c = vals.c;
+    const numB = {id:uid('t'), kind:'num', value:b, sign:1};
+    const numC = {id:uid('t'), kind:'num', value:Math.abs(c), sign: c<0?-1:1};
+    left = [varT, numB]; right = [numC]; moveQueue = [numB.id]; solution = c - b;
+  } else if(tipo === 'resta'){
+    const b = Math.abs(vals.b), c = vals.c;
+    const numB = {id:uid('t'), kind:'num', value:b, sign:-1};
+    const numC = {id:uid('t'), kind:'num', value:Math.abs(c), sign: c<0?-1:1};
+    left = [varT, numB]; right = [numC]; moveQueue = [numB.id]; solution = c + b;
+  } else if(tipo === 'mult'){
+    const a = Math.abs(vals.a) || 1, c = vals.c;
+    const coefT = {id:uid('t'), kind:'coef', value:a};
+    const numC = {id:uid('t'), kind:'num', value:Math.abs(c), sign: c<0?-1:1};
+    left = [coefT, varT]; right = [numC]; moveQueue = [coefT.id]; solution = c / a;
+  } else { // div
+    const a = Math.abs(vals.a) || 1, c = vals.c;
+    const gid = uid('g'); varT.fracGroup = gid;
+    const denT = {id:uid('t'), kind:'den', value:a, fracGroup:gid};
+    const numC = {id:uid('t'), kind:'num', value:Math.abs(c), sign: c<0?-1:1};
+    left = [varT, denT]; right = [numC]; moveQueue = [denT.id]; solution = c * a;
+  }
+  return {left, right, moveQueue, solution};
+}
+
+function crearTerminosDificil(tipo, vals){
+  const varT = {id:uid('t'), kind:'var'};
+  let left, right, moveQueue, solution;
+
+  if(tipo === 'ax+b' || tipo === 'ax-b'){
+    const a = Math.abs(vals.a) || 1, b = Math.abs(vals.b), d = vals.d;
+    const coefT = {id:uid('t'), kind:'coef', value:a};
+    const numB = {id:uid('t'), kind:'num', value:b, sign: tipo==='ax+b' ? 1 : -1};
+    const numD = {id:uid('t'), kind:'num', value:Math.abs(d), sign: d<0?-1:1};
+    left = [coefT, varT, numB]; right = [numD];
+    moveQueue = [numB.id, coefT.id];
+    solution = tipo === 'ax+b' ? (d - b) / a : (d + b) / a;
+  } else { // x/a+b , x/a-b
+    const a = Math.abs(vals.a) || 1, b = Math.abs(vals.b), d = vals.d;
+    const gid = uid('g'); varT.fracGroup = gid;
+    const denT = {id:uid('t'), kind:'den', value:a, fracGroup:gid};
+    const numB = {id:uid('t'), kind:'num', value:b, sign: tipo==='x/a+b' ? 1 : -1};
+    const numD = {id:uid('t'), kind:'num', value:Math.abs(d), sign: d<0?-1:1};
+    left = [varT, denT, numB]; right = [numD];
+    moveQueue = [numB.id, denT.id];
+    solution = tipo === 'x/a+b' ? (d - b) * a : (d + b) * a;
+  }
+  return {left, right, moveQueue, solution};
+}
+
+function finalizarEcuacion(nivel, tipo, core, flip){
+  let { left, right, moveQueue, solution } = core;
+  if(flip){ const tmp = left; left = right; right = tmp; }
+  left.forEach(t => t.side = 'left');
+  right.forEach(t => t.side = 'right');
+  return { nivel, tipo, left, right, moveQueue, step:0, solution, solved:false };
+}
+
+/* --- Generación ALEATORIA (modo "el sistema genera una ecuación") --------- */
+function generarEcuacion(nivel, tipo){
+  let vals, core, flip = false;
+
+  if(nivel === 'facil'){
+    flip = Math.random() < 0.5; // x + b = c  /  c = x + b
+    if(tipo === 'suma' || tipo === 'resta'){
+      // Suma y resta: ningún número de la ecuación supera el tope (20 o 100).
+      const N = state.ambito === 'sr100' ? 100 : 20;
+      const minTotal = Math.max(6, Math.round(N * 0.45));
+      const total = randInt(minTotal, N);
+      const piso = Math.max(1, Math.floor(total * 0.12));
+      const p = randInt(piso, total - piso), q = total - p;
+      if(tipo === 'suma'){ vals = {b:p, c:total}; }      // x + b = c   (x = q)
+      else { vals = {b:p, c:q}; }                        // x − b = c   (x = total)
+    } else if(tipo === 'mult'){ const a = randInt(2,10), s = randInt(2,10); vals = {a, c: a*s}; }   // tablas 10×10
+    else { const a = randInt(2,10), c = randInt(2,10); vals = {a, c}; }                              // div: x = a·c ≤ 100
+    core = crearTerminosFacil(tipo, vals);
+  } else if(nivel === 'intermedio'){
+    flip = Math.random() < 0.5; // volteo aleatorio, desde intermedio en adelante
+    if(tipo === 'ax+b' || tipo === 'ax-b'){
+      const a = randInt(2,9), s = randInt(1,12), b = randInt(1,15);
+      const d = tipo === 'ax+b' ? a*s + b : a*s - b;
+      vals = {a, b, d};
+    } else {
+      const a = randInt(2,6), m = randInt(1,10), s = m*a, b = randInt(1,15);
+      const d = tipo === 'x/a+b' ? m + b : m - b;
+      vals = {a, b, d};
+    }
+    core = crearTerminosDificil(tipo, vals);
+  } else { // dificil: misma estructura de 2 pasos, con números bastante más grandes
+    flip = Math.random() < 0.5;
+    if(tipo === 'ax+b' || tipo === 'ax-b'){
+      const a = randInt(4,15), s = randInt(5,30), b = randInt(10,50);
+      const d = tipo === 'ax+b' ? a*s + b : a*s - b;
+      vals = {a, b, d};
+    } else {
+      const a = randInt(4,12), m = randInt(5,25), s = m*a, b = randInt(10,50);
+      const d = tipo === 'x/a+b' ? m + b : m - b;
+      vals = {a, b, d};
+    }
+    core = crearTerminosDificil(tipo, vals);
+  }
+  return finalizarEcuacion(nivel, tipo, core, flip);
+}
+
+/* --- Generación MANUAL (modo "crear mi propia ecuación") ------------------ */
+function generarEcuacionManual(nivel, tipo, vals, flip){
+  const core = nivel === 'facil' ? crearTerminosFacil(tipo, vals) : crearTerminosDificil(tipo, vals);
+  return finalizarEcuacion(nivel, tipo, core, flip);
+}
+
+/* ---------------------------------------------------------------------------
+   3. ESTADO GLOBAL
+   ------------------------------------------------------------------------- */
+const state = {
+  screen: 'inicio',   // inicio | crear | lab
+  modo: null,          // 'propia' | 'sistema'
+  nivel: null,          // 'facil' | 'intermedio' | 'dificil'
+  tipo: null,
+  ambito: 'mixto',      // solo Fácil: 'sr20' | 'sr100' | 'tablas' ('mixto' = Desafío Online, como siempre)
+  eq: null,
+  wallActive: false,
+  history: [],
+};
+
+function irA(pantalla){ state.screen = pantalla; render(); }
+
+function reiniciarTodo(){
+  state.desdeTexto = false;
+  if(Contrarreloj.activo) detenerContrarreloj();
+  state.screen = 'inicio'; state.modo = null; state.nivel = null; state.tipo = null; state.ambito = 'mixto';
+  state.eq = null; state.wallActive = false; state.history = [];
+  render();
+}
+
+function iniciarLaboratorio(nivel, tipo){
+  state.nivel = nivel; state.tipo = tipo;
+  state.eq = generarEcuacion(nivel, tipo);
+  state.wallActive = false; state.history = [];
+  state.screen = 'lab';
+  render();
+}
+
+function nuevaEcuacionMismoTipo(){
+  if(state.desdeTexto){ irA('texto'); return; }
+  if(state.modo === 'propia'){ irA('crear'); return; }
+  // En Fácil, cada ámbito puede agrupar más de una operación (ej. suma y
+  // resta) -- hay que volver a sortear entre ellas cada vez, no repetir
+  // siempre la primera que salió. En Intermedio/Difícil cada tipo ya es
+  // una categoría propia, así que ahí sí se mantiene la misma al pedir "otra".
+  const tipo = state.nivel === 'facil' ? (() => { const p = tiposFacilSegunAmbito(); return p[randInt(0, p.length - 1)]; })() : state.tipo;
+  iniciarLaboratorio(state.nivel, tipo);
+}
+
+// Fácil se divide en 3 ámbitos: suma y resta hasta 20, suma y resta hasta 100, y tablas 10×10.
+function tiposFacilSegunAmbito(){
+  if(state.ambito === 'tablas') return ['mult','div'];
+  if(state.ambito === 'sr20' || state.ambito === 'sr100') return ['suma','resta'];
+  return TIPOS_FACIL; // 'mixto': Desafío Online, las 4 operaciones como siempre
+}
+
+function iniciarNivel(cl){ abrirSelectorModo(cl); }
+function irACrear(){ state.desdeTexto = false; state.modo = 'propia'; irA('crear'); }
+
+function startLevel(nivel){
+  state.modo = 'sistema'; state.nivel = nivel;
+  const pool = nivel === 'facil' ? tiposFacilSegunAmbito() : TIPOS_DIFICIL;
+  iniciarLaboratorio(nivel, pool[randInt(0,pool.length-1)]);
+}
+
+/* ---------------------------------------------------------------------------
+   MODO: PRÁCTICA LIBRE vs CONTRARRELOJ
+   --------------------------------------------------------------------- */
+const NOMBRES_NIVEL_CR = { facil:'Fácil', intermedio:'Intermedio', dificil:'Difícil' };
+const DURACION_CONTRARRELOJ = 7*60; // 7 minutos, en segundos
+const Contrarreloj = { activo:false, restante:0, completados:0, errores:0, intervalo:null, nivel:null };
+
+function cerrarSelector(){ document.getElementById('modal-root').innerHTML = ''; }
+
+const AMBITOS_FACIL = [
+  ['sr20',   '🔢 Hasta 20',      '+ −'],
+  ['sr100',  '🔢 Hasta 100',     '+ −'],
+  ['tablas', '✖️ Tablas 10×10',  '× ÷'],
+];
+const ETIQUETA_AMBITO = { sr20:'hasta 20', sr100:'hasta 100', tablas:'tablas 10×10' };
+
+// Fácil pregunta primero qué se quiere practicar; los otros niveles van directo al modo.
+function abrirSelectorModo(nivel){
+  setTimeout(()=>{ try{ mvRank.enModo('Ecuaciones', nivel); }catch(e){} }, 0);
+  if(nivel === 'facil') abrirSelectorAmbito(nivel);
+  else abrirSelectorPractica(nivel);
+}
+
+function abrirSelectorAmbito(nivel){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const overlay = el('div','overlay'); overlay.dataset.selector = '1';
+  const card = el('div','modal-card');
+  card.innerHTML = `<button class="modal-cerrar" id="selCerrar" aria-label="Cerrar">✕</button>
+    <h3>Nivel Fácil</h3><p class="modal-sub">¿Qué quieres practicar?</p>`;
+  const opciones = el('div','modo-opciones');
+  AMBITOS_FACIL.forEach(([id, titulo, ops]) => {
+    const b = el('button','modo-btn', `${titulo}<br><span class="modo-desc">${ops}</span>`);
+    b.onclick = () => { state.ambito = id; abrirSelectorPractica(nivel); };
+    opciones.appendChild(b);
+  });
+  card.appendChild(opciones);
+  overlay.appendChild(card);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) cerrarSelector(); });
+  root.appendChild(overlay);
+  document.getElementById('selCerrar').onclick = cerrarSelector;
+}
+
+function abrirSelectorPractica(nivel){
+  setTimeout(()=>{ try{ mvRank.enModo('Ecuaciones', nivel); }catch(e){} }, 0);
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const overlay = el('div','overlay'); overlay.dataset.selector = '1';
+  const card = el('div','modal-card');
+  const sufijo = (nivel === 'facil' && ETIQUETA_AMBITO[state.ambito]) ? ` · ${ETIQUETA_AMBITO[state.ambito]}` : '';
+  card.innerHTML = `<button class="modal-cerrar" id="selCerrar" aria-label="Cerrar">✕</button>
+    <h3>Nivel ${NOMBRES_NIVEL_CR[nivel]}${sufijo}</h3><p class="modal-sub">¿Cómo quieres practicar?</p>`;
+  const opciones = el('div','modo-opciones');
+  const btnLibre = el('button','modo-btn','🎯 Práctica libre<br><span class="modo-desc">sin límite de tiempo</span>');
+  btnLibre.onclick = () => { root.innerHTML = ''; startLevel(nivel); };
+  const btnCR = el('button','modo-btn','⏱️ Contrarreloj<br><span class="modo-desc">7 minutos, resuelve las que puedas</span>');
+  btnCR.onclick = () => { root.innerHTML = ''; startContrarreloj(nivel); };
+  opciones.appendChild(btnLibre); opciones.appendChild(btnCR);
+  card.appendChild(opciones);
+  overlay.appendChild(card);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) cerrarSelector(); });
+  root.appendChild(overlay);
+  document.getElementById('selCerrar').onclick = cerrarSelector;
+}
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && !modalCtx && document.querySelector('#modal-root .overlay[data-selector="1"]')) cerrarSelector();
+});
+
+function startContrarreloj(nivel){
+  Contrarreloj.activo = true;
+  Contrarreloj.restante = DURACION_CONTRARRELOJ;
+  Contrarreloj.completados = 0;
+  Contrarreloj.errores = 0;
+  Contrarreloj.nivel = nivel;
+  document.getElementById('timer-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').classList.remove('hidden');
+  document.getElementById('contador-pill').textContent = '✓ 0';
+  actualizarTimerPill();
+  if(Contrarreloj.intervalo) clearInterval(Contrarreloj.intervalo);
+  Contrarreloj.intervalo = setInterval(tickContrarreloj, 1000);
+  startLevel(nivel);
+}
+function tickContrarreloj(){
+  Contrarreloj.restante--;
+  actualizarTimerPill();
+  if(Contrarreloj.restante <= 0){
+    clearInterval(Contrarreloj.intervalo);
+    Contrarreloj.intervalo = null;
+    Contrarreloj.activo = false;
+    mostrarFinContrarreloj();
+  }
+}
+function actualizarTimerPill(){
+  const m = Math.floor(Contrarreloj.restante/60), s = Contrarreloj.restante%60;
+  const pill = document.getElementById('timer-pill');
+  pill.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  pill.style.setProperty('--p', (Contrarreloj.restante / DURACION_CONTRARRELOJ * 100).toFixed(1));
+  pill.classList.toggle('urgente', Contrarreloj.restante <= 30);
+}
+function detenerContrarreloj(){
+  if(Contrarreloj.intervalo){ clearInterval(Contrarreloj.intervalo); Contrarreloj.intervalo=null; }
+  Contrarreloj.activo = false;
+  document.getElementById('timer-pill').classList.add('hidden');
+  document.getElementById('contador-pill').classList.add('hidden');
+}
+function reportarSiCorresponde(deltaCompletados, deltaErrores){
+  if(Online.activo) window.reportarProgresoOnline(Online.codigo, Online.docId, deltaCompletados, deltaErrores);
+}
+function mostrarFinContrarreloj(){
+  const __rn = Contrarreloj.nivel, __rc = Contrarreloj.completados;
+  setTimeout(()=>{ try{ mvRank.final('Ecuaciones', __rn, __rc); }catch(e){} }, 0);
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const overlay = el('div','overlay');
+  const card = el('div','modal-card');
+  card.innerHTML = `<h3>⏱️ ¡Se acabó el tiempo!</h3>
+    <p class="modal-sub">Completaste <b style="color:var(--success); font-size:1.3em; font-family:var(--font-display);">${Contrarreloj.completados}</b> ecuación(es)${Contrarreloj.errores ? `, con ${Contrarreloj.errores} error(es) en el camino` : ''}.</p>`;
+  const opciones = el('div','modo-opciones');
+  const btnOtra = el('button','modo-btn','➜ Otra ronda');
+  btnOtra.onclick = () => { root.innerHTML = ''; startContrarreloj(Contrarreloj.nivel); };
+  const btnInicio = el('button','modo-btn','↩️ Inicio');
+  btnInicio.onclick = () => { root.innerHTML = ''; detenerContrarreloj(); reiniciarTodo(); };
+  opciones.appendChild(btnOtra); opciones.appendChild(btnInicio);
+  card.appendChild(opciones);
+  overlay.appendChild(card);
+  root.appendChild(overlay);
+}
+
+/* ---------------------------------------------------------------------------
+   DESAFÍO ONLINE
+   --------------------------------------------------------------------- */
+let AlumnoActual = null;
+
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse === 'function'){
+    window.iniciarHeartbeatMathverse(() => AlumnoActual?.id, 'ecuaciones');
+  } else {
+    setTimeout(iniciarHeartbeatTiempo, 100);
+  }
+}
+
+const Online = { activo:false, codigo:null, uid:null, nombre:null, docId:null };
+
+// Se llama UNA vez, justo al unirse a la sesión -- sin esto, si el
+// profesor eligió "Práctica libre" (no Contrarreloj), el alumno nunca
+// aparecía en el panel ni se guardaba su avance.
+function registrarInicioOnline(){
+  if(!Online.activo) return;
+  Online.docId = Online.uid + '_' + Date.now();
+  if(window.iniciarNuevoIntentoOnline) window.iniciarNuevoIntentoOnline(Online.codigo, Online.docId, Online.nombre, Online.uid);
+}
+
+/* ------------------------------------------------------------------
+   FILTRO DE NOMBRES (modo invitado, sin cuenta) -- no es perfecto,
+   pero atrapa groserías comunes y sus variantes con números/espacios.
+   ------------------------------------------------------------------ */
+const PALABRAS_PROHIBIDAS = [
+  'puta','puto','mierda','pendejo','maricon','marica','perra','zorra','cabron',
+  'pelotudo','boludo','huevon','verga','vagina','culiao','culiado','conchetumadre',
+  'ctm','qliao','imbecil','estupido','idiota','violador','nazi','hitler','terrorista',
+  'penis','pinga','tetas','follar','coger','joder','cagada','cagon'
+];
+function normalizarParaFiltro(t){
+  let n = t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  n = n.replace(/[013457@$]/g, c => ({'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','@':'a','$':'s'}[c]));
+  return n.replace(/[^a-z]/g, '');
+}
+function nombreTieneOfensa(nombre){
+  const n = normalizarParaFiltro(nombre);
+  return PALABRAS_PROHIBIDAS.some(p => n.includes(p));
+}
+
+
+
+
+/* ---------------------------------------------------------------------------
+   4. RENDER DE PANTALLAS
+   ------------------------------------------------------------------------- */
+function render(){
+  if(state.screen === 'texto'){ switchScreen('screen-juego'); const rt=document.getElementById('labRoot'); TX.montar(rt); return; }
+  if(state.screen === 'inicio'){ switchScreen('screen-home'); }
+  else if(state.screen === 'crear'){
+    switchScreen('screen-crear');
+    const r = document.getElementById('crearRoot'); r.innerHTML = ''; r.appendChild(renderCrear());
+  }
+  else if(state.screen === 'lab'){
+    switchScreen('screen-juego');
+    const r = document.getElementById('labRoot'); r.innerHTML = ''; r.appendChild(renderLab());
+    const ed = document.getElementById('btnNuevaEc'); if(ed){ const t = state.desdeTexto ? 'Otro problema' : state.modo === 'propia' ? 'Editar números' : 'Nueva ecuación'; ed.title = t; ed.setAttribute('aria-label', t); ed.style.display = state.desdeTexto ? 'none' : ''; }
+    requestAnimationFrame(fitStageSides);
+  }
+}
+
+/* Achica cada lado de la ecuación (en vez de quebrarlo en dos líneas) cuando
+   las piezas no caben completas en el ancho disponible. */
+function fitStageSides(){
+  ['sideLeft','sideRight'].forEach(id => {
+    const sideEl = document.getElementById(id);
+    if(!sideEl) return;
+    sideEl.style.transform = 'none';
+    const available = sideEl.clientWidth;
+    const needed = sideEl.scrollWidth;
+    if(available > 0 && needed > available){
+      const scale = Math.max(available / needed, 0.55);
+      sideEl.style.transform = `scale(${scale})`;
+    }
+  });
+}
+window.addEventListener('resize', () => { if(state.screen === 'lab') fitStageSides(); });
+
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderLogin(){
+  const wrap = el('div','wrap');
+  wrap.appendChild(el('div','hero', `
+    <h1>Ecuaciones</h1>
+  `));
+  const card = el('div','','');
+  card.style.cssText = 'background:var(--surface); border:1px solid var(--border-soft); border-radius:22px; padding:24px; max-width:340px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter:blur(6px); margin:14px auto 0; display:flex; flex-direction:column; gap:10px;';
+  card.innerHTML = `
+    <input type="text" id="loginUsuario" placeholder="Usuario" autocomplete="off" maxlength="30"
+      style="width:100%; padding:12px; border-radius:var(--radius-m); border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--ink); font-family:var(--font-display); font-weight:700; text-align:center;">
+    <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="off" maxlength="30"
+      style="width:100%; padding:12px; border-radius:var(--radius-m); border:2px solid var(--border-soft); background:var(--surface-soft); color:var(--ink); font-family:var(--font-display); font-weight:700; text-align:center;">
+    <p id="loginError" style="color:var(--error); font-weight:700; font-size:.82rem; min-height:1.2em; margin:0;"></p>
+    <button id="btnLoginEntrar" style="padding:13px; border-radius:999px; border:none; cursor:pointer; background:linear-gradient(140deg,#0f9d70,var(--success)); color:#04281c; font-family:var(--font-display); font-weight:800; font-size:1rem;">Ingresar</button>
+    <button type="button" id="btnSinLogin" style="padding:10px; border-radius:999px; border:1px solid var(--border-soft); cursor:pointer; background:var(--surface); color:var(--ink-faint); font-family:var(--font-display); font-weight:700; font-size:.78rem;">Continuar sin loguearse (tu progreso solo queda en este computador)</button>
+  `;
+  wrap.appendChild(card);
+
+  card.querySelector('#btnLoginEntrar').onclick = async () => {
+    const usuario = card.querySelector('#loginUsuario').value.trim();
+    const password = card.querySelector('#loginPassword').value;
+    const errEl = card.querySelector('#loginError');
+    if(!usuario || !password){ errEl.textContent = 'Escribe tu usuario y tu contraseña.'; return; }
+    const btn = card.querySelector('#btnLoginEntrar');
+    btn.disabled = true; btn.textContent = 'Entrando…';
+    errEl.textContent = '';
+    try{
+      const resultado = await window.verificarLoginAlumnoCompartido(usuario, password);
+      if(!resultado.ok){ errEl.textContent = resultado.error; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
+      AlumnoActual = { id: resultado.id, nombre: resultado.nombre };
+      try{ sessionStorage.setItem('profehoracio_alumno_actual', JSON.stringify(AlumnoActual)); }catch(e){}
+      iniciarHeartbeatTiempo();
+      state.screen = 'inicio'; render();
+    } catch(err){
+      console.error(err);
+      errEl.textContent = 'Error de conexión. Intenta de nuevo.';
+    }
+  };
+  card.querySelector('#loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') card.querySelector('#btnLoginEntrar').click(); });
+  card.querySelector('#btnSinLogin').onclick = () => { state.screen = 'inicio'; render(); };
+
+  return wrap;
+}
+
+function renderInicio(){
+  const wrap = el('div','wrap');
+  const hero = el('div','hero', `
+    <h1>Ecuaciones</h1>
+    <p>Elige un nivel para practicar, o crea tu propia ecuación.</p>
+    <p id="indicadorOnline" class="hidden" style="text-align:center; margin-top:8px; font-size:.85rem; font-weight:800; color:var(--success);">🟢 Conectado en vivo como <span id="nombreOnline"></span></p>
+    <p id="indicadorAlumno" class="hidden" style="text-align:center; margin-top:4px; font-size:.8rem; font-weight:700; color:var(--ink-faint);"></p>
+  `);
+  wrap.appendChild(hero);
+
+  const grid = el('div','level-grid');
+
+  const facil = el('button','level-btn easy', `<span class="emoji">⭐</span> Fácil`);
+  facil.onclick = () => abrirSelectorModo('facil');
+
+  const intermedio = el('button','level-btn mid', `<span class="emoji">⭐⭐</span> Intermedio`);
+  intermedio.onclick = () => abrirSelectorModo('intermedio');
+
+  const dificil = el('button','level-btn hard', `<span class="emoji">⭐⭐⭐</span> Difícil`);
+  dificil.onclick = () => abrirSelectorModo('dificil');
+
+  const crear = el('button','level-btn custom', `<span class="emoji">✏️</span> Crea tu ecuación`);
+  crear.onclick = () => { state.modo = 'propia'; irA('crear'); };
+
+  grid.appendChild(facil); grid.appendChild(intermedio); grid.appendChild(dificil); grid.appendChild(crear);
+  wrap.appendChild(grid);
+
+  wrap.appendChild(el('footer','credits','Ecuaciones · Material interactivo para Educación Básica'));
+  return wrap;
+}
+
+function renderCrear(){
+  const wrap = el('div','wrap');
+
+  const card = el('div','param-card');
+  card.innerHTML = `
+    <input type="text" id="ecInput" class="ec-input" placeholder="Ej: 3x+5=17"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="ec-op-row">
+      <button type="button" class="ec-op-btn" data-op="+">+</button>
+      <button type="button" class="ec-op-btn" data-op="-">−</button>
+      <button type="button" class="ec-op-btn" data-op="/">/</button>
+      <button type="button" class="ec-op-btn" data-op="=">=</button>
+    </div>
+    <div class="param-preview" id="paramPreview"></div>
+    <p class="param-warning" id="paramWarning"></p>
+  `;
+  wrap.appendChild(card);
+
+  const btn = el('button','btn-orbita v-verde mv-crear','<span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></span><span>Comenzar</span>');
+  btn.id = 'btnCrearManual';
+  btn.type = 'button';
+  btn.disabled = true;
+  btn.onclick = confirmarCreacionLibre;
+  wrap.appendChild(btn);
+
+  const input = card.querySelector('#ecInput');
+  card.querySelectorAll('.ec-op-btn').forEach(b=>{
+    b.onclick = () => {
+      const op = b.dataset.op;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      input.value = input.value.slice(0,start) + op + input.value.slice(end);
+      const pos = start + op.length;
+      input.focus(); input.setSelectionRange(pos,pos);
+      actualizarPreviewLibre();
+    };
+  });
+  input.addEventListener('input', actualizarPreviewLibre);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); if(!btn.disabled) confirmarCreacionLibre(); }
+  });
+
+  setTimeout(()=>{ input.focus(); actualizarPreviewLibre(); }, 50);
+  return wrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Analizador de ecuaciones escritas libremente. La incógnita es siempre "x";
+   la multiplicación nunca necesita símbolo (5x ya significa 5 por x), así
+   que "x" jamás es ambiguo con un operador.
+   ------------------------------------------------------------------------- */
+function parseEcuacionLibre(texto){
+  const s = texto.replace(/\s+/g, '');
+  if(!s) return {error:''};
+
+  const partes = s.split('=');
+  if(partes.length !== 2) return {error:'La ecuación debe tener un signo =.'};
+  const [ladoA, ladoB] = partes;
+  if(!ladoA || !ladoB) return {error:'Completa ambos lados de la ecuación.'};
+
+  const aTieneX = /x/i.test(ladoA), bTieneX = /x/i.test(ladoB);
+  if(!aTieneX && !bTieneX) return {error:'Tu ecuación necesita una x.'};
+  if(aTieneX && bTieneX) return {error:'La x debe estar en un solo lado de la ecuación.'};
+
+  const flip = bTieneX;
+  const ladoVar = (flip ? ladoB : ladoA).toLowerCase();
+  const ladoNum = flip ? ladoA : ladoB;
+
+  if(!/^[+-]?\d+$/.test(ladoNum)) return {error:'El lado sin la x debe ser solo un número.'};
+  const d = parseInt(ladoNum, 10);
+
+  let m;
+  if((m = ladoVar.match(/^x\/(\d+)([+-]\d+)?$/))){
+    const a = parseInt(m[1], 10);
+    if(a === 0) return {error:'El denominador no puede ser 0.'};
+    const b = m[2] ? parseInt(m[2], 10) : 0;
+    const tipo = b === 0 ? 'div' : (b > 0 ? 'x/a+b' : 'x/a-b');
+    const nivel = b === 0 ? 'facil' : 'intermedio';
+    const vals = b === 0 ? {a, c:d} : {a, b:Math.abs(b), d};
+    return {tipo, nivel, vals, flip};
+  }
+  if((m = ladoVar.match(/^(\d*)x([+-]\d+)?$/))){
+    const a = m[1] ? parseInt(m[1], 10) : 1;
+    const b = m[2] ? parseInt(m[2], 10) : 0;
+    if(a === 0) return {error:'El coeficiente no puede ser 0.'};
+    if(a === 1 && b === 0) return {error:'Esa ecuación ya está resuelta: agrega un número o un coeficiente.'};
+    if(a === 1){
+      const tipo = b > 0 ? 'suma' : 'resta';
+      return {tipo, nivel:'facil', vals:{b:Math.abs(b), c:d}, flip};
+    }
+    if(b === 0) return {tipo:'mult', nivel:'facil', vals:{a, c:d}, flip};
+    const tipo = b > 0 ? 'ax+b' : 'ax-b';
+    return {tipo, nivel:'intermedio', vals:{a, b:Math.abs(b), d}, flip};
+  }
+  return {error:`No entendí "${flip?ladoB:ladoA}". Prueba algo como 3x+5=17 o x/4-2=6.`};
+}
+
+let ecuacionLibreLista = null;
+
+function actualizarPreviewLibre(){
+  const texto = document.getElementById('ecInput').value;
+  const preview = document.getElementById('paramPreview');
+  const warn = document.getElementById('paramWarning');
+  const btn = document.getElementById('btnCrearManual');
+
+  const resultado = parseEcuacionLibre(texto);
+
+  if(resultado.error === ''){ // vacío: sin mensaje, esperando que escriba
+    preview.innerHTML = ''; warn.className = 'param-warning'; warn.textContent = '';
+    btn.disabled = true; ecuacionLibreLista = null; return;
+  }
+  if(resultado.error){
+    preview.innerHTML = '';
+    warn.textContent = resultado.error;
+    warn.className = 'param-warning show error';
+    btn.disabled = true; ecuacionLibreLista = null; return;
+  }
+
+  const core = resultado.nivel === 'facil' ? crearTerminosFacil(resultado.tipo, resultado.vals) : crearTerminosDificil(resultado.tipo, resultado.vals);
+  const eqTemp = finalizarEcuacion(resultado.nivel, resultado.tipo, core, resultado.flip);
+
+  preview.innerHTML = '';
+  const row = el('div','history-row');
+  row.appendChild(miniLado(eqTemp.left));
+  row.appendChild(el('span','mini-eq','='));
+  row.appendChild(miniLado(eqTemp.right));
+  preview.appendChild(row);
+
+  if(!Number.isInteger(eqTemp.solution)){
+    warn.textContent = 'Con estos números la solución no es un número entero. Ajusta la ecuación para poder crearla.';
+    warn.className = 'param-warning show error';
+    btn.disabled = true;
+    ecuacionLibreLista = null;
+    return;
+  }
+  if(eqTemp.solution < 0){
+    warn.textContent = 'Con estos números x sería negativo. Ajusta la ecuación para que la solución no sea negativa.';
+    warn.className = 'param-warning show error';
+    btn.disabled = true;
+    ecuacionLibreLista = null;
+    return;
+  }
+  warn.textContent = '✓ Ecuación lista para crear.';
+  warn.className = 'param-warning show ok';
+  btn.disabled = false;
+  ecuacionLibreLista = resultado;
+}
+
+function confirmarCreacionLibre(){
+  if(!ecuacionLibreLista) return;
+  const {tipo, nivel, vals, flip} = ecuacionLibreLista;
+  state.modo = 'propia'; state.nivel = nivel; state.tipo = tipo;
+  state.eq = generarEcuacionManual(nivel, tipo, vals, flip);
+  state.wallActive = false; state.history = [];
+  state.screen = 'lab';
+  render();
+}
+
+/* ---------------------------------------------------------------------------
+   4. NIVEL DEL PIE DE ECUACIÓN (usado en la etiqueta del laboratorio)
+   ------------------------------------------------------------------------- */
+function nivelLabel(nivel){
+  return nivel === 'facil' ? 'fácil' : (nivel === 'intermedio' ? 'intermedio' : 'difícil');
+}
+
+/* ---------------------------------------------------------------------------
+   5. RENDER DEL LABORATORIO (stage interactivo)
+   ------------------------------------------------------------------------- */
+function otroLado(lado){ return lado === 'left' ? 'right' : 'left'; }
+function ladoArray(lado){ return lado === 'left' ? state.eq.left : state.eq.right; }
+function buscarTermino(id){ return state.eq.left.find(t=>t.id===id) || state.eq.right.find(t=>t.id===id); }
+
+function renderLab(){
+  const wrap = el('div','wrap');
+
+
+  wrap.appendChild(el('div','lab-header', `
+    <div class="level-pill">Nivel ${nivelLabel(state.nivel)}</div>
+    <h2>${ETIQUETAS_TIPO[state.tipo].titulo}</h2>
+  `));
+
+  if(state.nivel !== 'facil' && !state.eq.solved){
+    const dots = el('div','progress-dots');
+    const total = state.eq.moveQueue.length;
+    for(let i=0;i<total;i++){
+      const d = document.createElement('span');
+      if(i < state.eq.step) d.className = 'done';
+      else if(i === state.eq.step) d.className = 'now';
+      dots.appendChild(d);
+    }
+    wrap.appendChild(dots);
+  }
+
+  const hint = el('div','hint-banner');
+  if(!state.wallActive){
+    hint.innerHTML = 'Toca el signo <b>=</b> para activar la pared que separa ambos lados de la ecuación.';
+  } else if(!state.eq.solved){
+    hint.innerHTML = 'Arrastra la pieza correcta cruzando la pared. Al cruzar, elige en qué se transforma.';
+  } else {
+    const nn = state.eq.left[0].kind === 'num' ? state.eq.left[0] : state.eq.right[0];
+    hint.innerHTML = '<b>¡Ecuación resuelta!</b> x = ' + fmtNum(nn);
+    if(!Contrarreloj.activo){
+      const bs = el('button','btn-siguiente','Siguiente ➜'); bs.id = 'bSig'; bs.type = 'button';
+      bs.onclick = nuevaEcuacionMismoTipo; hint.appendChild(document.createElement('br')); hint.appendChild(bs);
+      window.__sigT = Date.now();
+    }
+  }
+  wrap.appendChild(hint);
+
+  const stage = el('div','lab-stage'); stage.id = 'labStage';
+  const leftSide = el('div','stage-side left'); leftSide.id = 'sideLeft';
+  const wallBtn = buildWall();
+  const rightSide = el('div','stage-side right'); rightSide.id = 'sideRight';
+
+  construirPiezasLado(state.eq.left).forEach(n => leftSide.appendChild(n));
+  construirPiezasLado(state.eq.right).forEach(n => rightSide.appendChild(n));
+
+  stage.appendChild(leftSide); stage.appendChild(wallBtn); stage.appendChild(rightSide);
+  wrap.appendChild(stage);
+
+  const historyPanel = el('div','history-panel');
+  historyPanel.innerHTML = '<h4>Historial de pasos</h4>';
+  const rows = el('div'); rows.id = 'historyRows';
+  state.history.forEach((h,i) => rows.appendChild(buildHistoryRow(h, i===state.history.length-1 && state.eq.solved)));
+  historyPanel.appendChild(rows);
+  wrap.appendChild(historyPanel);
+
+  return wrap;
+}
+
+function buildWall(){
+  const w = el('button','equals-wall' + (state.wallActive ? ' active' : ''));
+  w.setAttribute('aria-label','Activar la pared de la ecuación');
+  w.innerHTML = `
+    <span class="eq-text">=</span>
+    <span class="wall-pillar">
+      <span class="wall-foot top"></span>
+      <span class="wall-notch n1"></span>
+      <span class="wall-notch n2"></span>
+      <span class="wall-foot bottom"></span>
+    </span>
+    ${!state.wallActive ? '<span class="wall-tap-hint">toca aquí</span>' : ''}
+  `;
+  w.onclick = () => {
+    if(state.wallActive) return;
+    state.wallActive = true;
+    state.history = [snapshotActual()];
+    render();
+  };
+  return w;
+}
+
+/* Agrupa términos consecutivos var+den que comparten fracGroup en una
+   sola pieza visual (fracción), aunque siguen siendo dos botones arrastrables. */
+function construirPiezasLado(terms){
+  const nodos = [];
+  for(let i=0; i<terms.length; i++){
+    const t = terms[i];
+    const sig = terms[i+1];
+    if(t.kind === 'var' && t.fracGroup && sig && sig.kind === 'den' && sig.fracGroup === t.fracGroup){
+      const wrap = el('div','frac-live');
+      wrap.appendChild(buildPieceEl(t, i===0));
+      wrap.appendChild(buildPieceEl(sig, false));
+      nodos.push(wrap);
+      i++; // el denominador ya fue consumido
+      continue;
+    }
+    nodos.push(buildPieceEl(t, i===0));
+  }
+  return nodos;
+}
+
+/* Construye una pieza interactiva del stage principal */
+function buildPieceEl(term, esPrimeraDeLado){
+  let node;
+  const draggable = state.wallActive && !state.eq.solved;
+
+  if(term.kind === 'var'){
+    node = el('button','piece piece-var', 'x');
+  } else if(term.kind === 'coef'){
+    node = el('button','piece piece-coef tight-left', String(term.value));
+  } else if(term.kind === 'den'){
+    node = el('button','piece piece-den', String(term.value));
+  } else { // num
+    const signo = signoPrefijo(term, esPrimeraDeLado);
+    node = el('button','piece piece-num', (signo ? `<span class="sign-static" style="color:inherit">${signo}</span>` : '') + term.value);
+  }
+
+  node.dataset.termId = term.id;
+  if(!draggable){ node.classList.add('locked'); }
+  else{ attachDrag(node, term); }
+  return node;
+}
+
+function signoPrefijo(term, esPrimero){
+  if(esPrimero) return term.sign === -1 ? '−' : '';
+  return term.sign === -1 ? '−' : '+';
+}
+
+/* Snapshot estático de una fila de historial */
+function snapshotActual(){
+  return { left: state.eq.left.map(clonaTermino), right: state.eq.right.map(clonaTermino) };
+}
+function clonaTermino(t){ return Object.assign({}, t); }
+
+function buildHistoryRow(snap, esFinal){
+  const row = el('div','history-row' + (esFinal ? ' final' : ''));
+  row.appendChild(miniLado(snap.left));
+  row.appendChild(el('span','mini-eq','='));
+  row.appendChild(miniLado(snap.right));
+  return row;
+}
+
+function miniLado(terms){
+  const wrap = el('span','mini-lado');
+  for(let i=0; i<terms.length; i++){
+    const t = terms[i];
+    if(t.kind === 'expr'){ wrap.appendChild(el('span','mini-expr', t.text)); continue; }
+
+    const sig = terms[i+1];
+    if(t.kind === 'var' && t.fracGroup && sig && sig.kind === 'den' && sig.fracGroup === t.fracGroup){
+      const fr = el('span','mini-piece mini-var mini-frac');
+      fr.innerHTML = `<span>x</span><span class="fd">${sig.value}</span>`;
+      wrap.appendChild(fr);
+      i++; continue;
+    }
+    if(t.kind === 'coef' && sig && sig.kind === 'var'){
+      const signo = signoPrefijo(t, i===0);
+      if(signo) wrap.appendChild(el('span','mini-expr', signo + ' '));
+      wrap.appendChild(el('span','mini-piece mini-var', t.value + 'x'));
+      i++; continue;
+    }
+
+    const signo = signoPrefijo(t, i===0);
+    if(signo) wrap.appendChild(el('span','mini-expr', signo + ' '));
+    if(t.kind === 'var'){ wrap.appendChild(el('span','mini-piece mini-var','x')); }
+    else if(t.kind === 'coef'){ wrap.appendChild(el('span','mini-piece mini-var', t.value + '·x')); }
+    else if(t.kind === 'den'){ wrap.appendChild(el('span','mini-piece mini-var', ':' + t.value)); }
+    else { wrap.appendChild(el('span','mini-piece mini-num', String(t.value))); }
+  }
+  return wrap;
+}
+
+/* ---------------------------------------------------------------------------
+   6. ARRASTRE — Pointer Events (mouse + táctil unificados)
+   ------------------------------------------------------------------------- */
+let dragCtx = null;
+
+function attachDrag(node, term){
+  node.addEventListener('pointerdown', (ev) => onPointerDown(ev, node, term));
+}
+
+function onPointerDown(ev, node, term){
+  if(dragCtx || state.eq.solved) return;
+  ev.preventDefault();
+  const rect = node.getBoundingClientRect();
+
+  const placeholder = el('span','piece piece-placeholder');
+  placeholder.style.width = rect.width + 'px';
+  placeholder.style.height = rect.height + 'px';
+  node.parentNode.insertBefore(placeholder, node);
+
+  document.body.appendChild(node);
+  node.style.position = 'fixed';
+  node.style.left = rect.left + 'px';
+  node.style.top = rect.top + 'px';
+  node.style.width = rect.width + 'px';
+  node.style.margin = '0';
+  node.classList.add('dragging');
+
+  dragCtx = {
+    node, term, placeholder,
+    startX: ev.clientX, startY: ev.clientY,
+    baseLeft: rect.left, baseTop: rect.top,
+    width: rect.width, height: rect.height,
+  };
+
+  node.setPointerCapture(ev.pointerId);
+  node.addEventListener('pointermove', onPointerMove);
+  node.addEventListener('pointerup', onPointerUp);
+  node.addEventListener('pointercancel', onPointerUp);
+}
+
+function onPointerMove(ev){
+  if(!dragCtx) return;
+  const dx = ev.clientX - dragCtx.startX;
+  const dy = ev.clientY - dragCtx.startY;
+  dragCtx.node.style.left = (dragCtx.baseLeft + dx) + 'px';
+  dragCtx.node.style.top = (dragCtx.baseTop + dy * 0.5) + 'px'; // arrastre mayormente horizontal
+}
+
+function onPointerUp(ev){
+  if(!dragCtx) return;
+  const { node, term, placeholder } = dragCtx;
+  node.removeEventListener('pointermove', onPointerMove);
+  node.removeEventListener('pointerup', onPointerUp);
+  node.removeEventListener('pointercancel', onPointerUp);
+
+  const wallEl = document.querySelector('.equals-wall .wall-pillar');
+  const wallRect = wallEl ? wallEl.getBoundingClientRect() : document.querySelector('.equals-wall').getBoundingClientRect();
+  const wallCenterX = wallRect.left + wallRect.width/2;
+  const pieceRect = node.getBoundingClientRect();
+  const pieceCenterX = pieceRect.left + pieceRect.width/2;
+
+  const cruzo = term.side === 'left' ? (pieceCenterX > wallCenterX) : (pieceCenterX < wallCenterX);
+  const esperado = state.eq.moveQueue[state.eq.step];
+
+  if(!cruzo){ snapBack(); return; }
+  if(term.id !== esperado){
+    if(Contrarreloj.activo) Contrarreloj.errores++;
+    reportarSiCorresponde(0,1);
+    snapBack(mensajeOrdenIncorrecto()); return;
+  }
+
+  abrirModalOperacion(term);
+}
+
+function snapBack(mensaje){
+  if(!dragCtx) return;
+  const { node, placeholder } = dragCtx;
+  const target = placeholder.getBoundingClientRect();
+  node.style.transition = 'left .3s ease, top .3s ease';
+  node.style.left = target.left + 'px';
+  node.style.top = target.top + 'px';
+  setTimeout(() => {
+    placeholder.parentNode && placeholder.parentNode.insertBefore(node, placeholder);
+    placeholder.remove();
+    node.style.position = ''; node.style.left = ''; node.style.top = ''; node.style.width = ''; node.style.margin = '';
+    node.style.transition = '';
+    node.classList.remove('dragging');
+    dragCtx = null;
+    if(mensaje) mostrarToast(mensaje);
+  }, prefersReducedMotion() ? 0 : 300);
+}
+
+function mensajeOrdenIncorrecto(){
+  const esperadoTerm = buscarTermino(state.eq.moveQueue[state.eq.step]);
+  let desc = 'la otra pieza';
+  if(esperadoTerm){
+    if(esperadoTerm.kind==='num') desc = (esperadoTerm.sign===-1?'−':'+') + esperadoTerm.value;
+    else if(esperadoTerm.kind==='coef') desc = 'el ' + esperadoTerm.value + ' que acompaña a la x';
+    else if(esperadoTerm.kind==='den') desc = 'el ' + esperadoTerm.value + ' que divide a la x (la parte de abajo de la fracción)';
+  }
+  return 'Todavía no. Primero debes mover ' + desc + '.';
+}
+
+let toastTimer = null;
+function mostrarToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#2c1468;border:1px solid rgba(255,255,255,.18);color:#fff;padding:12px 20px;border-radius:999px;font-weight:800;font-family:Nunito,sans-serif;font-size:.92rem;z-index:2000;box-shadow:0 10px 24px rgba(0,0,0,0.4);max-width:90vw;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.transition='opacity .4s ease'; t.style.opacity='0'; }, 2200);
+}
+
+/* ---------------------------------------------------------------------------
+   7 y 8. VALIDACIÓN + MODAL (elegir operación inversa, luego calcular)
+   Símbolos usados en el selector de operación: + − × ∶
+   (se usa ∶ en vez de ÷ para que no se confunda visualmente con +)
+   ------------------------------------------------------------------------- */
+let modalCtx = null; // { term, stage: 'op'|'compute', ... }
+const SIMBOLO_DIVISION = '∶';
+
+function inversaCorrecta(term){
+  if(term.kind === 'num') return term.sign === 1 ? '−' : '+';
+  if(term.kind === 'coef') return SIMBOLO_DIVISION; // se despeja dividiendo
+  return '×'; // 'den' -> se despeja multiplicando
+}
+
+function abrirModalOperacion(term){
+  modalCtx = { term, stage:'op' };
+  pintarModal();
+}
+
+function pintarModal(){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  if(!modalCtx) return;
+
+  const overlay = el('div','overlay');
+  const card = el('div','modal-card');
+
+  if(modalCtx.stage === 'op'){
+    card.innerHTML = `
+      <button class="modal-cerrar" id="modalCerrarBtn" aria-label="Cerrar">✕</button>
+      <h3>¡Cruzaste la pared!</h3>
+      <p class="modal-sub" style="color:var(--accent); font-weight:800;">${describirCruce(modalCtx.term)}</p>
+      <p class="modal-sub">¿En qué operación se transforma esta pieza al pasar al otro lado?</p>
+      <div class="op-grid">
+        <button class="op-btn" data-op="+">+</button>
+        <button class="op-btn" data-op="−">−</button>
+        <button class="op-btn" data-op="×">×</button>
+        <button class="op-btn" data-op="${SIMBOLO_DIVISION}">${SIMBOLO_DIVISION}</button>
+      </div>
+      <div class="modal-msg error" id="modalMsg"></div>
+    `;
+    card.querySelectorAll('.op-btn').forEach(b => b.onclick = () => elegirOperacion(b.dataset.op));
+  } else if(modalCtx.stage === 'compute'){
+    card.innerHTML = `
+      <button class="modal-cerrar" id="modalCerrarBtn" aria-label="Cerrar">✕</button>
+      <h3>Ahora calculemos</h3>
+      <div class="compute-expr">¿Cuánto es ${modalCtx.exprTexto}?</div>
+      <div class="compute-input-row">
+        <input type="number" inputmode="numeric" class="compute-input" id="computeInput" autocomplete="off" autofocus>
+        <button class="compute-submit" id="computeSubmit">Listo</button>
+      </div>
+      <div class="modal-msg error" id="modalMsg"></div>
+    `;
+    const input = card.querySelector('#computeInput');
+    const submit = () => enviarCalculo(parseFloat(input.value));
+    card.querySelector('#computeSubmit').onclick = submit;
+    input.addEventListener('keydown', (e) => { if(e.key === 'Enter') submit(); });
+  }
+
+  overlay.appendChild(card);
+  root.appendChild(overlay);
+  const btnCerrar = card.querySelector('#modalCerrarBtn');
+  if(btnCerrar) btnCerrar.onclick = cancelarModal;
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) cancelarModal(); });
+  if(modalCtx.stage === 'compute'){
+    setTimeout(() => { const i = document.getElementById('computeInput'); if(i) i.focus(); }, 50);
+  }
+}
+
+function cerrarModal(){ modalCtx = null; document.getElementById('modal-root').innerHTML = ''; }
+
+function fmtNum(numTerm){ return (numTerm.sign === -1 ? '−' : '') + numTerm.value; }
+
+// Describe en palabras simples qué pieza fue la que cruzó la pared,
+// para que el alumno no tenga que adivinar si no lo recuerda.
+function describirCruce(term){
+  if(term.kind === 'num'){
+    return `El <b>${term.sign === -1 ? '−' : '+'}${term.value}</b> cruzó la pared.`;
+  }
+  if(term.kind === 'coef'){
+    return `El <b>${term.value}</b> que multiplicaba a la x cruzó la pared.`;
+  }
+  if(term.kind === 'den'){
+    return `El <b>${term.value}</b> que dividía a la x cruzó la pared.`;
+  }
+  return '';
+}
+
+function cancelarModal(){
+  cerrarModal();
+  snapBack();
+}
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && modalCtx) cancelarModal();
+});
+
+function elegirOperacion(simbolo){
+  const term = modalCtx.term;
+  const correcta = inversaCorrecta(term);
+  if(simbolo !== correcta){
+    if(Contrarreloj.activo) Contrarreloj.errores++;
+    reportarSiCorresponde(0,1); mvFallo();
+    cerrarModal(); snapBack();
+    return;
+  }
+
+  const fromSide = term.side, toSide = otroLado(fromSide);
+  const otroNum = ladoArray(toSide).find(t => t.kind === 'num');
+  const otroValorReal = otroNum.sign * otroNum.value;
+
+  let exprTexto, resultado;
+
+  if(term.kind === 'num'){
+    // Término aditivo: cruza y queda visible junto al número del otro lado
+    exprTexto = fmtNum(otroNum) + ' ' + (term.sign === -1 ? '+' : '−') + ' ' + term.value;
+    resultado = otroValorReal - (term.sign * term.value);
+    const snap = snapshotActual();
+    moverTerminoEnSnapshot(snap, term.id, fromSide, toSide, term.sign * -1);
+    state.history.push(snap);
+  } else {
+    // Término multiplicativo (coeficiente o denominador): se consume al cruzar
+    const opSymbol = term.kind === 'coef' ? SIMBOLO_DIVISION : '×';
+    exprTexto = fmtNum(otroNum) + ' ' + opSymbol + ' ' + term.value;
+    resultado = term.kind === 'coef' ? (otroValorReal / term.value) : (otroValorReal * term.value);
+    const snap = snapshotActual();
+    quitarTerminoEnSnapshot(snap, term.id, fromSide);
+    reemplazarExprEnSnapshot(snap, toSide, otroNum.id, exprTexto);
+    state.history.push(snap);
+  }
+
+  modalCtx = { term, stage:'compute', exprTexto, resultado, fromSide, toSide, otroNumId: otroNum.id };
+  pintarModal();
+  render(); // refresca el laboratorio detrás (historial actualizado); el modal se repinta encima
+}
+
+/* Helpers para construir snapshots "intermedios" (solo visuales, no mutan el estado real) */
+function moverTerminoEnSnapshot(snap, termId, fromSide, toSide, nuevoSigno){
+  const fromArr = snap[fromSide], toArr = snap[toSide];
+  const idx = fromArr.findIndex(t => t.id === termId);
+  const [t] = fromArr.splice(idx,1);
+  t.sign = nuevoSigno; t.side = toSide;
+  toArr.push(t);
+}
+function quitarTerminoEnSnapshot(snap, termId, fromSide){
+  const arr = snap[fromSide];
+  const idx = arr.findIndex(t => t.id === termId);
+  if(idx>=0) arr.splice(idx,1);
+}
+function reemplazarExprEnSnapshot(snap, side, numId, texto){
+  const arr = snap[side];
+  const idx = arr.findIndex(t => t.id === numId);
+  if(idx>=0) arr.splice(idx,1,{kind:'expr', text:texto});
+}
+
+function enviarCalculo(valorIngresado){
+  const msg = document.getElementById('modalMsg');
+  if(Number.isNaN(valorIngresado) || valorIngresado !== modalCtx.resultado){
+    if(Contrarreloj.activo) Contrarreloj.errores++;
+    reportarSiCorresponde(0,1); mvFallo();
+    msg.textContent = 'Esa no es la respuesta correcta. Intenta de nuevo.';
+    msg.classList.add('show');
+    return;
+  }
+
+  const { term, resultado, fromSide, toSide, otroNumId } = modalCtx;
+  cerrarModal();
+
+  const fromArr = ladoArray(fromSide), toArr = ladoArray(toSide);
+
+  if(term.kind === 'num'){
+    const i1 = fromArr.findIndex(t => t.id === term.id); fromArr.splice(i1,1);
+    const i2 = toArr.findIndex(t => t.id === otroNumId); toArr.splice(i2,1);
+    toArr.push({ id: uid('t'), kind:'num', side: toSide, value: Math.abs(resultado), sign: resultado < 0 ? -1 : 1 });
+  } else {
+    // coeficiente o denominador: se elimina, la x ya queda sola en su lugar
+    const i1 = fromArr.findIndex(t => t.id === term.id); fromArr.splice(i1,1);
+    const i2 = toArr.findIndex(t => t.id === otroNumId); toArr.splice(i2,1);
+    toArr.push({ id: uid('t'), kind:'num', side: toSide, value: Math.abs(resultado), sign: resultado < 0 ? -1 : 1 });
+  }
+
+  state.eq.step++;
+  state.history.push(snapshotActual());
+
+  if(dragCtx){ dragCtx.placeholder.remove(); dragCtx.node.remove(); dragCtx = null; }
+
+  verificarResuelto();
+  render();
+}
+
+function verificarResuelto(){
+  const resuelto = (
+    (state.eq.left.length === 1 && state.eq.left[0].kind === 'var' && state.eq.right.length === 1 && state.eq.right[0].kind === 'num') ||
+    (state.eq.right.length === 1 && state.eq.right[0].kind === 'var' && state.eq.left.length === 1 && state.eq.left[0].kind === 'num')
+  );
+  if(resuelto){
+    state.eq.solved = true;
+    if(AlumnoActual) window.reportarProgresoPractica(AlumnoActual.id, 'ecuaciones', 1, 0, state.modo === 'propia' ? 1 : (({facil:1, intermedio:2, dificil:3})[state.nivel] || 1));
+    mvExito();
+    reportarSiCorresponde(1,0);
+    if(Contrarreloj.activo){
+      Contrarreloj.completados++;
+      document.getElementById('contador-pill').textContent = '✓ '+Contrarreloj.completados;
+      mostrarToast('¡Correcto! Preparando la siguiente…');
+      setTimeout(() => {
+        if(!Contrarreloj.activo) return;
+        startLevel(Contrarreloj.nivel);
+      }, 1200);
+      return;
+    }
+    return;
+  }
+}
+
+function mostrarCelebracion(){
+  const varLado = state.eq.left[0].kind === 'var' ? state.eq.left[0] : state.eq.right[0];
+  const numLado = state.eq.left[0].kind === 'num' ? state.eq.left[0] : state.eq.right[0];
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const overlay = el('div','overlay');
+  const card = el('div','modal-card celebrate-card');
+  card.innerHTML = `
+    <div class="celebrate-emoji">🎉</div>
+    <h3>¡Ecuación resuelta!</h3>
+    <p class="modal-sub">Aplicaste correctamente el principio de equivalencia.</p>
+    <div class="result-line">x = ${fmtNum(numLado)}</div>
+    <div class="btn-row">
+      <button class="primary-btn" id="btnOtraEc">Otra ecuación</button>
+      <button class="secondary-btn" id="btnInicioCel">Inicio</button>
+    </div>
+  `;
+  overlay.appendChild(card);
+  root.appendChild(overlay);
+  document.getElementById('btnOtraEc').onclick = () => { cerrarModal(); nuevaEcuacionMismoTipo(); };
+  document.getElementById('btnInicioCel').onclick = () => { cerrarModal(); reiniciarTodo(); };
+}
+
+/* ---------------------------------------------------------------------------
+   Arranque
+   ------------------------------------------------------------------------- */
+let _yaConectado = false;
+try{
+  const _guardado = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null');
+  if(_guardado && _guardado.id && _guardado.nombre){
+    AlumnoActual = _guardado;
+    iniciarHeartbeatTiempo();
+    state.screen = 'inicio';
+    _yaConectado = true;
+  }
+} catch(e){}
+state.screen = 'inicio';
+render();
+
+</script>
+<script>
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipCrear',{grande:true}],['mvChipHeader',{grande:false}],['mvCelebra',{grande:true,celebra:true}]].forEach(function(p){
+        var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  // Enter = clic en "Siguiente"
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' || e.repeat || e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+    var b=document.querySelector('#bSig,#otro,#sigBtn'); if(!b || b.offsetParent===null || b.disabled || document.activeElement===b) return;
+    e.preventDefault(); b.click();
+  });
+})();
+</script>
+<script>
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){ var e=document.getElementById('mvChipHome'); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,{grande:true}); } }
+    else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  var raiz=document.documentElement, pend=false, home=null;
+  function ajustar(){ pend=false; raiz.style.setProperty('--fz','1');
+    home=document.querySelector('#screen-home.active,#screen-crear.active'); if(!home) return;
+    var f=1,g=0; while(raiz.scrollHeight-window.innerHeight>1 && f>0.5 && g++<16){ f=Math.max(0.5,f-0.04); raiz.style.setProperty('--fz',f.toFixed(2)); } }
+  function pedir(){ if(!pend){ pend=true; requestAnimationFrame(ajustar); } }
+  window.addEventListener('resize',pedir); window.addEventListener('load',function(){ pedir(); setTimeout(pedir,800); });
+  document.querySelectorAll('#screen-home,#screen-crear').forEach(function(s){ new MutationObserver(pedir).observe(s,{attributes:true,attributeFilter:['class']}); });
+  pedir();
+})();
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+<style>
+.mvrk-fila{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;font-family:var(--font-num,inherit);font-weight:800;color:#c9bdf0;font-size:.9rem}
+.mvrk-fila .icon-btn,.mvrk-fila .btn-orbita{width:42px;height:42px;flex:none}
+.mvrk-msg{margin:6px 0 0;font-weight:800;color:#fde68a;font-size:1rem;text-align:center}
+#mvrkOv{position:fixed;inset:0;z-index:100001;background:rgba(10,6,40,.86);display:flex;align-items:center;justify-content:center;padding:14px}
+.mvrk-ov .mvrk-card{position:relative;width:100%;max-width:380px;max-height:92dvh;overflow:auto;background:linear-gradient(160deg,#2a1a6e,#1b1048);border-radius:28px;box-shadow:inset 0 0 0 1.5px rgba(196,181,253,.45),0 20px 50px rgba(0,0,0,.55);padding:22px 18px 18px;text-align:center;color:#fff;font-family:var(--font-num,inherit)}
+.mvrk-ov h3{margin:0 0 2px;font-size:1.25rem;font-weight:800}
+.mvrk-ov .mvrk-sub{margin:0 0 10px;color:#c9bdf0;font-weight:700;font-size:.85rem}
+.mvrk-ov .mvrk-x{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:1rem;background:radial-gradient(circle at 34% 28%,#fff 0,#c4b5fd 40%,#6d28d9 100%);box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.mvrk-ov .mvrk-tabs{display:flex;justify-content:center;gap:6px;margin:6px 0 12px;flex-wrap:wrap}
+.mvrk-ov .mvrk-tab{border:none;cursor:pointer;border-radius:999px;padding:6px 12px;font-weight:800;font-size:.82rem;color:#ddd6fe;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.3);font-family:inherit}
+.mvrk-ov .mvrk-tab.on{color:#3b2300;background:linear-gradient(135deg,#fde68a,#f59e0b);box-shadow:none}
+.mvrk-ov ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mvrk-ov li{display:flex;align-items:center;gap:10px;border-radius:999px;padding:7px 14px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(196,181,253,.22);text-align:left}
+.mvrk-ov li.yo{background:rgba(251,191,36,.2);box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.7)}
+.mvrk-ov .pos{width:26px;text-align:center;font-weight:800}
+.mvrk-ov .nom{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.mvrk-ov .pts{color:#fde68a;font-weight:800}
+.mvrk-ov .mvrk-mio{margin:12px 0 0;color:#fde68a;font-weight:800}
+.mvrk-ov .mvrk-vacio{color:#c9bdf0;font-weight:700;padding:18px 6px}
+.mvrk-ovm{position:fixed;inset:0;z-index:100000;background:rgba(10,6,40,.86);display:flex;align-items:center;justify-content:center;padding:14px}
+.mvrk-modo{max-width:400px}
+.mvrk-eyebrow{color:#fde68a;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.mvrk-esferas{display:flex;justify-content:center;gap:12px;margin:12px 0 4px}
+.mvrk-esf{width:min(42vw,158px);aspect-ratio:1;border:none;border-radius:50%;cursor:pointer;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px;font-family:inherit;box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 -8px 16px rgba(0,0,0,.25);transition:transform .15s}
+.mvrk-esf:hover{transform:translateY(-3px)}
+.mvrk-esf.lib{background:radial-gradient(circle at 34% 28%,#d1fae5 0,#34d399 34%,#047857 80%)}
+.mvrk-esf.cr{background:radial-gradient(circle at 34% 28%,#fef3c7 0,#fbbf24 34%,#b45309 80%)}
+.mvrk-esf b{font-size:.95rem;font-weight:800;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.mvrk-esf small{font-size:.72rem;font-weight:700;opacity:.95;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.mvrk-ic{width:34px;height:34px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+</style>
+<script>
+(function(){
+  var R = window.mvRank = {};
+  var NORM = {easy:'Facil',facil:'Facil',intermedio:'Intermedio',medio:'Intermedio',medium:'Intermedio',avanzado:'Dificil',dificil:'Dificil',hard:'Dificil'};
+  var LAB = {Facil:'Fácil',Intermedio:'Intermedio',Dificil:'Difícil'};
+  var ORDEN = ['Facil','Intermedio','Dificil'];
+  var CORONA = '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/><path d="M5 21h14"/></svg>';
+  function sesion(){ try{ var s = JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual') || 'null'); return (s && s.id && s.nombre) ? s : null; }catch(e){ return null; } }
+  function esc(t){ return String(t == null ? '—' : t).replace(/[<>&"]/g, ''); }
+  function key(n){ return NORM[n] || String(n); }
+  function col(res, nivel){ return 'rankingAciertos' + res + key(nivel); }
+  R.tabs = {};
+  R.cfg = function(res, tabs){ R.tabs[res] = tabs; };
+  window.MvLocal = { cr:false };
+  function esperarFB(){ return new Promise(function(ok){ var n = 0; (function t(){ if(window.guardarRankingAciertos || n++ > 40) ok(); else setTimeout(t, 150); })(); }); }
+  function botonCorona(texto, fn){
+    var d = document.createElement('div'); d.className = 'mvrk-fila';
+    d.innerHTML = '<button type="button" class="icon-btn btn-orbita v-oro" aria-label="' + texto + '" title="' + texto + '"><span class="bola">' + CORONA + '</span></button><span>' + texto + '</span>';
+    d.querySelector('button').onclick = fn; return d;
+  }
+  function contenedorDe(textoBtn){
+    var bs = document.querySelectorAll('.modo-btn'); 
+    for(var i = bs.length - 1; i >= 0; i--){ if((bs[i].textContent || '').indexOf(textoBtn) >= 0 || (bs[i].getAttribute('aria-label') || '').indexOf(textoBtn) >= 0) return bs[i].parentElement; }
+    return null;
+  }
+
+  var INF = '<svg viewBox="0 0 24 24" class="mvrk-ic"><path d="M7 8c-2.5 0-4 1.8-4 4s1.5 4 4 4c4 0 6-8 10-8 2.5 0 4 1.8 4 4s-1.5 4-4 4c-4 0-6-8-10-8z" transform="translate(0 0)"/></svg>';
+  var CRONO = '<svg viewBox="0 0 24 24" class="mvrk-ic"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4.5l3 2M9.5 3h5M12 3v3"/></svg>';
+  R.pedirModo = function(res, nivel, titulo, minutos, cbLibre, cbCont){
+    var ov = document.getElementById('mvrkModo'); if(ov) ov.remove();
+    ov = document.createElement('div'); ov.id = 'mvrkModo'; ov.className = 'mvrk-ovm mvrk-ov';
+    ov.innerHTML = '<div class="mvrk-card mvrk-modo"><button type="button" class="mvrk-x" aria-label="Cerrar">✕</button>' +
+      '<div class="mvrk-eyebrow">' + esc(titulo) + '</div><h3>¿Cómo quieres practicar?</h3>' +
+      '<div class="mvrk-esferas"><button type="button" class="mvrk-esf lib">' + INF + '<b>Práctica libre</b><small>sin límite de tiempo</small></button>' +
+      '<button type="button" class="mvrk-esf cr">' + CRONO + '<b>Contrarreloj</b><small>' + minutos + ' minutos</small></button></div></div>';
+    document.body.appendChild(ov);
+    var cerrar = function(){ ov.remove(); };
+    ov.querySelector('.mvrk-x').onclick = cerrar;
+    ov.addEventListener('click', function(e){ if(e.target === ov) cerrar(); });
+    ov.querySelector('.lib').onclick = function(){ cerrar(); cbLibre(); };
+    ov.querySelector('.cr').onclick = function(){ cerrar(); cbCont(); };
+    var cont = ov.querySelector('.mvrk-esferas');
+    cont.insertAdjacentElement('afterend', botonCorona('Mejores aciertos', function(){ R.abrir(res, nivel); }));
+  };
+  R.enModo = function(res, nivel){
+    var c = contenedorDe('Contrarreloj'); if(!c || c.parentElement.querySelector('.mvrk-fila')) return;
+    c.insertAdjacentElement('afterend', botonCorona('Mejores aciertos', function(){ R.abrir(res, nivel); }));
+  };
+  R.final = async function(res, nivel, score){
+    var oo = document.getElementById('cOtra');
+    var c = oo ? oo.parentElement : contenedorDe('Otra ronda'); if(!c || c.parentElement.querySelector('.mvrk-fila')) return;
+    var cont = document.createElement('div');
+    var msg = document.createElement('p'); msg.className = 'mvrk-msg'; cont.appendChild(msg);
+    cont.appendChild(botonCorona('Mejores aciertos', function(){ R.abrir(res, nivel); }));
+    c.insertAdjacentElement('beforebegin', cont);
+    var s = sesion(); if(!s) return;
+    if(score > 0){
+      await esperarFB();
+      var r = window.guardarRankingAciertos ? await window.guardarRankingAciertos(col(res, nivel), s.id, s.nombre, score) : null;
+      if(r){ msg.textContent = score > r.previo ? (r.previo ? '¡Nuevo récord personal! 🎉' : '¡Primer récord guardado! 🎉') : 'Tu récord: ' + r.previo; }
+    }
+  };
+  R.abrir = async function(res, nivel){
+    var ov = document.getElementById('mvrkOv'); if(ov) ov.remove();
+    ov = document.createElement('div'); ov.id = 'mvrkOv'; ov.className = 'mvrk-ov';
+    ov.innerHTML = '<div class="mvrk-card"><button type="button" class="mvrk-x" aria-label="Cerrar">✕</button><h3>👑 Los 10 mejores</h3><p class="mvrk-sub">Más ejercicios en una ronda</p><div class="mvrk-tabs"></div><div class="mvrk-cuerpo"></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('.mvrk-x').onclick = function(){ ov.remove(); };
+    ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+    var TABS = R.tabs[res] || ORDEN.map(function(k){ return [k, LAB[k]]; });
+    var actual = key(nivel);
+    var tabs = ov.querySelector('.mvrk-tabs'), cuerpo = ov.querySelector('.mvrk-cuerpo');
+    async function pintar(n){
+      actual = n;
+      tabs.innerHTML = TABS.map(function(t){ return '<button type="button" class="mvrk-tab' + (t[0] === n ? ' on' : '') + '" data-k="' + t[0] + '">' + t[1] + '</button>'; }).join('');
+      Array.prototype.forEach.call(tabs.children, function(b){ b.onclick = function(){ pintar(b.dataset.k); }; });
+      cuerpo.innerHTML = '<p class="mvrk-vacio">Cargando…</p>';
+      await esperarFB();
+      var s = sesion(), r = window.leerRankingAciertos ? await window.leerRankingAciertos('rankingAciertos' + res + n, s ? s.id : null) : null;
+      if(actual !== n) return;
+      if(!r){ cuerpo.innerHTML = '<p class="mvrk-vacio">No se pudo cargar el ranking. Revisa tu conexión.</p>'; return; }
+      if(!r.lista.length){ cuerpo.innerHTML = '<p class="mvrk-vacio">Aún nadie tiene récord. ¡Sé el primero!</p>'; return; }
+      var med = ['🥇','🥈','🥉'];
+      cuerpo.innerHTML = '<ol>' + r.lista.map(function(f, i){ return '<li class="' + (s && f.id === s.id ? 'yo' : '') + '"><span class="pos">' + (med[i] || (i + 1)) + '</span><span class="nom">' + esc(f.nombre) + '</span><b class="pts">' + (Number(f.mejor) || 0) + '</b></li>'; }).join('') + '</ol>' + (r.mio ? '<p class="mvrk-mio">Tu récord: ' + r.mio + '</p>' : '');
+    }
+    pintar(actual);
+  };
+})();
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, increment, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig, "onlineEcuaciones");
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.unirseClaseOnline = async function(codigo, nombre){
+  try{
+    const userCredential = await signInAnonymously(auth);
+    const uid = userCredential.user.uid;
+
+    const sessionRef = doc(db, 'sessions', codigo);
+    const sessionSnap = await getDoc(sessionRef);
+    if(!sessionSnap.exists()) return { ok:false, error:'Ese código no existe. Revísalo con tu profesor.' };
+    const datos = sessionSnap.data();
+
+    if(datos.active === false) return { ok:false, error:'Tu profesor ya cerró esta sesión.' };
+    if(datos.recurso && datos.recurso !== 'ecuaciones') return { ok:false, error:`Ese código es para ${datos.recurso}, no para Ecuaciones.` };
+
+    const duracionMinutos = datos.duracionMinutos || 180;
+    if(datos.createdAt){
+      const minutosTranscurridos = (Date.now() - datos.createdAt.toDate().getTime()) / 60000;
+      if(minutosTranscurridos > duracionMinutos) return { ok:false, error:'Este código ya venció. Pídele uno nuevo a tu profesor.' };
+    }
+
+    return { ok:true, uid, nivelObjetivo: datos.nivelObjetivo, modoObjetivo: datos.modoObjetivo, ambitoObjetivo: datos.ambitoObjetivo };
+  } catch(err){
+    console.error(err);
+    return { ok:false, error:'Error de conexión. Intenta de nuevo.' };
+  }
+};
+
+window.iniciarNuevoIntentoOnline = async function(codigo, docId, nombre, uid){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      name: nombre, uid: uid || null, startedAt: serverTimestamp(), completados: 0, errores: 0, mascota: (window.mascotaParaClase ? await window.mascotaParaClase() : null)
+    });
+  } catch(err){
+    console.error('No se pudo iniciar el intento online:', err);
+  }
+};
+
+window.reportarProgresoOnline = async function(codigo, docId, deltaCompletados, deltaErrores){
+  if(!codigo || !docId) return;
+  try{
+    await setDoc(doc(db, 'sessions', codigo, 'students', docId), {
+      completados: increment(deltaCompletados || 0),
+      errores: increment(deltaErrores || 0),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(err){
+    console.error('No se pudo reportar el progreso online:', err);
+  }
+};
+
+// Si se llega desde el inicio con un código de clase en el enlace
+// (?codigoClase=XXXX), se une solo, sin mostrar el botón ni el modal --
+// ya sea con la cuenta que ya tenía la sesión, o como invitado si vino
+// con ?invitado=Nombre (ese nombre ya pasó por el filtro en el inicio,
+// pero se revisa una segunda vez acá por si alguien arma el enlace a mano).
+// Va acá (y no en el script principal) porque recién aquí existen
+// unirseClaseOnline, Online, AlumnoActual y las funciones del juego.
+try{
+  const parametrosUrl = new URLSearchParams(location.search);
+  const codigoDesdeUrl = parametrosUrl.get('codigoClase');
+  const invitadoDesdeUrl = parametrosUrl.get('invitado');
+  let nombreParaUnirse = null;
+  if(AlumnoActual) nombreParaUnirse = AlumnoActual.nombre;
+  else if(invitadoDesdeUrl && invitadoDesdeUrl.trim() && !nombreTieneOfensa(invitadoDesdeUrl)) nombreParaUnirse = `👤 Invitado: ${invitadoDesdeUrl.trim()}`;
+
+  if(codigoDesdeUrl && nombreParaUnirse){
+    (async () => {
+      const resultado = await window.unirseClaseOnline(codigoDesdeUrl.toUpperCase(), nombreParaUnirse);
+      if(!resultado.ok){ alert(resultado.error); return; }
+      Online.activo = true; Online.codigo = codigoDesdeUrl.toUpperCase(); Online.uid = resultado.uid; Online.nombre = nombreParaUnirse;
+      document.getElementById('indicadorOnline').classList.remove('hidden');
+      document.getElementById('nombreOnline').textContent = nombreParaUnirse;
+      registrarInicioOnline();
+      state.ambito = resultado.ambitoObjetivo || 'mixto';
+      if(resultado.modoObjetivo === 'contrarreloj'){ startContrarreloj(resultado.nivelObjetivo); }
+      else { startLevel(resultado.nivelObjetivo); }
+    })();
+  }
+} catch(e){ console.error(e); }
+
+/* ---- Ranking de aciertos de la contrarreloj: un récord por alumno y nivel; solo se reemplaza si mejora; nunca se borra ---- */
+window.guardarRankingAciertos = async function(col, id, nombre, mejor){
+  try{
+    await signInAnonymously(auth);
+    const ref = doc(db, col, id);
+    const s = await getDoc(ref);
+    const previo = s.exists() ? (Number(s.data().mejor) || 0) : 0;
+    if(mejor > previo && mejor <= 500) await setDoc(ref, { nombre: nombre, mejor: mejor, actualizado: serverTimestamp() });
+    return { previo: previo };
+  } catch(err){ console.error('No se pudo guardar el récord:', err); return null; }
+};
+window.leerRankingAciertos = async function(col, miId){
+  try{
+    await signInAnonymously(auth);
+    const r = await getDocs(query(collection(db, col), orderBy('mejor', 'desc'), limit(10)));
+    const lista = r.docs.map(d => ({ id: d.id, ...d.data() }));
+    let mio = 0;
+    if(miId){ const s = await getDoc(doc(db, col, miId)); mio = s.exists() ? (Number(s.data().mejor) || 0) : 0; }
+    return { lista: lista, mio: mio };
+  } catch(err){ console.error('No se pudo leer el ranking:', err); return null; }
+};
+</script>
+<script>
+(function(){
+const MODE='eq';           // 'eq' | 'ineq'
+const REPORTE='ecuaciones';
+/* ---------------------------------------------------------------
+   BANCO DE CONTEXTOS (cada línea es una situación distinta).
+   [forma, texto]   {a} y {b} se reemplazan por números que se sortean cada vez.
+   Para ecuaciones:  ax -> a + x = b   xa -> x + a = b   xm -> x - a = b
+   Para inecuaciones: la forma lleva el signo: ax<, ax>, xa<, xa>, xm<, xm>
+   --------------------------------------------------------------- */
+const BANCO=[["ax", "Martín tiene {a} láminas y compra algunas más. Ahora tiene {b}. ¿Cuántas láminas compró?"], ["ax", "Sofía tenía {a} lápices y encuentra algunos más. Ahora tiene {b}. ¿Cuántos lápices encontró?"], ["ax", "Pedro tenía {a} bolitas y gana algunas en un juego. Ahora tiene {b}. ¿Cuántas ganó?"], ["ax", "En una caja hay {a} juguetes y agregan algunos más. Ahora hay {b}. ¿Cuántos agregaron?"], ["ax", "Valentina tiene {a} stickers y recibe algunos de regalo. Ahora tiene {b}. ¿Cuántos recibió?"], ["ax", "En un árbol hay {a} pájaros y llegan algunos más. Ahora hay {b}. ¿Cuántos llegaron?"], ["ax", "Diego tiene {a} autitos y le regalan algunos. Ahora tiene {b}. ¿Cuántos autitos recibió?"], ["ax", "El álbum de Martina tiene espacio para {b} láminas. Ella ya pegó {a} y le faltan algunas para completarlo. ¿Cuántas láminas le faltan?"], ["ax", "En un bus iban {a} personas. En una parada subieron algunas más y quedaron {b} personas en el bus. ¿Cuántas personas subieron?"], ["ax", "Julieta lleva {a} páginas leídas de su libro y lee algunas más en la tarde. Ahora lleva {b} páginas. ¿Cuántas páginas leyó en la tarde?"], ["ax", "Un estanque tiene {a} litros de agua y la lluvia aporta algunos más. Ahora tiene {b} litros. ¿Cuántos litros aportó la lluvia?"], ["ax", "Rodrigo ahorró {a} dólares y su abuelo le da algunos. Ahora tiene {b} dólares. ¿Cuántos dólares le dio su abuelo?"], ["ax", "En el curso hay {a} estudiantes y llegan algunos nuevos. Ahora son {b}. ¿Cuántos estudiantes llegaron?"], ["ax", "Un panadero tenía {a} marraquetas listas y hornea algunas más. Ahora tiene {b}. ¿Cuántas marraquetas horneó?"], ["ax", "Catalina corrió {a} vueltas en la mañana y corre algunas más en la tarde. En total corrió {b}. ¿Cuántas vueltas corrió en la tarde?"], ["ax", "Un tren va con {a} pasajeros y en la estación suben algunos. Ahora va con {b}. ¿Cuántos pasajeros subieron?"], ["ax", "En el huerto hay {a} lechugas y plantan algunas más. Ahora hay {b}. ¿Cuántas lechugas plantaron?"], ["ax", "Ignacio tiene {a} puntos en el videojuego y consigue algunos más. Ahora tiene {b}. ¿Cuántos puntos consiguió?"], ["ax", "Una biblioteca tenía {a} cuentos y recibe una donación. Ahora tiene {b}. ¿Cuántos cuentos donaron?"], ["ax", "Francisco armó {a} piezas de su rompecabezas y arma algunas más. Ahora lleva {b}. ¿Cuántas piezas armó después?"], ["ax", "Elena tiene {a} fotos en su celular y saca algunas más en el paseo. Ahora tiene {b}. ¿Cuántas fotos sacó en el paseo?"], ["ax", "En la feria había {a} puestos y abren algunos más. Ahora hay {b}. ¿Cuántos puestos abrieron?"], ["xa", "Camila tiene algunos dulces y recibe {a} más. Ahora tiene {b}. ¿Cuántos dulces tenía?"], ["xa", "Tomás tenía algunas cartas y compra {a} más. Ahora tiene {b}. ¿Cuántas cartas tenía?"], ["xa", "En una bolsa había algunas manzanas y agregan {a}. Ahora hay {b}. ¿Cuántas había inicialmente?"], ["xa", "Martina tenía algunos libros y le regalan {a}. Ahora tiene {b}. ¿Cuántos libros tenía?"], ["xa", "En un estacionamiento había algunos autos y llegaron {a} más. Ahora hay {b}. ¿Cuántos autos había?"], ["xa", "Joaquín tenía algunas monedas y encuentra {a} más. Ahora tiene {b}. ¿Cuántas monedas tenía?"], ["xa", "En una pecera había algunos peces y compran {a} más. Ahora hay {b}. ¿Cuántos peces había?"], ["xa", "En una sala había algunos niños y entran {a} más. Ahora hay {b}. ¿Cuántos niños había?"], ["xa", "Una panadería tenía algunas hallullas y hornean {a} más. Ahora hay {b}. ¿Cuántas hallullas había?"], ["xa", "Isidora tenía algunos dólares ahorrados y su tía le regala {a}. Ahora tiene {b}. ¿Cuántos dólares tenía?"], ["xa", "En un bus iban algunos pasajeros y en el paradero suben {a}. Ahora van {b}. ¿Cuántos pasajeros iban?"], ["xa", "El estanque tenía algunos litros de agua y le echan {a} litros más. Ahora tiene {b}. ¿Cuántos litros tenía?"], ["xa", "Felipe había leído algunas páginas y lee {a} más. Ahora lleva {b}. ¿Cuántas páginas había leído?"], ["xa", "Después de recibir {a} láminas, Pablo tiene {b}. ¿Cuántas láminas tenía antes de recibirlas?"], ["xa", "Un equipo tenía algunos puntos y gana {a} en el último partido. Ahora tiene {b} puntos. ¿Cuántos puntos tenía?"], ["xa", "Daniela tenía algunas fotos en su álbum y pega {a} más. Ahora tiene {b}. ¿Cuántas fotos tenía?"], ["xa", "Al agregar {a} bloques a la caja, ahora hay {b}. ¿Cuántos bloques había antes de agregarlos?"], ["xa", "Un ciclista llevaba algunos kilómetros recorridos y avanza {a} más. Ahora lleva {b} km. ¿Cuántos kilómetros llevaba?"], ["xa", "Una profesora tenía algunos stickers y compra {a} más. Ahora tiene {b}. ¿Cuántos stickers tenía?"], ["xa", "En la fila había algunas personas y llegan {a} más. Ahora hay {b}. ¿Cuántas personas había?"], ["xa", "Luego de que llegaron {a} invitados, la fiesta tiene {b} personas. ¿Cuántas personas había antes de que llegaran?"], ["xm", "Camila tiene algunos dulces. Se come {a} y ahora le quedan {b}. ¿Cuántos dulces tenía?"], ["xm", "Nicolás tenía algunas figuritas. Regaló {a} y le quedaron {b}. ¿Cuántas tenía?"], ["xm", "En una caja había algunos lápices. Sacaron {a} y quedaron {b}. ¿Cuántos había inicialmente?"], ["xm", "Francisca tenía algunas monedas. Gastó {a} y le quedaron {b}. ¿Cuántas monedas tenía?"], ["xm", "En una biblioteca había algunos libros. Prestaron {a} y quedaron {b}. ¿Cuántos libros había?"], ["xm", "Benjamín tenía algunos autitos. Perdió {a} y ahora tiene {b}. ¿Cuántos autitos tenía?"], ["xm", "Un bus salió con algunos pasajeros. En la primera parada bajaron {a} y siguieron {b}. ¿Cuántos pasajeros había al salir?"], ["xm", "Ana tenía algunas galletas. Le dio {a} a su hermano y se quedó con {b}. ¿Cuántas galletas tenía?"], ["xm", "Antes del recreo había algunos estudiantes en la sala. Salieron {a} al patio y quedaron {b}. ¿Cuántos estudiantes había en la sala?"], ["xm", "Una pastelera tenía algunos pasteles. Vendió {a} y le quedaron {b}. ¿Cuántos pasteles tenía?"], ["xm", "Un jardín tenía algunas flores. Se secaron {a} y quedaron {b}. ¿Cuántas flores había?"], ["xm", "Mateo tenía algunos dólares. Compró un juego de {a} dólares y le quedaron {b}. ¿Cuántos dólares tenía?"], ["xm", "En un estanque había algunos litros de agua. Se usaron {a} y quedaron {b}. ¿Cuántos litros había?"], ["xm", "Un estuche tenía algunos lápices. Se perdieron {a} y quedaron {b}. ¿Cuántos tenía el estuche?"], ["xm", "Julia leyó {a} páginas de su libro y todavía le quedan {b} por leer. ¿Cuántas páginas tiene el libro?"], ["xm", "Una bolsa tenía algunos globos. Se reventaron {a} y quedaron {b}. ¿Cuántos globos había?"], ["xm", "Un curso tenía algunos estudiantes. Se retiraron {a} y quedaron {b}. ¿Cuántos estudiantes había?"], ["xm", "Gaspar tenía algunos puntos. Perdió {a} en una penitencia y le quedaron {b}. ¿Cuántos puntos tenía?"], ["xm", "Un camión llevaba algunas cajas. Descargó {a} y le quedaron {b}. ¿Cuántas cajas llevaba?"], ["xm", "Una cuerda medía algunos centímetros. Cortaron {a} cm y quedaron {b} cm. ¿Cuánto medía la cuerda?"], ["xm", "Paula tenía algunos stickers. Pegó {a} en su cuaderno y le quedaron {b}. ¿Cuántos stickers tenía?"], ["ax", "Un edificio tiene {a} departamentos ocupados y se ocupan algunos más. Ahora hay {b} ocupados. ¿Cuántos departamentos se ocuparon?"], ["ax", "Greta lleva {a} puntos en el torneo de ajedrez y gana algunos en la última ronda. Ahora tiene {b}. ¿Cuántos puntos ganó en la última ronda?"], ["ax", "En el supermercado había {a} cajas de leche en la repisa y reponen algunas. Ahora hay {b}. ¿Cuántas cajas repusieron?"], ["ax", "Un nadador hizo {a} largos en la piscina y hace algunos más. En total lleva {b}. ¿Cuántos largos hizo después?"], ["ax", "Una cuenta de ahorro tenía {a} dólares y se depositan algunos. Ahora tiene {b} dólares. ¿Cuántos dólares depositaron?"], ["ax", "El curso reunió {a} kilos de papel para reciclar y reúne algunos más. Ahora tiene {b} kilos. ¿Cuántos kilos reunió después?"], ["ax", "Una mochila pesa {a} kilos y le agregan algunos libros. Ahora pesa {b} kilos. ¿Cuántos kilos pesan los libros?"], ["ax", "Hay {a} velas en el pastel y colocan algunas más. Ahora hay {b} velas. ¿Cuántas velas colocaron?"], ["ax", "Emilia tiene {a} seguidores en su canal escolar y se suman algunos. Ahora tiene {b}. ¿Cuántos seguidores se sumaron?"], ["ax", "Un granjero tiene {a} gallinas y compra algunas más. Ahora tiene {b}. ¿Cuántas gallinas compró?"], ["ax", "En el taller había {a} bicicletas arregladas y arreglan algunas más. Ahora hay {b}. ¿Cuántas bicicletas arreglaron?"], ["ax", "Lorenzo tiene {a} canciones en su lista y agrega algunas. Ahora tiene {b}. ¿Cuántas canciones agregó?"], ["xa", "En una cancha había algunos jugadores y entran {a} más. Ahora hay {b}. ¿Cuántos jugadores había?"], ["xa", "Una cuenta de ahorro tenía algunos dólares y se depositan {a}. Ahora tiene {b} dólares. ¿Cuántos dólares tenía?"], ["xa", "El curso había reunido algunos kilos de papel y junta {a} kilos más. Ahora tiene {b} kilos. ¿Cuántos kilos tenía?"], ["xa", "Una mochila pesaba algunos kilos y le agregan un libro de {a} kilos. Ahora pesa {b} kilos. ¿Cuántos kilos pesaba antes?"], ["xa", "En el supermercado había algunas cajas de cereal y reponen {a}. Ahora hay {b}. ¿Cuántas cajas había?"], ["xa", "Un nadador había hecho algunos largos y hace {a} más. En total lleva {b}. ¿Cuántos largos había hecho?"], ["xa", "En la panadería había algunos panes y hornean {a} más. Ahora hay {b}. ¿Cuántos panes había?"], ["xa", "Hugo tenía algunos puntos y gana {a} en una ronda extra. Ahora tiene {b}. ¿Cuántos puntos tenía?"], ["xa", "Un granjero tenía algunas gallinas y compra {a} más. Ahora tiene {b}. ¿Cuántas gallinas tenía?"], ["xa", "Tras agregar {a} canciones a su lista, Lorenzo tiene {b}. ¿Cuántas canciones tenía antes de agregarlas?"], ["xa", "En el taller había algunas bicicletas arregladas y arreglan {a} más. Ahora hay {b}. ¿Cuántas había?"], ["xa", "En el auditorio había algunas sillas y traen {a} más. Ahora hay {b}. ¿Cuántas sillas había?"], ["xm", "Un edificio tenía algunos departamentos ocupados. Se desocuparon {a} y quedaron {b} ocupados. ¿Cuántos estaban ocupados al principio?"], ["xm", "Greta tenía algunos puntos en el torneo. Perdió {a} en una partida y le quedaron {b}. ¿Cuántos puntos tenía?"], ["xm", "Una repisa tenía algunas cajas de leche. Se vendieron {a} y quedaron {b}. ¿Cuántas cajas había?"], ["xm", "Una cuenta de ahorro tenía algunos dólares. Se retiraron {a} y quedaron {b} dólares. ¿Cuántos dólares había?"], ["xm", "Una mochila pesaba algunos kilos. Sacaron {a} kilos de libros y ahora pesa {b} kilos. ¿Cuánto pesaba antes?"], ["xm", "Un pastel tenía algunas velas. Apagaron {a} con un soplido y quedaron {b} encendidas. ¿Cuántas velas había?"], ["xm", "Un granjero tenía algunas gallinas. Vendió {a} y le quedaron {b}. ¿Cuántas gallinas tenía?"], ["xm", "Lorenzo tenía algunas canciones en su lista. Borró {a} y le quedaron {b}. ¿Cuántas canciones tenía?"], ["xm", "Una cancha tenía algunos jugadores. Se fueron {a} y quedaron {b}. ¿Cuántos jugadores había?"], ["xm", "Una jarra tenía algunos mililitros de jugo. Se sirvieron {a} ml y quedaron {b} ml. ¿Cuántos mililitros tenía?"], ["xm", "En el auditorio había algunas sillas. Se llevaron {a} y quedaron {b}. ¿Cuántas sillas había?"], ["xm", "Rocío tenía algunos globos. Regaló {a} en la fiesta y le quedaron {b}. ¿Cuántos globos tenía?"]];
+const RANGOS={ax:[[5,18],[3,12]],xa:[[3,12],[5,16]],xm:[[3,10],[6,16]]};
+const RANGOS_I={ax:[[5,18],[4,12]],xa:[[3,12],[4,12]],xm:[[3,9],[4,14]]};
+let mazo=[],ultimo=-1,Q=null,FAL=0;
+function azar(n){ return Math.floor(Math.random()*n); }
+function sacar(){
+  if(!mazo.length){ mazo=BANCO.map((_,i)=>i); for(let i=mazo.length-1;i>0;i--){ const j=azar(i+1); [mazo[i],mazo[j]]=[mazo[j],mazo[i]]; }
+    if(mazo[mazo.length-1]===ultimo&&mazo.length>1){ const j=azar(mazo.length-1); [mazo[mazo.length-1],mazo[j]]=[mazo[j],mazo[mazo.length-1]]; } }
+  ultimo=mazo.pop(); return BANCO[ultimo];
+}
+function numeros(f){
+  const base=f.replace(/[<>]/,''); let a,b;
+  for(let t=0;t<200;t++){
+    if(MODE==='eq'){ const [ra,rx]=RANGOS[base]; a=azar(ra[1]-ra[0]+1)+ra[0]; const x=azar(rx[1]-rx[0]+1)+rx[0];
+      b=(base==='xm')?x:a+x; }
+    else { const [ra,rk]=RANGOS_I[base]; a=azar(ra[1]-ra[0]+1)+ra[0]; const k=azar(rk[1]-rk[0]+1)+rk[0]; b=base==='xm'?k:a+k; }
+    if(a!==b&&a>=2&&b>=2) break;
+  }
+  return {a,b};
+}
+const GL={'-':'<svg viewBox="0 0 24 24" width="1em" height="1em" aria-label="menos"><path d="M7 12h10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>','=':'<svg viewBox="0 0 24 24" width="1em" height="1em" aria-label="igual"><path d="M5 8h14M5 16h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>'};
+const disp=(k,txt)=>GL[k]||txt;
+const SIGNOS={'+':'+','-':'−','=':'=','<':'<','>':'>'};
+function nuevo(){
+  const [f,txt]=sacar(); const {a,b}=numeros(f);
+  const base=f.replace(/[<>]/,''), rel=MODE==='ineq'?f.slice(-1):'=';
+  Q={f,base,rel,a,b,txt:txt.split('{a}').join(a).split('{b}').join(b),slots:[null,null,null,null,null],bloq:false,fallos:0};
+  window.__tx=Q; dibuja();
+}
+function tokens(){ if(Q.orden) return Q.orden; const t=[['x','x'],['a',String(Q.a)],['b',String(Q.b)],['+','+'],['-','−']]; if(MODE==='eq') t.push(['=','=']); else { t.push(['<','<']); t.push(['>','>']); } for(let i=t.length-1;i>0;i--){ const j=azar(i+1); [t[i],t[j]]=[t[j],t[i]]; } Q.orden=t; return t; }
+const RAIZ=()=>document.getElementById('txRoot');
+function claseTk(k){ return k==='+'?'mas':k==='-'?'menos':(k==='='||k==='<'||k==='>')?'rel':k; }
+function dibuja(){
+  const r=RAIZ(); if(!r) return;
+  r.innerHTML=`<div class="tx-chip">${MODE==='eq'?'Del texto a la ecuación':'Del texto a la inecuación'}</div><p class="tx-enun">${Q.txt}</p><div class="tx-preg">${MODE==='eq'?'Arma la ecuación':'Arma la inecuación'}</div><div class="tx-slots" id="txSlots">${[0,1,2,3,4].map(i=>`<button type="button" class="tx-slot" data-i="${i}" aria-label="Espacio ${i+1}"></button>`).join('')}</div><div class="tx-fichas" id="txFichas">${tokens().map(t=>`<button type="button" class="tx-ficha c-${claseTk(t[0])}" data-k="${t[0]}">${disp(t[0],t[1])}</button>`).join('')}</div><div class="tx-msg" id="txMsg"></div><div class="tx-acc" id="txAcc"><button class="btn-orbita v-verde" id="txOk" type="button" data-enter="1"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>Comprobar</button><button class="btn-orbita v-azul" id="txClr" type="button"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></span>Borrar</button></div>`;
+  document.getElementById('txFichas').addEventListener('click',e=>{ const f=e.target.closest('.tx-ficha'); if(!f||f.disabled||Q.bloq) return; const i=Q.slots.indexOf(null); if(i<0){ msg('Ya llenaste los cinco espacios. Toca uno para quitar la ficha.','mal'); return; } Q.slots[i]=f.dataset.k; pinta(); msg(''); });
+  document.getElementById('txSlots').addEventListener('click',e=>{ const s=e.target.closest('.tx-slot'); if(!s||Q.bloq) return; const i=+s.dataset.i; if(Q.slots[i]===null) return; Q.slots[i]=null; pinta(); msg(''); });
+  document.getElementById('txClr').addEventListener('click',()=>{ if(Q.bloq) return; Q.slots=[null,null,null,null,null]; pinta(); msg(''); });
+  document.getElementById('txOk').addEventListener('click',comprobar);
+  pinta();
+}
+function msg(t,tipo){ const m=document.getElementById('txMsg'); if(!m) return; m.textContent=t; m.className='tx-msg'+(tipo?' '+tipo:''); }
+function shake(el){ if(!el) return; el.classList.remove('tx-shake'); void el.offsetWidth; el.classList.add('tx-shake'); }
+function pinta(){
+  const m=Object.fromEntries(tokens());
+  [...document.querySelectorAll('#txSlots .tx-slot')].forEach((s,i)=>{ const k=Q.slots[i]; s.innerHTML=k?disp(k,m[k]):''; s.className='tx-slot'+(k?' lleno c-'+claseTk(k):''); });
+  [...document.querySelectorAll('#txFichas .tx-ficha')].forEach(f=>{ f.disabled=Q.slots.includes(f.dataset.k); });
+}
+const esNum=k=>k==='a'||k==='b', esOp=k=>k==='+'||k==='-', esRel=k=>k==='='||k==='<'||k==='>';
+function falla(t){ Q.fallos++; msg(t,'mal'); try{ mvFallo(); }catch(e){} shake(document.getElementById('txSlots')); }
+function comprobar(){
+  if(Q.bloq) return; const s=Q.slots;
+  if(s.includes(null)){ msg('Llena los cinco espacios.','mal'); return; }
+  // forma: [t op t REL t]  o  [t REL t op t]
+  let L,R,rel,inv=false;
+  if(esRel(s[3])&&esOp(s[1])){ L=[s[0],s[1],s[2]]; rel=s[3]; R=s[4]; }
+  else if(esRel(s[1])&&esOp(s[3])){ L=[s[2],s[3],s[4]]; rel=s[1]; R=s[0]; inv=true; }
+  else { falla(MODE==='eq'?'Eso no se lee como una ecuación. Piensa dónde va el signo igual y dónde va la operación.':'Eso no se lee como una inecuación. Piensa dónde va el signo de comparación y dónde va la operación.'); return; }
+  const noX=L.includes('x'); const lado=k=>k==='x'||esNum(k);
+  if(!(lado(L[0])&&lado(L[2])&&lado(R))||!noX||R==='x'||(L[0]==='x'&&L[2]==='x')){ falla('Revisa cómo quedaron los números y la x: la x tiene que estar acompañada de un número, y al otro lado del signo va un solo número.'); return; }
+  // relación vista de izquierda a derecha como "expresión REL número"
+  let relCanon=rel; if(inv&&(rel==='<'||rel==='>')) relCanon=rel==='<'?'>':'<';
+  const otro=L[0]==='x'?L[2]:L[0];
+  const opOk=Q.base==='xm'?(L[0]==='x'&&L[1]==='-'):(L[1]==='+');
+  if(otro!=='a'||R!=='b'||!opOk||relCanon!==Q.rel){
+    const pistas=MODE==='eq'
+      ? ['Esa ecuación no cuenta lo que pasa en el problema. Vuelve a leerlo con calma.','Cuenta la historia en orden: ¿qué había al principio, qué pasó y cuánto quedó al final? Ubica la x en ese orden.','Pregúntate qué es x y qué número y qué signo van junto a ella para llegar al resultado que dice el problema.']
+      : ['Esa inecuación no cuenta lo que pasa en el problema. Vuelve a leerlo con calma.','Cuenta la historia en orden y fíjate en cómo se compara el resultado final con el número que da el problema.','Revisa dos cosas: qué operación le ocurre a la x y si el resultado es mayor o menor que el número del problema.'];
+    falla(pistas[Math.min(Q.fallos,2)]); return;
+  }
+  Q.bloq=true; document.querySelectorAll('#txFichas .tx-ficha').forEach(b=>b.disabled=true);
+  const m=Object.fromEntries(tokens()); const txt=s.map(k=>'<span class="tx-g">'+disp(k,m[k])+'</span>').join(' ');
+  const canon=(Q.base==='xm'?`x-${Q.a}`:`x+${Q.a}`)+(MODE==='eq'?'=':Q.rel)+Q.b;
+  Q.canon=canon;
+  msg('🎉 ¡Excelente! Esa '+(MODE==='eq'?'ecuación':'inecuación')+' representa el problema.','bien'); try{ mvExito(); }catch(e){}
+  document.getElementById('txSlots').insertAdjacentHTML('afterend',`<div class="tx-ok">${txt}</div>`);
+  document.getElementById('txAcc').innerHTML=`<button class="btn-orbita v-oro" id="txRes" type="button" data-enter="1"><span class="bola"><svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span>Resolverla</button>`;
+  document.getElementById('txRes').addEventListener('click',()=>{
+    const r=parseEcuacionLibre(canon); if(r.error){ msg('No se pudo abrir la resolución.','mal'); return; }
+    state.modo='propia'; state.nivel=r.nivel; state.tipo=r.tipo; state.desdeTexto=true;
+    state.eq=generarEcuacionManual(r.nivel,r.tipo,r.vals,r.flip,r.symbol);
+    state.wallActive=false; state.history=[]; state.rango=null; state.screen='lab'; render();
+  });
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing||e.repeat) return; if(!RAIZ()||!RAIZ().offsetParent) return;
+  const b=[...RAIZ().querySelectorAll('[data-enter]')].find(x=>x.offsetParent!==null&&!x.disabled); if(b){ e.preventDefault(); b.click(); }
+});
+window.TX={ abrir(){ state.desdeTexto=true; state.screen='texto'; render(); }, montar(cont){ cont.innerHTML='<div class="tx-root" id="txRoot"></div>'; const eb=document.getElementById('btnNuevaEc'); if(eb) eb.style.display='none'; nuevo(); } };
+})();
+
+</script>
+</body>
+</html>
