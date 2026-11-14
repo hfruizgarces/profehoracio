@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Memoria de luces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark; --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6; --text:#f6f3ff; --text-dim:#c9bdf0; --accent:#fbbf24; --primary:#34d399; --error:#fb7185;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;color:var(--text);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 15% 0%,var(--bg-3),transparent 55%),radial-gradient(circle at 85% 100%,#2a0f66,transparent 55%),linear-gradient(160deg,var(--bg-1),var(--bg-2));background-attachment:fixed}
+button{font-family:inherit}
+.hidden{display:none !important}
+.screen{display:none;flex-direction:column;align-items:center;position:relative;z-index:1}
+.screen.active{display:flex}
+#app{width:100%;max-width:900px;margin:0 auto;padding:clamp(10px,2.5vw,24px);display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}
+.card{width:100%;position:relative;max-width:980px;margin:0 auto;padding:6px 10px}
+.home-title{text-align:center;font-family:var(--font-display);font-weight:800;margin:0 0 6px;line-height:1.1}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance;font-family:var(--font-display);font-size:1.25rem;margin:6px 0 2px}
+.icon-btn{display:inline-flex;align-items:center;cursor:pointer}
+.mv-fila-chip{margin-top:30px}
+.mv-atras-home{position:absolute;left:6px;top:6px;z-index:5}
+.mv-casa-home{position:absolute;right:6px;top:6px;z-index:5}
+.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/90}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}
+.mv-niveles.mv-p3.mv-lv .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+.mv-nivel .ico{width:46%;height:auto;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mv-universo .mv-home .home-title{padding:0 48px}
+@media (min-width:900px) and (orientation:landscape){.mv-universo .mv-home .home-title{padding:0}}
+/* ---- pantalla de juego ---- */
+#screen-juego{align-items:stretch;width:100%}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+body.en-juego #screen-juego{height:100dvh}
+.app-header.app-topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;width:100%;max-width:900px;margin:0 auto;padding:2px 10px 0;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(56px,14vw,84px);height:clamp(56px,14vw,84px)}
+#mvCelebra{position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:99990;pointer-events:none;opacity:0;width:min(86vw,300px)}
+#mvCelebra.on{animation:mvCelPop 1.6s ease both}
+@keyframes mvCelPop{0%{opacity:0;transform:translateX(-50%) scale(.55)}14%{opacity:1;transform:translateX(-50%) scale(1.1)}24%{transform:translateX(-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+#mvCelebra .mv-info{display:none}
+.cuerpo{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:760px;margin:0 auto;padding:2px 12px 12px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.chip{padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4);font-family:var(--font-display);font-weight:800;font-size:1rem}
+#stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#stage > svg{width:100%;height:100%;max-height:100%;overflow:visible}
+.msg{flex:none;min-height:2.7em;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:clamp(1rem,.85rem + .7vw,1.3rem);line-height:1.25;text-wrap:balance;max-width:640px}
+.msg.mal{color:#fda4af}.msg.bien{color:#6ee7b7}.msg.pista{color:#fde68a}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex:none}
+.btn-orbita.ancho{font-size:1.15rem;padding-right:2em}
+.btn-orbita[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .32s}
+
+
+
+#stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#caja{--tam:min(92vw,52vh,520px);width:var(--tam);height:var(--tam);position:relative}
+#tab{width:100%;height:100%;display:grid;gap:clamp(8px,2.4vw,16px);padding:clamp(10px,2.4vw,16px);border-radius:26px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 2px rgba(196,181,253,.35),0 10px 34px rgba(0,0,0,.35);box-sizing:border-box}
+.luz{border:none;padding:0;min-width:0;min-height:0;border-radius:22%;cursor:pointer;background:var(--c);opacity:.38;filter:saturate(.8);transition:opacity .12s,filter .12s,transform .12s,box-shadow .12s;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 3px 8px rgba(0,0,0,.3);-webkit-tap-highlight-color:transparent}
+.luz.on{opacity:1;filter:saturate(1.25) brightness(1.2);transform:scale(1.04);box-shadow:inset 0 0 0 3px rgba(255,255,255,.8),0 0 28px 6px var(--c)}
+.luz.bien{opacity:1;box-shadow:inset 0 0 0 3px #fff,0 0 18px 3px #6ee7b7}
+#tab.bloq .luz{cursor:default}
+#tab.error{animation:mErr .4s}
+@keyframes mErr{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+#listo{position:absolute;inset:0;z-index:3;border:none;border-radius:26px;background:rgba(20,8,60,.6);backdrop-filter:blur(2px);color:#fff;font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,5vw,1.8rem);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;text-wrap:balance}
+@media (prefers-reduced-motion:reduce){#tab.error{animation:none}.luz{transition:none}}
+
+.vol-ov{position:fixed;inset:0;z-index:100001;background:rgba(10,4,30,.78);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px}
+.vol-card{position:relative;background:linear-gradient(160deg,#2c1468,#4c1d95);border:2px solid rgba(196,181,253,.6);border-radius:22px;padding:20px 18px;max-width:400px;width:100%;max-height:88vh;overflow:auto;text-align:center;color:#f6f3ff;box-shadow:0 30px 60px rgba(0,0,0,.4)}
+.vol-card h2{font-family:var(--font-display);margin:0 0 10px;font-size:1.3rem}
+.vol-x{position:absolute;right:10px;top:8px;border:none;background:rgba(255,255,255,.14);color:#fff;width:34px;height:34px;border-radius:50%;font-size:1rem;cursor:pointer}
+.rk-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
+.rk-tab{border:none;cursor:pointer;border-radius:14px;padding:6px 12px;background:rgba(255,255,255,.1);color:#f6f3ff;font-family:var(--font-display);font-weight:800;font-size:.95rem;box-shadow:inset 0 0 0 1px rgba(196,181,253,.35)}
+.rk-tab.on{background:linear-gradient(150deg,#fbbf24,#f59e0b);color:#3b2405;box-shadow:0 0 14px rgba(251,191,36,.5)}
+.rank-lista{list-style:none;margin:0;padding:0;text-align:left}
+.rank-lista li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;background:rgba(255,255,255,.07);margin-bottom:5px;font-weight:800}
+.rank-lista li.yo{background:rgba(110,231,183,.22);box-shadow:inset 0 0 0 2px #6ee7b7}
+.rank-lista .pos{width:1.9em;text-align:center;font-family:var(--font-display)}
+.rank-lista .nom{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-lista .pts{font-family:var(--font-display);color:#fde68a}
+.rk-vacio,.rk-mio{margin:10px 0 0;color:#d8ccf7;font-weight:700}
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen active" id="screen-home"><div id="app"><main id="main"><div class="card mv-items-card">
+<a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem)">Memoria de luces</h1>
+<div class="mv-fila-chip" id="mvChipHome"></div>
+<h2 class="mv-pregunta">Elige tu nivel</h2>
+<p class="items-sub">Mira las luces, recuerda el orden y repítelo</p>
+<div class="mv-niveles mv-p3 mv-lv"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="empezar(2)" aria-label="Fácil, 4 luces"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="6" width="88" height="88" rx="14" fill="#1e1b4b"/><rect x="14.0" y="14.0" width="34.0" height="34.0" rx="8.5" fill="#f43f5e" opacity=".45"/><rect x="52.0" y="14.0" width="34.0" height="34.0" rx="8.5" fill="#3b82f6" /><rect x="14.0" y="52.0" width="34.0" height="34.0" rx="8.5" fill="#22c55e" opacity=".45"/><rect x="52.0" y="52.0" width="34.0" height="34.0" rx="8.5" fill="#f59e0b" opacity=".45"/></svg><span class="t">Fácil</span></button><button type="button" class="level-btn mv-nivel n2" onclick="empezar(3)" aria-label="Medio, 9 luces"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="6" width="88" height="88" rx="14" fill="#1e1b4b"/><rect x="14.0" y="14.0" width="21.3" height="21.3" rx="5.3" fill="#f43f5e" opacity=".45"/><rect x="39.3" y="14.0" width="21.3" height="21.3" rx="5.3" fill="#3b82f6" /><rect x="64.7" y="14.0" width="21.3" height="21.3" rx="5.3" fill="#22c55e" opacity=".45"/><rect x="14.0" y="39.3" width="21.3" height="21.3" rx="5.3" fill="#f59e0b" opacity=".45"/><rect x="39.3" y="39.3" width="21.3" height="21.3" rx="5.3" fill="#a855f7" /><rect x="64.7" y="39.3" width="21.3" height="21.3" rx="5.3" fill="#06b6d4" opacity=".45"/><rect x="14.0" y="64.7" width="21.3" height="21.3" rx="5.3" fill="#ec4899" opacity=".45"/><rect x="39.3" y="64.7" width="21.3" height="21.3" rx="5.3" fill="#84cc16" /><rect x="64.7" y="64.7" width="21.3" height="21.3" rx="5.3" fill="#f97316" opacity=".45"/></svg><span class="t">Medio</span></button><button type="button" class="level-btn mv-nivel n3" onclick="empezar(4)" aria-label="Difícil, 16 luces"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="6" width="88" height="88" rx="14" fill="#1e1b4b"/><rect x="14.0" y="14.0" width="15.0" height="15.0" rx="3.8" fill="#f43f5e" opacity=".45"/><rect x="33.0" y="14.0" width="15.0" height="15.0" rx="3.8" fill="#3b82f6" /><rect x="52.0" y="14.0" width="15.0" height="15.0" rx="3.8" fill="#22c55e" opacity=".45"/><rect x="71.0" y="14.0" width="15.0" height="15.0" rx="3.8" fill="#f59e0b" opacity=".45"/><rect x="14.0" y="33.0" width="15.0" height="15.0" rx="3.8" fill="#a855f7" /><rect x="33.0" y="33.0" width="15.0" height="15.0" rx="3.8" fill="#06b6d4" opacity=".45"/><rect x="52.0" y="33.0" width="15.0" height="15.0" rx="3.8" fill="#ec4899" opacity=".45"/><rect x="71.0" y="33.0" width="15.0" height="15.0" rx="3.8" fill="#84cc16" /><rect x="14.0" y="52.0" width="15.0" height="15.0" rx="3.8" fill="#f97316" opacity=".45"/><rect x="33.0" y="52.0" width="15.0" height="15.0" rx="3.8" fill="#6366f1" opacity=".45"/><rect x="52.0" y="52.0" width="15.0" height="15.0" rx="3.8" fill="#14b8a6" /><rect x="71.0" y="52.0" width="15.0" height="15.0" rx="3.8" fill="#eab308" opacity=".45"/><rect x="14.0" y="71.0" width="15.0" height="15.0" rx="3.8" fill="#ef4444" opacity=".45"/><rect x="33.0" y="71.0" width="15.0" height="15.0" rx="3.8" fill="#0ea5e9" /><rect x="52.0" y="71.0" width="15.0" height="15.0" rx="3.8" fill="#d946ef" opacity=".45"/><rect x="71.0" y="71.0" width="15.0" height="15.0" rx="3.8" fill="#10b981" opacity=".45"/></svg><span class="t">Difícil</span></button>
+</div></div></main></div></div>
+<div class="screen" id="screen-juego">
+<header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" title="Niveles" aria-label="Niveles"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right"><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+
+<div class="cuerpo">
+  <div class="chips"><span class="chip" id="chRonda">Ronda 1</span><span class="chip" id="chEst">Mira…</span><span class="chip" id="chRec">Récord —</span></div>
+  <div id="stage"><div id="caja"><div id="tab" role="group" aria-label="Luces"></div><button type="button" id="listo">Toca para empezar</button></div></div>
+  <div class="msg" id="msg"></div>
+  <div class="fila" id="filaAcc">
+    <button class="btn-orbita v-rosa" id="bRei" type="button"><span class="bola">↺</span>Reiniciar</button>
+    <button class="btn-orbita v-oro" id="bRk" type="button" aria-label="Ver el ranking"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></span>Ranking</button>
+  </div>
+  <div class="fila hidden" id="filaSig"><button class="btn-orbita v-verde ancho" id="bSig" type="button"><span class="bola">▶</span>Otra vez</button><button class="btn-orbita v-oro" id="bRk2" type="button" aria-label="Ver el ranking"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></span>Ranking</button></div>
+</div>
+</div>
+<script>
+window.mvExito = function(){
+  try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){}
+  var h=document.getElementById('mvCelebra'); if(!h) return;
+  var img=h.querySelector('.mv-av img'); if(!img || !img.getAttribute('src')) return;
+  h.classList.remove('on'); void h.offsetWidth; h.classList.add('on');
+  clearTimeout(h._t); h._t=setTimeout(function(){ h.classList.remove('on'); },1700);
+};
+window.mvFallo = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} };
+const RECURSO = 'memoria-de-luces';
+let AlumnoActual = null;
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre) AlumnoActual=_g; }catch(e){}
+function reportar(peso){ if(AlumnoActual && typeof window.reportarProgresoPractica==='function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, RECURSO, 1, 0, peso); }catch(e){} } }
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; }, RECURSO);
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+if(AlumnoActual) iniciarHeartbeatTiempo();
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+function pantalla(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active'); document.body.classList.toggle('en-juego', id==='screen-juego'); window.scrollTo(0,0);
+}
+
+const PX=[100,300,500], BASE=232, H=28, WMIN=50, WMAX=172, TOPE_POSTE=64, Y_LEVANTADO=36;
+const COLORES=['#f87171','#fb923c','#fbbf24','#34d399','#38bdf8','#a78bfa'];
+const NIVELES_RK=[2,3,4], NOMBRE_RK={2:'4 luces',3:'9 luces',4:'16 luces'}, TITULO_RK='Las secuencias más largas', MODO_RK='desc';
+const COL_RK=n=>'rankingMemoria'+n+'x'+n; const FMT_RK=v=>v+(v===1?' luz':' luces');
+const COLS=['#f43f5e', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#eab308', '#ef4444', '#0ea5e9', '#d946ef', '#10b981'];
+const NOTAS=[262,294,330,349,392,440,494,523,587,659,698,784,880,988,1047,1175];
+const S={n:3,sec:[],i:0,fase:'listo',rec:0,tk:0,xp:0};
+let AC=null; function tono(k,ms){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=NOTAS[k%16]; g.gain.value=.0001; o.connect(g); g.connect(AC.destination); const t=AC.currentTime; g.gain.exponentialRampToValueAtTime(.18,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+ms/1000); o.start(t); o.stop(t+ms/1000+.05); }catch(e){} }
+function msg(t,tipo){ const m=$('msg'); m.textContent=t; m.className='msg'+(tipo?' '+tipo:''); }
+const esp=ms=>new Promise(r=>setTimeout(r,ms));
+function construir(){ const n=S.n,t=$('tab'); t.className=''; t.style.gridTemplateColumns='repeat('+n+',1fr)'; t.style.gridTemplateRows='repeat('+n+',1fr)'; t.innerHTML='';
+  for(let k=0;k<n*n;k++){ const b=document.createElement('button'); b.type='button'; b.className='luz'; b.style.setProperty('--c',COLS[k]); b.setAttribute('aria-label','Luz '+(k+1)); b.dataset.k=k; b.addEventListener('click',()=>tocar(k)); t.appendChild(b); } }
+function luz(k){ return $('tab').children[k]; }
+async function encender(k,ms){ const e=luz(k); e.classList.add('on'); tono(k,ms); await esp(ms); e.classList.remove('on'); }
+function est(t){ $('chEst').textContent=t; }
+function preparar(){ S.tk++; S.sec=[]; S.i=0; S.fase='listo'; construir(); $('tab').classList.add('bloq'); $('listo').classList.remove('hidden'); $('chRonda').textContent='Ronda 1'; est('Mira…'); $('filaSig').classList.add('hidden'); $('filaAcc').classList.remove('hidden'); msg('Mira cómo se encienden las luces y repite la secuencia en el mismo orden.'); }
+function empezar(n){ S.n=n; preparar(); pantalla('screen-juego'); cargarRecord(); }
+function cargarRecord(){ S.rec=0; $('chRec').textContent='Récord —'; if(!AlumnoActual) return; const n=S.n; esperarRK(()=>{ window.RK.mio(COL_RK(n),AlumnoActual.id).then(m=>{ if(S.n===n){ S.rec=m; $('chRec').textContent=m?('Récord '+m):'Récord —'; } }); }); }
+$('listo').addEventListener('click',()=>{ if(S.fase!=='listo') return; $('listo').classList.add('hidden'); try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); AC.resume&&AC.resume(); }catch(e){} nuevaRonda(); });
+async function nuevaRonda(){
+  const tk=S.tk; S.sec.push(Math.floor(Math.random()*S.n*S.n)); S.i=0; S.fase='mostrar'; $('tab').classList.add('bloq');
+  $('chRonda').textContent='Ronda '+S.sec.length; est('Mira…'); await esp(700); if(tk!==S.tk) return;
+  const dur=Math.max(260,620-S.sec.length*14);
+  for(const k of S.sec){ await encender(k,dur); if(tk!==S.tk) return; await esp(Math.max(120,dur*.4)); if(tk!==S.tk) return; }
+  S.fase='turno'; $('tab').classList.remove('bloq'); est('Tu turno'); msg('Repite la secuencia.');
+}
+async function tocar(k){
+  if(S.fase!=='turno') return; const tk=S.tk, e=luz(k); e.classList.add('on'); tono(k,220); setTimeout(()=>e.classList.remove('on'),220);
+  if(k===S.sec[S.i]){ S.i++; if(S.i===S.sec.length){ S.fase='mostrar'; $('tab').classList.add('bloq'); est('¡Bien!'); const r=S.sec.length; msg('✅ Ronda '+r+' completada.','bien'); if(r%4===0){ reportar(1); msg('✅ Ronda '+r+' completada. +1 XP','bien'); } await esp(900); if(tk!==S.tk) return; nuevaRonda(); } }
+  else { S.fase='fin'; $('tab').classList.add('bloq'); $('tab').classList.add('error'); try{ mvFallo(); }catch(e2){}
+    const bien=S.sec[S.i]; await esp(350); if(tk!==S.tk) return; $('tab').classList.remove('error'); luz(bien).classList.add('bien'); terminar(); }
+}
+async function terminar(){
+  const largo=S.sec.length-1; est('Fin'); $('filaAcc').classList.add('hidden'); $('filaSig').classList.remove('hidden');
+  const m=largo>0?('Recordaste una secuencia de '+largo+(largo===1?' luz.':' luces.')):'Esta vez no pudiste con la primera. ¡Inténtalo otra vez!'; msg(m,largo>0?'bien':'mal'); if(largo>=3){ try{ mvExito(); }catch(e){} }
+  if(AlumnoActual && largo>0){ const n=S.n; esperarRK(async()=>{ const r=await window.RK.guardar(COL_RK(n),AlumnoActual.id,AlumnoActual.nombre,largo,{},'desc'); if(!r||S.n!==n||S.fase!=='fin') return;
+    if(r.mejoro){ S.rec=largo; $('chRec').textContent='Récord '+largo; msg('🏆 ¡Nuevo récord! '+largo+' luces'+(r.previo?' (antes '+r.previo+')':'')+'.','bien'); }
+    else msg(m+' Tu récord es '+r.previo+'.','bien'); }); }
+}
+$('bRei').addEventListener('click',()=>{ preparar(); }); $('bSig').addEventListener('click',()=>{ preparar(); });
+$('bRk').addEventListener('click',()=>abrirRanking(S.n)); $('bRk2').addEventListener('click',()=>abrirRanking(S.n));
+$('btn-back').addEventListener('click',()=>{ S.tk++; });
+window.empezar=empezar;
+
+/* ---------- récords y ranking ---------- */
+const ICONO_CORONA='<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>';
+function esperarRK(f,n){ n=n||0; if(window.RK) f(); else if(n<60) setTimeout(()=>esperarRK(f,n+1),100); }
+let rankNivel=3;
+async function abrirRanking(n){
+  rankNivel=n||rankNivel;
+  let root=document.getElementById('rkRoot'); if(!root){ root=document.createElement('div'); root.id='rkRoot'; document.body.appendChild(root); }
+  const tabs=NIVELES_RK.map(k=>`<button type="button" class="rk-tab ${k===rankNivel?'on':''}" onclick="abrirRanking(${k})">${NOMBRE_RK[k]}</button>`).join('');
+  root.innerHTML=`<div class="vol-ov"><div class="vol-card"><button type="button" class="vol-x" onclick="cerrarRanking()" aria-label="Cerrar">✕</button><h2>👑 ${TITULO_RK}</h2><div class="rk-tabs">${tabs}</div><div id="rkCuerpo"><p class="rk-vacio">Cargando…</p></div></div></div>`;
+  const pedido=rankNivel; let lista=null;
+  try{ lista=window.RK?await window.RK.top(COL_RK(pedido),MODO_RK):null; }catch(e){}
+  const c=document.getElementById('rkCuerpo'); if(!c||pedido!==rankNivel) return;
+  if(!lista){ c.innerHTML='<p class="rk-vacio">No se pudo cargar el ranking. Revisa tu conexión.</p>'; return; }
+  if(!lista.length){ c.innerHTML='<p class="rk-vacio">Aún nadie tiene récord en este nivel. ¡Sé el primero!</p>'; return; }
+  const yo=AlumnoActual?AlumnoActual.id:null, med=['🥇','🥈','🥉'];
+  let h='<ol class="rank-lista">'+lista.map((f,i)=>`<li class="${f.id===yo?'yo':''}"><span class="pos">${med[i]||(i+1)}</span><span class="nom">${String(f.nombre||'—').replace(/[<>&]/g,'')}</span><b class="pts">${FMT_RK(f.mejor)}</b></li>`).join('')+'</ol>';
+  if(yo && !lista.some(f=>f.id===yo)){ let m=0; try{ m=await window.RK.mio(COL_RK(pedido),yo); }catch(e){} if(m) h+=`<p class="rk-mio">Tu mejor registro: <b>${FMT_RK(m)}</b></p>`; }
+  if(document.getElementById('rkCuerpo')) document.getElementById('rkCuerpo').innerHTML=h;
+}
+function cerrarRanking(){ const r=document.getElementById('rkRoot'); if(r) r.innerHTML=''; }
+window.abrirRanking=abrirRanking; window.cerrarRanking=cerrarRanking;
+
+$('btn-back').addEventListener('click', function(){ pantalla('screen-home'); });
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipHeader',{grande:false}]].forEach(function(p){
+        var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' || e.repeat || e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+    var b=document.querySelector('#bSig'); if(!b || b.offsetParent===null || b.disabled || document.activeElement===b) return;
+    e.preventDefault(); b.click();
+  });
+})();
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDrwcG84h88gOf9FkUlZbECZ2qrO14KhO4",
+  authDomain: "profehoracio-online.firebaseapp.com",
+  projectId: "profehoracio-online",
+  storageBucket: "profehoracio-online.firebasestorage.app",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "1:337766647406:web:6f13e95cb71b5f89cfc87f"
+};
+const app = initializeApp(firebaseConfig, "rankingJuego");
+const auth = getAuth(app);
+const db = getFirestore(app);
+/* Solo se guarda el mejor registro de cada alumno y nunca se borra: solo se reemplaza si mejora.
+   modo 'asc' = gana el MENOR (tiempos); 'desc' = gana el MAYOR (puntos). */
+window.RK = {
+  async guardar(col, id, nombre, valor, extra, modo){
+    try{
+      if(!col || !id || !(valor > 0)) return null;
+      await signInAnonymously(auth);
+      const ref = doc(db, col, id), s = await getDoc(ref);
+      const previo = s.exists() ? (Number(s.data().mejor) || 0) : 0;
+      const mejora = !previo || (modo === 'asc' ? valor < previo : valor > previo);
+      if(mejora) await setDoc(ref, Object.assign({ nombre: nombre, mejor: Math.round(valor), actualizado: serverTimestamp() }, extra || {}));
+      return { previo: previo, mejoro: mejora };
+    } catch(err){ console.error('No se pudo guardar el récord:', err); return null; }
+  },
+  async mio(col, id){
+    try{ await signInAnonymously(auth); const s = await getDoc(doc(db, col, id)); return s.exists() ? (Number(s.data().mejor) || 0) : 0; }
+    catch(err){ return 0; }
+  },
+  async top(col, modo){
+    try{
+      await signInAnonymously(auth);
+      const r = await getDocs(query(collection(db, col), orderBy('mejor', modo === 'asc' ? 'asc' : 'desc'), limit(10)));
+      return r.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    } catch(err){ console.error('No se pudo leer el ranking:', err); return null; }
+  }
+};
+</script>
+</body>
+</html>
