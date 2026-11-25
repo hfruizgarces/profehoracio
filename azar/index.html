@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>AZAR · Laboratorio de Probabilidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark; --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6; --text:#f6f3ff; --text-dim:#c9bdf0; --accent:#fbbf24; --primary:#34d399; --error:#fb7185;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;color:var(--text);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 15% 0%,var(--bg-3),transparent 55%),radial-gradient(circle at 85% 100%,#2a0f66,transparent 55%),linear-gradient(160deg,var(--bg-1),var(--bg-2));background-attachment:fixed}
+button{font-family:inherit}
+.hidden{display:none !important}
+.screen{display:none;flex-direction:column;align-items:center;position:relative;z-index:1}
+.screen.active{display:flex}
+#app{width:100%;max-width:900px;margin:0 auto;padding:clamp(10px,2.5vw,24px);display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}
+.card{width:100%;position:relative;max-width:980px;margin:0 auto;padding:6px 10px}
+.home-title{text-align:center;font-family:var(--font-display);font-weight:800;margin:0 0 2px;line-height:1.1}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 4px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance;font-family:var(--font-display);font-size:1.25rem;margin:4px 0 2px}
+.icon-btn{display:inline-flex;align-items:center;cursor:pointer}
+.mv-fila-chip{margin-top:30px}
+.mv-atras-home{position:absolute;left:6px;top:6px;z-index:5}
+.mv-casa-home{position:absolute;right:6px;top:6px;z-index:5}
+.mv-nivel .ico{width:46%;height:auto;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+/* mapa de planetas (6) */
+#mapa.mv-niveles{aspect-ratio:100/118;width:min(100%,520px,calc((100dvh - 190px) * 100 / 118))}
+#mapa .level-btn.mv-nivel.p1{--x:5;--y:1;--w:38;--i:0}
+#mapa .level-btn.mv-nivel.p2{--x:56;--y:9;--w:38;--i:1;--a:#172554;--b:#3b82f6;--c:#e0f2fe;--glow:56,189,248;--ang-b:150deg}
+#mapa .level-btn.mv-nivel.p3{--x:3;--y:39;--w:38;--i:2;--a:#500724;--b:#ec4899;--c:#fce7f3;--glow:244,114,182;--ang-b:172deg}
+#mapa .level-btn.mv-nivel.p4{--x:58;--y:46;--w:38;--i:3;--a:#042f2e;--b:#14b8a6;--c:#ccfbf1;--glow:45,212,191;--ang-b:140deg}
+#mapa .level-btn.mv-nivel.p5{--x:6;--y:77;--w:38;--i:4;--a:#2e1065;--b:#8b5cf6;--c:#ede9fe;--glow:167,139,250;--ang-b:160deg}
+#mapa .level-btn.mv-nivel.p6{--x:55;--y:82;--w:38;--i:5;--a:#431407;--b:#f97316;--c:#ffedd5;--glow:251,146,60;--ang-b:150deg}
+#mapa .level-btn.mv-nivel .num{position:absolute;left:10%;top:6%;z-index:3;width:calc(var(--w) * .2cqw);height:calc(var(--w) * .2cqw);border-radius:50%;background:rgba(10,4,32,.7);box-shadow:0 0 0 2px rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:max(.8rem,calc(var(--w) * .11cqw))}
+#mapa .t{font-size:max(.95rem,calc(var(--w) * .125cqw))}
+@media (min-width:700px){
+ #mapa.mv-niveles{aspect-ratio:100/66;width:min(100%,900px,calc((100dvh - 190px) * 100 / 66))}
+ #mapa .level-btn.mv-nivel.p1{--w:25;--x:7;--y:0}#mapa .level-btn.mv-nivel.p2{--w:25;--x:37.5;--y:7}#mapa .level-btn.mv-nivel.p3{--w:25;--x:68;--y:0}
+ #mapa .level-btn.mv-nivel.p4{--w:25;--x:7;--y:36}#mapa .level-btn.mv-nivel.p5{--w:25;--x:37.5;--y:42}#mapa .level-btn.mv-nivel.p6{--w:25;--x:68;--y:36}
+}
+/* niveles: esferas que crecen */
+#nivs.mv-niveles{aspect-ratio:100/90}
+#nivs .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+#nivs .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+#nivs .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){#nivs.mv-niveles{aspect-ratio:100/40}
+#nivs .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}#nivs .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}#nivs .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+/* juego */
+#screen-juego{align-items:stretch;width:100%}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+body.en-juego #screen-juego{height:100dvh}
+.app-header.app-topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;width:100%;max-width:900px;margin:0 auto;padding:2px 10px 0;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(48px,12vw,72px);height:clamp(48px,12vw,72px)}
+#mvCelebra,#mvCelebra.on{display:none !important;animation:none !important}
+.cuerpo{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:820px;margin:0 auto;padding:2px 12px 10px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.chip{padding:3px 12px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4);font-family:var(--font-display);font-weight:800;font-size:.85rem}
+.enun{flex:none;margin:0;text-align:center;font-weight:800;text-wrap:balance;max-width:700px;font-size:clamp(.88rem,.8rem + .4vw,1.1rem);line-height:1.25}
+.enun b{color:#fde68a}
+#stage{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:6px;overflow-y:auto;position:relative;border-radius:22px;transition:box-shadow .3s}
+#stage.ok{box-shadow:0 0 0 3px #34d399,0 0 26px rgba(52,211,153,.55)}
+#stage.bad{box-shadow:0 0 0 3px #fb7185,0 0 22px rgba(251,113,133,.5)}
+#stage>svg{width:100%;max-width:560px;height:auto;max-height:100%;display:block}
+.msg{flex:none;min-height:34px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;font-weight:800;font-size:clamp(.9rem,.82rem + .45vw,1.15rem);line-height:1.2;text-wrap:balance;max-width:640px;border-radius:999px;padding:3px 14px;border:2px solid transparent}
+.msg svg{width:26px;height:26px;flex:none}
+.msg.bien{color:#d1fae5;background:rgba(52,211,153,.22);border-color:#34d399;animation:pop .45s}
+.msg.mal{color:#ffe4e6;background:rgba(251,113,133,.2);border-color:#fb7185}
+.msg.pista{color:#fde68a;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.5)}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .32s}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex:none}
+.fila{flex-wrap:nowrap}#acc .btn-orbita{font-size:1rem;padding-right:1.3em;white-space:nowrap}
+.btn-orbita[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+/* fichas */
+.bolsa{display:flex;flex-wrap:wrap;gap:var(--g,6px);justify-content:center;align-content:center;max-width:100%;padding:8px;border-radius:26px;background:rgba(8,3,26,.35);box-shadow:inset 0 0 0 2px rgba(196,181,253,.3)}
+.it-btn{width:var(--s,48px);height:var(--s,48px);border:none;background:none;padding:0;position:relative;cursor:pointer;border-radius:50%;color:#fff;flex:none}
+.it-btn:disabled{cursor:default}
+.it-btn svg{width:100%;height:100%;display:block;overflow:visible}
+.esf{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.75) 0,rgba(255,255,255,0) 32%),radial-gradient(circle at 42% 38%,var(--c),var(--cd) 100%);box-shadow:inset -3px -4px 8px rgba(0,0,0,.35),0 2px 5px rgba(0,0,0,.45);font-family:var(--font-display);font-weight:800;font-size:calc(var(--s,48px) * .46);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.emo{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 2px rgba(255,255,255,.3);font-size:calc(var(--s,48px) * .62);line-height:1}
+.tile{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:16%;background:linear-gradient(180deg,#5b8def,#2748a8);box-shadow:inset 0 -4px 6px rgba(0,0,0,.3),0 2px 5px rgba(0,0,0,.45);font-family:var(--font-display);font-weight:800;font-size:calc(var(--s,48px) * .6)}
+.it-btn.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid #6ee7b7;box-shadow:0 0 12px #6ee7b7;pointer-events:none}
+.it-btn.bad::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid #fb7185;pointer-events:none}
+.it-btn .nb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:55%;height:55%;border-radius:999px;background:rgba(10,4,32,.82);box-shadow:0 0 0 2px #6ee7b7;color:#fff;font-style:normal;font-family:var(--font-display);font-weight:800;font-size:calc(var(--s,48px) * .36);display:flex;align-items:center;justify-content:center;padding:0 3px;pointer-events:none}
+/* campos y teclado */
+#campos{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.frase{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 10px;font-family:var(--font-display);font-weight:800;font-size:clamp(1rem,.9rem + .5vw,1.3rem);text-align:center}
+.frase .sep{color:#c4b5fd}
+.caja{display:inline-flex;align-items:center;justify-content:center;min-width:clamp(58px,17vw,86px);height:clamp(40px,6.4vh,50px);padding:0 10px;border-radius:14px;border:2.5px solid rgba(196,181,253,.85);background:rgba(255,255,255,.07);color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.35rem;cursor:pointer}
+.caja:empty::before{content:"?";color:rgba(196,181,253,.55)}
+.caja.act{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.3)}
+.caja.lleno{border-color:#6ee7b7;color:#6ee7b7;background:rgba(110,231,183,.12)}
+.caja.bad{border-color:#fb7185;color:#fda4af}
+.caja.fijo{cursor:default;border-style:dashed}
+.pto{width:20px;height:20px;border-radius:50%;display:inline-block;background:radial-gradient(circle at 35% 30%,#fff9,var(--c) 45%,var(--cd));box-shadow:0 1px 3px rgba(0,0,0,.5);vertical-align:middle}
+#teclado{flex:none;display:grid;grid-template-columns:repeat(6,clamp(40px,11.5vw,56px));gap:6px;justify-content:center}
+.k{aspect-ratio:1;border-radius:50%;border:none;cursor:pointer;color:#fff;font-family:var(--font-display);font-weight:800;font-size:clamp(1.05rem,3.6vw,1.45rem);background:radial-gradient(circle at 34% 28%,#d8c8ff 0,#8b5cf6 38%,#3b1785 100%);box-shadow:inset -2px -3px 6px rgba(0,0,0,.4),0 2px 5px rgba(0,0,0,.45);padding:0}
+.k.del{background:radial-gradient(circle at 34% 28%,#fecdd3 0,#f43f5e 40%,#7f1d1d 100%)}
+.k.coma{background:radial-gradient(circle at 34% 28%,#bae6fd 0,#0ea5e9 40%,#0c4a6e 100%)}
+.k:active{transform:scale(.9)}
+.k[disabled]{opacity:.3}
+.lanz{border:none;cursor:pointer;color:#fff;font-family:var(--font-display);font-weight:800;font-size:1rem;padding:6px 18px;border-radius:999px;background:linear-gradient(180deg,#a78bfa,#6d28d9);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 3px 8px rgba(0,0,0,.4)}
+.lanz:disabled{opacity:.4}
+.lanz.verde{background:linear-gradient(180deg,#34d399,#047857)}
+/* ruedas */
+.rueda{display:block;width:100%;height:100%}
+.rw{height:min(100%,380px);aspect-ratio:1;max-width:100%;flex:0 1 auto;min-height:90px}
+.rueda path{stroke:rgba(15,5,40,.75);stroke-width:1.2;cursor:pointer}
+.rueda text{font-family:var(--font-display);font-weight:800;font-size:11px;fill:#fff;paint-order:stroke;stroke:rgba(10,4,32,.85);stroke-width:2.4px;pointer-events:none}
+.rueda .mk path{filter:brightness(1.2)}
+.ruedas3{display:flex;gap:10px;justify-content:center;width:100%;align-items:center}
+.opc{position:relative;flex:1;max-width:210px;border-radius:50%;border:3px solid rgba(196,181,253,.5);background:rgba(255,255,255,.05);padding:4px;cursor:pointer}
+.opc.mala{opacity:.4;border-color:#fb7185}.opc.buena{border-color:#6ee7b7;box-shadow:0 0 18px rgba(110,231,183,.7)}
+.hist{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:520px;font-weight:800;font-size:.9rem}
+.hist .h{padding:1px 10px;border-radius:999px;background:rgba(255,255,255,.12)}
+.dado{width:clamp(70px,22vw,110px);height:auto}
+.cartas{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;width:100%}
+.carta{position:relative;flex:1;min-width:0;max-width:200px;border-radius:18px;border:2.5px solid rgba(196,181,253,.55);background:rgba(8,3,26,.35);padding:6px 4px;cursor:pointer;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px}
+.carta .bolsa{box-shadow:none;background:none;padding:2px;gap:3px}
+.carta.on{border-color:#6ee7b7;box-shadow:0 0 14px rgba(110,231,183,.6)}
+.carta .nbc{position:absolute;left:6px;top:4px;width:28px;height:28px;border-radius:50%;background:#10b981;display:none;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800}
+.carta.on .nbc{display:flex}
+.carta small{font-weight:800;color:#fde68a}
+.cons{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+.et{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.et b{min-width:92px;text-align:right;font-size:.9rem;color:#e9ddff}
+.ops{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.op{border:2.5px solid rgba(196,181,253,.55);background:rgba(255,255,255,.07);border-radius:14px;padding:3px 8px;color:#fff;font-weight:800;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.op.on{border-color:#6ee7b7;background:rgba(110,231,183,.22)}
+.combs{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:620px;max-height:30vh;overflow:auto}
+.cm{font-size:.78rem;font-weight:800;background:rgba(255,255,255,.1);border-radius:999px;padding:1px 8px;display:flex;gap:4px;align-items:center}
+.cm .pto{width:11px;height:11px}
+.cardp{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.cardp .cp{border-radius:16px;padding:6px 12px;background:rgba(8,3,26,.4);box-shadow:inset 0 0 0 2px rgba(196,181,253,.4);text-align:center;font-weight:800}
+.cardp .cp small{display:block;color:#c4b5fd}
+.arbol text{font-family:var(--font-body);font-weight:800;font-size:9px;fill:#fff;paint-order:stroke;stroke:rgba(10,4,32,.9);stroke-width:2.2px;pointer-events:none}
+.arbol .cab{fill:#c4b5fd;font-size:8.5px}
+.arbol line{stroke:rgba(196,181,253,.6);stroke-width:1.4}
+.arbol .leaf{cursor:pointer}
+.arbol .leaf circle.r{fill:none;stroke:transparent;stroke-width:2.5}
+.arbol .leaf.on circle.r{stroke:#6ee7b7}
+.arbol .leaf.bad circle.r{stroke:#fb7185}
+.arbol .leaf.on circle.n{filter:brightness(1.15)}
+.viz{width:100%;max-width:440px}
+.viz text{font-family:var(--font-display);font-weight:800;font-size:10px;fill:#e9ddff}
+.interp{font-weight:800;border-radius:999px;padding:2px 14px;font-size:.95rem}
+.interp.verde{background:rgba(52,211,153,.22);color:#a7f3d0}.interp.rojo{background:rgba(251,113,133,.22);color:#fecdd3}.interp.azul{background:rgba(56,189,248,.22);color:#bae6fd}
+.paleta{display:flex;gap:8px;justify-content:center;align-items:center}
+.cb{width:clamp(34px,9vw,44px);aspect-ratio:1;border-radius:50%;border:3px solid rgba(255,255,255,.5);cursor:pointer;padding:0;background:radial-gradient(circle at 35% 30%,#fff9,var(--c) 45%,var(--cd))}
+.cb.on{border-color:#fff;box-shadow:0 0 0 3px #6ee7b7}
+.paso{font-weight:800;text-align:center;color:#c4b5fd;font-size:.92rem}
+.paso b{color:#fff}
+.barras{display:flex;gap:10px;align-items:flex-end;justify-content:center;height:110px}
+.barras .bc{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;font-weight:800}
+.barras .pair{display:flex;gap:3px;align-items:flex-end;height:90px}
+.barras .b1,.barras .b2{width:16px;border-radius:5px 5px 0 0;min-height:2px;background:var(--c)}
+.barras .b1{background:none;border:2px dashed var(--c);border-bottom:none}
+@media (min-width:900px) and (min-height:640px){
+ .cuerpo{max-width:min(1100px,98vw)}
+ .enun{font-size:clamp(1.05rem,2vh,1.45rem);max-width:min(900px,90vw)}
+ .msg{font-size:clamp(1.1rem,2.1vh,1.5rem)}
+ .chip{font-size:clamp(.95rem,1.8vh,1.2rem)}
+ #teclado{grid-template-columns:repeat(6,clamp(48px,7.4vh,64px))}
+ .caja{height:clamp(46px,6.6vh,60px);font-size:clamp(1.4rem,3vh,1.9rem)}
+ .frase{font-size:clamp(1.2rem,2.6vh,1.7rem)}
+}
+@media (max-height:700px){ .cuerpo{gap:4px} }
+@media (max-height:700px) and (min-width:600px){ #teclado{grid-template-columns:repeat(12,clamp(40px,3.6vw,54px))} .k{font-size:1.3rem} }
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+<div class="screen active" id="screen-home"><div id="app"><main id="main"><div class="card mv-items-card">
+<a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" style="font-size:clamp(1.5rem,5.6vw,2.9rem)">AZAR</h1>
+<p class="items-sub" style="margin:0">Laboratorio de probabilidades</p>
+<div class="mv-fila-chip" style="margin-top:22px" id="mvChipHome"></div>
+<h2 class="mv-pregunta">Elige un planeta para explorar</h2>
+<div class="mv-niveles" id="mapa"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel p1" onclick="irMision(1)" aria-label="Misión 1: posibilidades"><span class="fondo"></span><span class="num">1</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="34" cy="38" r="20" fill="#ef4444" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="64" cy="38" r="20" fill="#2563eb" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="49" cy="64" r="20" fill="#16a34a" stroke="rgba(15,5,40,.5)" stroke-width="2"/><text x="49" y="72" font-size="22" font-weight="800" text-anchor="middle" fill="#fff" font-family="Baloo 2,sans-serif">?</text></svg><span class="t">Posibilidades</span></button>
+<button type="button" class="level-btn mv-nivel p2" onclick="irMision(2)" aria-label="Misión 2: casos favorables"><span class="fondo"></span><span class="num">2</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="30" cy="32" r="16" fill="#f472b6" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="70" cy="32" r="16" fill="#34d399" stroke="#fff" stroke-width="4"/><circle cx="30" cy="70" r="16" fill="#34d399" stroke="#fff" stroke-width="4"/><circle cx="70" cy="70" r="16" fill="#a78bfa" stroke="rgba(15,5,40,.5)" stroke-width="2"/><path d="M62 32l6 6 11-12M22 70l6 6 11-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Favorables</span></button>
+<button type="button" class="level-btn mv-nivel p3" onclick="irMision(3)" aria-label="Misión 3: la máquina de probabilidad"><span class="fondo"></span><span class="num">3</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="20" width="76" height="56" rx="12" fill="#6d28d9" stroke="rgba(15,5,40,.5)" stroke-width="2"/><rect x="22" y="30" width="22" height="16" rx="5" fill="#fff"/><rect x="56" y="30" width="22" height="16" rx="5" fill="#fff"/><path d="M24 58h52" stroke="#fff" stroke-width="5" stroke-linecap="round"/><text x="33" y="43" font-size="14" font-weight="800" text-anchor="middle" fill="#6d28d9" font-family="Baloo 2,sans-serif">f</text><text x="67" y="43" font-size="14" font-weight="800" text-anchor="middle" fill="#6d28d9" font-family="Baloo 2,sans-serif">t</text><path d="M50 76v12" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg><span class="t">La máquina</span></button>
+<button type="button" class="level-btn mv-nivel p4" onclick="irMision(4)" aria-label="Misión 4: caminos del azar"><span class="fondo"></span><span class="num">4</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M14 50H34M34 50L62 24M34 50L62 50M34 50L62 76" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="14" cy="50" r="9" fill="#38bdf8" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="62" cy="24" r="9" fill="#ef4444" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="62" cy="50" r="9" fill="#a78bfa" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="62" cy="76" r="9" fill="#f472b6" stroke="rgba(15,5,40,.5)" stroke-width="2"/><text x="84" y="55" font-size="22" font-weight="800" text-anchor="middle" fill="#fff" font-family="Baloo 2,sans-serif">×</text></svg><span class="t">Caminos</span></button>
+<button type="button" class="level-btn mv-nivel p5" onclick="irMision(5)" aria-label="Misión 5: probabilidades combinadas"><span class="fondo"></span><span class="num">5</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M12 50H30M30 50L56 26M30 50L56 74M56 26L84 16M56 26L84 36M56 74L84 64M56 74L84 84" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="50" r="8" fill="#fb923c" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="84" cy="16" r="8" fill="#34d399" stroke="#fff" stroke-width="3"/><circle cx="84" cy="36" r="8" fill="#94a3b8" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="84" cy="64" r="8" fill="#34d399" stroke="#fff" stroke-width="3"/><circle cx="84" cy="84" r="8" fill="#94a3b8" stroke="rgba(15,5,40,.5)" stroke-width="2"/></svg><span class="t">Combinadas</span></button>
+<button type="button" class="level-btn mv-nivel p6" onclick="irMision(6)" aria-label="Laboratorio libre"><span class="fondo"></span><span class="num">★</span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 50L50 8A42 42 0 0 1 92 50Z" fill="#ef4444" stroke="rgba(15,5,40,.6)" stroke-width="2"/><path d="M50 50L92 50A42 42 0 0 1 50 92Z" fill="#2563eb" stroke="rgba(15,5,40,.6)" stroke-width="2"/><path d="M50 50L50 92A42 42 0 0 1 8 50Z" fill="#16a34a" stroke="rgba(15,5,40,.6)" stroke-width="2"/><path d="M50 50L8 50A42 42 0 0 1 50 8Z" fill="#a855f7" stroke="rgba(15,5,40,.6)" stroke-width="2"/><circle cx="50" cy="50" r="7" fill="#fff"/></svg><span class="t">Laboratorio</span></button>
+</div></div></main></div></div>
+
+<div class="screen" id="screen-niv"><div id="app"><main id="main"><div class="card mv-items-card">
+<button type="button" class="icon-btn btn-orbita v-azul mv-atras-home" onclick="pantalla('screen-home')" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" id="nivTitulo" style="font-size:clamp(1.3rem,5.2vw,2.6rem)">AZAR</h1>
+<h2 class="mv-pregunta">Elige tu nivel</h2>
+<div class="mv-niveles" id="nivs"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="abrir(1)" aria-label="Nivel fácil"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="34" fill="#34d399" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="50" cy="50" r="10" fill="#fff"/></svg><span class="t">Fácil</span></button>
+<button type="button" class="level-btn mv-nivel n2" onclick="abrir(2)" aria-label="Nivel medio"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="#60a5fa" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="36" cy="50" r="9" fill="#fff"/><circle cx="64" cy="50" r="9" fill="#fff"/></svg><span class="t">Medio</span></button>
+<button type="button" class="level-btn mv-nivel n3" onclick="abrir(3)" aria-label="Nivel difícil"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#f472b6" stroke="rgba(15,5,40,.5)" stroke-width="2"/><circle cx="50" cy="34" r="8" fill="#fff"/><circle cx="35" cy="62" r="8" fill="#fff"/><circle cx="65" cy="62" r="8" fill="#fff"/></svg><span class="t">Difícil</span></button>
+</div></div></main></div></div>
+
+<div class="screen" id="screen-juego">
+<header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right"><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+<div class="cuerpo" id="mod">
+<div class="chips" id="chips"></div>
+<p class="enun" id="enun"></p>
+<div id="stage"></div>
+<div class="msg" id="msg"></div>
+<div id="campos"></div>
+<div id="teclado"></div>
+<div class="fila" id="acc"><button class="icon-btn btn-orbita v-oro" type="button" id="bPista"><span class="bola"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span>Pista</button><button class="icon-btn btn-orbita v-verde" type="button" id="bOk"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Comprobar</button><button class="icon-btn btn-orbita v-violeta ancho hidden" type="button" id="bSig"><span class="bola"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>Siguiente</button></div>
+</div>
+</div>
+<script>
+/* ============================================================
+   MOTOR MATEMÁTICO DE AZAR  (sin DOM: se puede probar en node)
+   Todo ejercicio se genera a partir de objetos reales (fichas, etapas),
+   y las respuestas se calculan SIEMPRE contando/enumerando esos objetos,
+   nunca con una fórmula "a mano". Así lo que se dibuja y lo que se valida coincide.
+   ============================================================ */
+const AZMotor = (function(){
+'use strict';
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function barajar(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = rnd(0,i); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function mcd(a,b){ while(b){ const t=a%b; a=b; b=t; } return a; }
+const r3 = x => Math.round(x*1000 + 1e-9)/1000;                 // redondeo a 3 cifras (mitad hacia arriba)
+function exacto(f,t){ if(f===0) return true; const d = t/mcd(f,t); return 1000 % d === 0; }   // f/t tiene a lo más 3 decimales
+const fmt = x => String(r3(x)).replace('.',',');                // coma decimal chilena
+function probTxt(f,t){ const p=f/t, ex=exacto(f,t); return { p, exacto:ex, texto:(ex?'':'≈ ')+fmt(p) }; }
+function parseNum(s){ s = String(s==null?'':s).trim().replace(',','.'); if(!/^(\d+(\.\d*)?|\.\d+)$/.test(s)) return NaN; return parseFloat(s); }
+
+/* Evalúa lo que escribió el alumno como probabilidad f/t. code: ok | vacio | porcentaje | mayor1 | invertido | redondeo | decimales | otro */
+function evalProb(txt,f,t){
+  const v = parseNum(txt); if(isNaN(v)) return { ok:false, code:'vacio' };
+  const p = f/t, ex = exacto(f,t);
+  const ok = ex ? Math.abs(v-p) < 1e-9 : (Math.abs(v-p) <= 0.0005 + 1e-9 && r3(v) === r3(p));
+  if(ok) return { ok:true, code:'ok' };
+  if(v > 1 && v <= 100 && Math.abs(v/100 - p) < 0.0006) return { ok:false, code:'porcentaje' };
+  if(f>0 && f<t && Math.abs(v - t/f) < 0.0006) return { ok:false, code:'invertido' };
+  if(v > 1) return { ok:false, code:'mayor1' };
+  if(!ex && Math.abs(v-p) < 0.0105) return { ok:false, code:'redondeo' };
+  if(!ex && v !== 0 && String(txt).replace(/^.*[.,]/,'').length < 3 && Math.abs(v-p) < 0.02) return { ok:false, code:'decimales' };
+  return { ok:false, code:'otro' };
+}
+function interp(p){
+  if(p === 0) return { txt:'imposible', tono:'rojo' };
+  if(p === 1) return { txt:'seguro', tono:'verde' };
+  if(p <= 0.25) return { txt:'poco probable', tono:'rojo' };
+  if(p === 0.5) return { txt:'tan probable como no', tono:'azul' };
+  if(p < 0.75) return { txt:'posible', tono:'azul' };
+  return { txt:'muy probable', tono:'verde' };
+}
+
+/* ---------------- colores y objetos ---------------- */
+const COL = {
+  rojo:{h:'#ef4444', f:'roja', m:'rojo'}, azul:{h:'#2563eb', f:'azul', m:'azul'}, verde:{h:'#16a34a', f:'verde', m:'verde'},
+  amarillo:{h:'#facc15', f:'amarilla', m:'amarillo'}, morado:{h:'#9333ea', f:'morada', m:'morado'}, rosado:{h:'#ec4899', f:'rosada', m:'rosado'}
+};
+const COLKEYS = Object.keys(COL);
+const FORMAS = { triangulo:{n:'triángulo', art:'un'}, cuadrado:{n:'cuadrado', art:'un'}, circulo:{n:'círculo', art:'un'}, rombo:{n:'rombo', art:'un'}, estrella:{n:'estrella', art:'una'} };
+const FORMAKEYS = Object.keys(FORMAS);
+const ANIMALES = [
+  {e:'🐦', n:'pájaro', vuela:true, agua:false}, {e:'🦋', n:'mariposa', vuela:true, agua:false}, {e:'🐝', n:'abeja', vuela:true, agua:false}, {e:'🦉', n:'búho', vuela:true, agua:false},
+  {e:'🐟', n:'pez', vuela:false, agua:true}, {e:'🐬', n:'delfín', vuela:false, agua:true}, {e:'🐙', n:'pulpo', vuela:false, agua:true},
+  {e:'🐕', n:'perro', vuela:false, agua:false}, {e:'🐈', n:'gato', vuela:false, agua:false}, {e:'🐄', n:'vaca', vuela:false, agua:false}, {e:'🐇', n:'conejo', vuela:false, agua:false}, {e:'🐎', n:'caballo', vuela:false, agua:false}
+];
+const PALABRAS_MEDIO = ['AZAR','CASOS','SUCESO','POSIBLE','MUESTRA','MISION','DADO','FICHAS','AZARES'];
+const PALABRAS_DIF = ['PROBABILIDAD','LABORATORIO','EXPERIMENTO','FAVORABLES','RESULTADO','ALEATORIO','MATEMATICAS','POSIBILIDADES'];
+
+function conId(items){ return items.map((it,i) => Object.assign({id:i}, it)); }
+function contar(items, fn){ let c=0; items.forEach(it => { if(fn(it)) c++; }); return c; }
+
+/* ---------------- bolsas (conjuntos de fichas) ---------------- */
+function bolsaColores(n,k){ const cs = barajar(COLKEYS).slice(0,k); const it=[]; for(let i=0;i<n;i++) it.push({ color: i<k ? cs[i] : pick(cs) }); return conId(barajar(it)); }
+function bolsaFormas(n,k){ const fs = barajar(FORMAKEYS).slice(0,k); const cs = barajar(COLKEYS); const it=[]; for(let i=0;i<n;i++) it.push({ forma: i<k ? fs[i] : pick(fs), color: pick(cs.slice(0,3)) }); return conId(barajar(it)); }
+function bolsaNumeros(n){ const c = pick(COLKEYS); return conId(barajar([1,2,3,4,5,6,7,8,9,10,11,12]).slice(0,n).map(x => ({ color:c, num:x }))); }
+function bolsaAnimales(n){ // asegura al menos 2 voladores y 2 acuáticos y 2 de tierra
+  const v = barajar(ANIMALES.filter(a=>a.vuela)), w = barajar(ANIMALES.filter(a=>a.agua)), t = barajar(ANIMALES.filter(a=>!a.vuela && !a.agua));
+  let sel = [v[0],v[1],w[0],w[1],t[0],t[1]]; const resto = barajar([].concat(v.slice(2),w.slice(2),t.slice(2)));
+  while(sel.length<n && resto.length) sel.push(resto.shift());
+  return conId(barajar(sel).slice(0,n).map(a => ({ animal:a.e, nombre:a.n, vuela:a.vuela, agua:a.agua })));
+}
+function bolsaEstrellas(n){ const cs = barajar(COLKEYS).slice(0,3); const it=[]; for(let i=0;i<n;i++) it.push({ color:pick(cs), estrella: Math.random()<0.4 }); return conId(it); }
+function bolsaCompuesta(n){ const cs = barajar(COLKEYS).slice(0,3); const it=[]; for(let i=0;i<n;i++) it.push({ color:cs[i%3], num:rnd(1,9) }); return conId(barajar(it)); }
+
+/* ---------------- condiciones: texto + función (siempre juntas) ---------------- */
+const esPrimo = x => x>1 && [2,3,5,7,11,13].indexOf(x) >= 0;
+function condColor(c,neg){ const f=COL[c].f; return neg ? { texto:'una ficha que no sea '+f, fn:it=>it.color!==c, clave:'nc'+c } : { texto:'una ficha '+f, fn:it=>it.color===c, clave:'c'+c }; }
+function condForma(fk){ const F=FORMAS[fk]; return { texto:F.art+' '+F.n, fn:it=>it.forma===fk, clave:'f'+fk }; }
+function condNum(tipo,k){
+  switch(tipo){
+    case 'par': return { texto:'un número par', fn:it=>it.num%2===0, clave:'par' };
+    case 'impar': return { texto:'un número impar', fn:it=>it.num%2===1, clave:'impar' };
+    case 'mayor': return { texto:'un número mayor que '+k, fn:it=>it.num>k, clave:'may'+k };
+    case 'menor': return { texto:'un número menor que '+k, fn:it=>it.num<k, clave:'men'+k };
+    case 'mult3': return { texto:'un múltiplo de 3', fn:it=>it.num%3===0, clave:'m3' };
+    case 'primo': return { texto:'un número primo', fn:it=>esPrimo(it.num), clave:'primo' };
+  }
+}
+function condAnimal(t){
+  if(t==='vuela') return { texto:'un animal que pueda volar', fn:it=>it.vuela, clave:'vuela' };
+  if(t==='novuela') return { texto:'un animal que no pueda volar', fn:it=>!it.vuela, clave:'novuela' };
+  return { texto:'un animal que viva en el agua', fn:it=>it.agua, clave:'agua' };
+}
+function condEstrella(c){ return c ? { texto:'una ficha '+COL[c].f+' con estrella', fn:it=>it.color===c && it.estrella, clave:'e'+c } : { texto:'una ficha con estrella', fn:it=>!!it.estrella, clave:'e' }; }
+function condCompuesta(tipo,c,k){
+  const f = COL[c].f;
+  if(tipo==='ypar') return { texto:'una ficha '+f+' con número par', fn:it=>it.color===c && it.num%2===0, clave:'ypar'+c };
+  if(tipo==='yimpar') return { texto:'una ficha '+f+' con número impar', fn:it=>it.color===c && it.num%2===1, clave:'yimpar'+c };
+  if(tipo==='ymayor') return { texto:'una ficha '+f+' con número mayor que '+k, fn:it=>it.color===c && it.num>k, clave:'ymay'+c+k };
+  if(tipo==='omayor') return { texto:'una ficha '+f+' o con un número mayor que '+k+' (vale cumplir una o las dos cosas)', fn:it=>it.color===c || it.num>k, clave:'omay'+c+k };
+  if(tipo==='nopar') return { texto:'una ficha que no sea '+f+' ni tenga número par', fn:it=>it.color!==c && it.num%2===1, clave:'nopar'+c };
+  return { texto:'una ficha que no sea '+f, fn:it=>it.color!==c, clave:'nc'+c };
+}
+
+/* Genera una bolsa + condición del tipo pedido; reintenta hasta que haya al menos 1 favorable y 1 no favorable */
+function bolsaConCond(clase, nivel, opt){
+  opt = opt || {};
+  for(let intento=0; intento<80; intento++){
+    let items, cond;
+    if(clase==='colores'){
+      const n = nivel===1 ? rnd(8,10) : nivel===2 ? rnd(10,12) : rnd(12,15);
+      items = bolsaColores(n, nivel===1 ? 3 : (nivel===2 ? 3 : 4));
+      const cs = Array.from(new Set(items.map(i=>i.color)));
+      cond = condColor(pick(cs), nivel>=2 && Math.random()<0.4);
+    } else if(clase==='formas'){
+      items = bolsaFormas(rnd(8,12), 3);
+      cond = condForma(pick(Array.from(new Set(items.map(i=>i.forma)))));
+    } else if(clase==='numeros'){
+      items = bolsaNumeros(nivel===1 ? 8 : rnd(10,12));
+      const t = pick(nivel===3 ? ['par','impar','mayor','menor','mult3','primo','mayor'] : ['par','impar','mayor','menor','mult3']);
+      cond = condNum(t, rnd(3,9));
+    } else if(clase==='animales'){
+      items = bolsaAnimales(nivel===1 ? 8 : rnd(9,12));
+      cond = condAnimal(pick(['vuela','agua','novuela']));
+    } else if(clase==='estrellas'){
+      items = bolsaEstrellas(rnd(10,12));
+      cond = Math.random()<0.5 ? condEstrella(null) : condEstrella(pick(Array.from(new Set(items.map(i=>i.color)))));
+    } else { // compuestas
+      items = bolsaCompuesta(rnd(12,15));
+      const c = pick(Array.from(new Set(items.map(i=>i.color))));
+      cond = condCompuesta(pick(['ypar','yimpar','ymayor','omayor','nopar','nc','ymayor']), c, rnd(3,7));
+    }
+    const fav = contar(items, cond.fn), tot = items.length;
+    if(opt.dejarDegenerado ? true : (fav>=1 && fav<tot)){
+      if(opt.minFav && fav<opt.minFav) continue;
+      if(opt.totales && opt.totales.indexOf(tot)<0) continue;
+      return { items, cond, fav, tot, clase };
+    }
+  }
+  throw new Error('no se pudo generar '+clase);
+}
+
+/* ============ MISIÓN 1: el universo de posibilidades ============ */
+function antiRepetir(gen, prev){ let r; for(let i=0;i<20;i++){ r = gen(); if(!prev || r.sig!==prev) return r; } return r; }
+function genM1(nivel, prev){
+  const pesos = nivel===1 ? [['contar',35],['sectores',30],['lanzador',20],['justa',15]]
+              : nivel===2 ? [['contar',22],['grupos',24],['sectores',14],['justa',15],['lanzador',10],['palabra',15]]
+              : [['contar',18],['grupos',24],['palabra',20],['justa',16],['lanzador',12],['sectores',10]];
+  const pickPeso = () => { let t = pesos.reduce((s,p)=>s+p[1],0), r=Math.random()*t; for(const p of pesos){ if((r-=p[1])<0) return p[0]; } return pesos[0][0]; };
+  return antiRepetir(() => {
+    let tipo = pickPeso();
+    if(prev && prev.tipo===tipo && Math.random()<0.8) tipo = pickPeso();
+    let e;
+    if(tipo==='contar'){
+      const n = nivel===1 ? rnd(5,9) : nivel===2 ? rnd(10,15) : rnd(16,24);
+      const items = nivel===3 ? bolsaFormas(n,4) : bolsaColores(n, nivel===1?2:3);
+      e = { tipo, items, total:n, pregunta:'¿Cuántos objetos hay en la bolsa?',
+        pistas:['Toca cada objeto una sola vez mientras lo cuentas: así sabrás cuáles ya contaste.','Cuenta de nuevo con calma. Cada objeto cuenta, aunque sea igual a otro.','Tocaste '+n+' veces? Revisa que no te haya quedado ninguno sin tocar.'] };
+    } else if(tipo==='grupos'){
+      const k = nivel===3 ? 4 : 3, n = nivel===2 ? rnd(10,14) : rnd(14,20);
+      const items = bolsaColores(n,k), por = {};
+      items.forEach(i => por[i.color] = (por[i.color]||0)+1);
+      e = { tipo, items, colores:Object.keys(por), porColor:por, total:n, pregunta:'¿Cuántas hay de cada color? ¿Y cuántas en total?',
+        pistas:['Cuenta un color a la vez: toca solo las fichas de ese color.','El total es todas las fichas juntas, de todos los colores.','Suma lo que escribiste en cada color: debe dar el total.'] };
+    } else if(tipo==='sectores'){
+      const k = nivel===1 ? rnd(4,8) : rnd(8,12), cs = barajar(COLKEYS).slice(0, nivel===1 ? 3 : 4);
+      const sec = []; for(let i=0;i<k;i++) sec.push(i<cs.length ? cs[i] : pick(cs));
+      e = { tipo, sectores:barajar(sec), total:k, pregunta:'Se gira la ruleta. ¿Cuántos resultados diferentes pueden salir?',
+        pistas:['Cada sector es un resultado posible, aunque tenga el mismo color que otro.','Toca los sectores uno por uno para no perder la cuenta.','Los colores se repiten, pero cada sector cuenta como un resultado distinto.'] };
+    } else if(tipo==='justa'){
+      const mk = (inj) => { const k = rnd(4,8); const cs = barajar(COLKEYS).slice(0,3); const w = []; for(let i=0;i<k;i++) w.push(1);
+        if(inj){ const a=rnd(0,k-1); w[a] = nivel===3 ? 1.8 : 2.6; if(nivel===1 && k>5){ w[(a+2)%k]=0.5; } }
+        return { sectores: w.map((x,i)=>({ color: cs[i%3], w:x })), justa:!inj }; };
+      const ruletas = barajar([mk(false), mk(true), mk(true)]);
+      e = { tipo, ruletas, correcta: ruletas.findIndex(r=>r.justa), pregunta:'Toca la ruleta donde todos los resultados son igualmente posibles.',
+        pistas:['En una ruleta justa, todos los sectores tienen el mismo tamaño.','Compara el tamaño de los sectores: ¿hay alguno más grande o más chico?','Busca la ruleta en que no hay ningún sector más grande que otro.'] };
+    } else if(tipo==='lanzador'){
+      const obj = pick(nivel===1 ? ['moneda','dado6'] : nivel===2 ? ['dado6','dado8','dado6'] : ['dado8','dado10','dado12']);
+      const caras = obj==='moneda' ? ['Cara','Sello'] : Array.from({length:parseInt(obj.slice(4),10)},(_,i)=>String(i+1));
+      e = { tipo, objeto:obj, caras, total:caras.length, pregunta:'Lanza y descubre: ¿cuántos resultados diferentes puede dar?',
+        pistas:['Lanza varias veces y mira cuántos resultados distintos van apareciendo.','Fíjate en las caras del objeto: cada cara es un resultado posible.','Puede que aún no hayan salido todos. ¿Cuántas caras tiene en total?'] };
+    } else { // palabra
+      const w = pick(nivel===2 ? PALABRAS_MEDIO : PALABRAS_DIF), letras = w.split('');
+      const dist = Array.from(new Set(letras)).length;
+      e = { tipo, palabra:w, items:conId(letras.map(l => ({ letra:l, color:'azul' }))), total:letras.length, distintas:dist,
+        pregunta:'Se elige al azar una letra de la palabra. ¿Cuántos resultados posibles hay?',
+        pistas:['Cada letra de la palabra es un resultado posible, aunque se repita.','Toca las letras una por una mientras las cuentas.','Las letras repetidas cuentan todas: cada una es una ficha distinta de la bolsa.'] };
+    }
+    e.nivel = nivel; e.sig = tipo+'|'+(e.total||'')+'|'+(e.items?e.items.map(i=>i.color+(i.forma||'')+(i.letra||'')).join(''):(e.sectores?JSON.stringify(e.sectores):'')) ;
+    return e;
+  }, prev && prev.sig);
+}
+
+/* ============ MISIÓN 2: casos favorables ============ */
+function genM2(nivel, prev){
+  const clases = nivel===1 ? ['colores','formas','animales'] : nivel===2 ? ['numeros','colores','animales','estrellas','numeros'] : ['compuestas','numeros','compuestas','estrellas'];
+  return antiRepetir(() => {
+    let clase = pick(clases); if(prev && prev.clase===clase && Math.random()<0.7) clase = pick(clases);
+    const b = bolsaConCond(clase, nivel);
+    const favIds = b.items.filter(i=>b.cond.fn(i)).map(i=>i.id);
+    const dif = clase==='compuestas' ? 'Revisa cada ficha con las dos características a la vez.' : 'Revisa ficha por ficha: ¿cumple lo que se pide?';
+    return { tipo:'favorables', nivel, clase, items:b.items, cond:b.cond, favIds, fav:b.fav, tot:b.tot,
+      pistas:[ '¿Todas las que seleccionaste cumplen la condición?', 'Falta alguna: recorre la bolsa de nuevo y fíjate en cada elemento.', dif ],
+      sig: clase+'|'+b.cond.clave+'|'+b.items.map(i=>(i.color||'')+(i.forma||'')+(i.num||'')+(i.animal||'')).join('') };
+  }, prev && prev.sig);
+}
+
+/* ============ MISIÓN 3: la máquina ============ */
+function genM3(nivel, prev){
+  return antiRepetir(() => {
+    if(nivel===3 && Math.random()<0.25){ // variante en texto: cápsulas por color
+      const k = rnd(2,3), cs = barajar(COLKEYS).slice(0,k), cnt = {}; cs.forEach(c => cnt[c] = rnd(1,6));
+      const items = []; cs.forEach(c => { for(let i=0;i<cnt[c];i++) items.push({color:c}); });
+      const its = conId(items), c = pick(cs), r = Math.random();
+      let cond;
+      if(r<0.35) cond = condColor(c,false); else if(r<0.7) cond = condColor(c,true);
+      else { const c2 = pick(cs.filter(x=>x!==c)); cond = { texto:'una ficha '+COL[c].f+' o '+COL[c2].f, fn:it=>it.color===c||it.color===c2, clave:'o'+c+c2 }; }
+      const fav = contar(its, cond.fn), tot = its.length;
+      if(fav>=1 && fav<tot && tot>=5) return mk3(nivel,'texto',its,cond,fav,tot,cnt);
+      return genM3(nivel, null);
+    }
+    let clase = nivel===1 ? pick(['colores','formas','animales','colores']) : nivel===2 ? pick(['colores','numeros','animales','formas','estrellas']) : pick(['compuestas','numeros','animales','estrellas','colores']);
+    const degenerado = nivel===3 && Math.random()<0.18;
+    if(degenerado){ // probabilidad 0 o 1: una condición imposible o segura
+      const n = rnd(6,10), items = bolsaColores(n, 3), usados = Array.from(new Set(items.map(i=>i.color)));
+      const ausente = COLKEYS.filter(c => usados.indexOf(c)<0)[0];
+      const cond = Math.random()<0.5 ? condColor(ausente,false) : condColor(ausente,true);
+      const fav = contar(items, cond.fn);
+      return mk3(nivel,'imagen',items,cond,fav,n,null);
+    }
+    const tot = nivel===1 ? [4,5,8,10,10,5] : null;
+    const b = bolsaConCond(clase, nivel===1?1:nivel, nivel===1 ? { totales:[4,5,8,10,2], minFav:1 } : {});
+    if(nivel===1 && [4,5,8,10,2].indexOf(b.tot)<0) return genM3(nivel, null);
+    return mk3(nivel,'imagen',b.items,b.cond,b.fav,b.tot,null);
+  }, prev && prev.sig);
+}
+function mk3(nivel, variante, items, cond, fav, tot, cnt){
+  const p = fav/tot, pt = probTxt(fav,tot);
+  return { tipo:'maquina', nivel, variante, items, cond, fav, tot, p, exacto:pt.exacto, cnt,
+    pistas:[ 'Primero cuenta cuántas fichas cumplen la condición (favorables) y cuántas hay en total.', 'La probabilidad es favorables : totales. Escribe el resultado como número decimal entre 0 y 1.', 'Piensa: ¿qué parte de todas las fichas son las favorables?' ],
+    sig:'m3|'+variante+'|'+cond.clave+'|'+fav+'/'+tot+'|'+items.map(i=>(i.color||'')+(i.forma||'')+(i.num||'')+(i.animal||'')).join('') };
+}
+/* ordenar bolsas de menos a más probable */
+function genOrdenar(nivel, prev){
+  return antiRepetir(() => {
+    const c = pick(COLKEYS), n = nivel===1 ? 3 : 4, bolsas = [];
+    for(let intento=0; intento<400 && bolsas.length<n; intento++){
+      const tot = rnd(4,nivel===1?8:10), fav = rnd(nivel===3?0:1, tot);
+      const p = fav/tot;
+      if(bolsas.every(b => Math.abs(b.p-p) >= 0.09)) bolsas.push({ tot, fav, p });
+    }
+    if(bolsas.length<n) return genOrdenar(nivel, null);
+    bolsas.forEach(b => { const otros = COLKEYS.filter(x=>x!==c); const it = []; for(let i=0;i<b.fav;i++) it.push({color:c}); for(let i=b.fav;i<b.tot;i++) it.push({color:pick(otros.slice(0,3))}); b.items = conId(barajar(it)); });
+    const cond = condColor(c,false);
+    return { tipo:'ordenar', nivel, color:c, cond, bolsas, orden: bolsas.map((b,i)=>i).sort((a,b)=>bolsas[a].p-bolsas[b].p),
+      pistas:['Compara qué parte de cada bolsa es del color pedido, no solo cuántas fichas hay.','Una bolsa con pocas fichas de ese color puede ser más probable que una con muchas.','Ordena de la menos probable (más cerca de 0) a la más probable (más cerca de 1).'],
+      sig:'ord|'+c+'|'+bolsas.map(b=>b.fav+'/'+b.tot).join(',') };
+  }, prev && prev.sig);
+}
+
+/* ============ contextos con etapas (misiones 4 y 5) ============ */
+const CH = { rojo:'#ef4444', azul:'#2563eb', verde:'#16a34a', amarillo:'#facc15', negro:'#374151', gris:'#94a3b8', blanco:'#f1f5f9', morado:'#9333ea', cafe:'#92400e', rosado:'#ec4899', naranja:'#fb923c', celeste:'#38bdf8' };
+const ops = lista => lista.map(x => typeof x==='string' ? { n:x, h:'#94a3b8' } : { n:x[0], h: x[1].charAt(0)==='#' ? x[1] : CH[x[1]], ck: x[1].charAt(0)==='#' ? null : x[1] });
+const FEM = { rojo:'roja', azul:'azul', verde:'verde', amarillo:'amarilla', negro:'negra', gris:'gris', blanco:'blanca', morado:'morada', cafe:'café', rosado:'rosada', naranja:'naranja', celeste:'celeste' };
+const MASC = { rojo:'rojo', azul:'azul', verde:'verde', amarillo:'amarillo', negro:'negro', gris:'gris', blanco:'blanco', morado:'morado', cafe:'café', rosado:'rosado', naranja:'naranja', celeste:'celeste' };
+const CTX = [
+  { id:'ropa', glifo:'👕', titulo:'Armario del explorador', cosa:['una prenda', FEM], verboAlMenos:'lleve',
+    etapas:[ { nombre:'polera', art:'la', pl:false, ops:ops([['roja','rojo'],['azul','azul'],['verde','verde'],['amarilla','amarillo']]) },
+             { nombre:'pantalón', art:'el', pl:false, ops:ops([['azul','azul'],['negro','negro'],['gris','gris'],['rojo','rojo']]) },
+             { nombre:'par de zapatillas', art:'el', pl:false, ops:ops([['blanco','blanco'],['rojo','rojo'],['verde','verde'],['negro','negro']]) } ] },
+  { id:'explorador', glifo:'🧭', titulo:'Equipo del explorador', cosa:['un objeto', MASC], verboAlMenos:'lleve',
+    etapas:[ { nombre:'casco', art:'el', pl:false, ops:ops([['rojo','rojo'],['azul','azul'],['verde','verde'],['amarillo','amarillo']]) },
+             { nombre:'bastón', art:'el', pl:false, ops:ops([['azul','azul'],['negro','negro'],['rojo','rojo'],['gris','gris']]) },
+             { nombre:'farol', art:'el', pl:false, ops:ops([['verde','verde'],['rojo','rojo'],['blanco','blanco'],['azul','azul']]) } ] },
+  { id:'helado', glifo:'🍦', titulo:'Heladería',
+    etapas:[ { nombre:'sabor', art:'el', pl:false, ops:ops([['vainilla','#fbbf24'],['chocolate','#92400e'],['frutilla','#f43f5e'],['limón','#84cc16']]) },
+             { nombre:'topping', art:'el', pl:false, ops:ops([['chispas','#a855f7'],['salsa','#0ea5e9'],['nueces','#b45309'],['coco','#e2e8f0']]) },
+             { nombre:'envase', art:'el', pl:false, ops:ops([['cono','#f97316'],['vasito','#14b8a6'],['barquillo','#ec4899']]) } ] },
+  { id:'menu', glifo:'🍽️', titulo:'Menú del día',
+    etapas:[ { nombre:'plato', art:'el', pl:false, ops:ops([['pizza','#ef4444'],['pasta','#f59e0b'],['ensalada','#22c55e'],['sándwich','#a16207']]) },
+             { nombre:'bebida', art:'la', pl:false, ops:ops([['jugo','#fb923c'],['agua','#38bdf8'],['té','#92400e']]) },
+             { nombre:'postre', art:'el', pl:false, ops:ops([['fruta','#e11d48'],['helado','#a78bfa'],['galleta','#ca8a04']]) } ] },
+  { id:'vehiculo', glifo:'🚀', titulo:'Hangar de vehículos',
+    etapas:[ { nombre:'vehículo', art:'el', pl:false, ops:ops([['moto','#64748b'],['auto','#0ea5e9'],['bicicleta','#22c55e'],['patineta','#e879f9']]) },
+             { nombre:'color', art:'el', pl:false, ops:ops([['rojo','rojo'],['azul','azul'],['verde','verde'],['amarillo','amarillo']]) },
+             { nombre:'casco', art:'el', pl:false, ops:ops([['negro','negro'],['blanco','blanco'],['rojo','rojo']]) } ] },
+  { id:'fantasticos', glifo:'🐉', titulo:'Animales fantásticos',
+    etapas:[ { nombre:'cuerpo', art:'el', pl:false, ops:ops([['dragón','#16a34a'],['fénix','#ef4444'],['lobo','#64748b'],['unicornio','#e879f9']]) },
+             { nombre:'poder', art:'el', pl:false, ops:ops([['fuego','#f97316'],['hielo','#38bdf8'],['rayo','#facc15'],['viento','#a7f3d0']]) },
+             { nombre:'tamaño', art:'el', pl:false, ops:ops([['pequeño','#c084fc'],['mediano','#60a5fa'],['gigante','#f472b6']]) } ] },
+  { id:'nave', glifo:'🛸', titulo:'Taller de naves',
+    etapas:[ { nombre:'motor', art:'el', pl:false, ops:ops([['iónico','#38bdf8'],['solar','#facc15'],['nuclear','#22c55e']]) },
+             { nombre:'escudo', art:'el', pl:false, ops:ops([['doble','#a78bfa'],['simple','#94a3b8'],['reflectante','#f472b6'],['térmico','#fb923c']]) },
+             { nombre:'láser', art:'el', pl:false, ops:ops([['corto','#ef4444'],['largo','#22d3ee']]) } ] },
+  { id:'monedas', glifo:'🪙', titulo:'Lanzamiento de monedas', iguales:true, alMenosFmt: n => 'salga al menos una '+n.toLowerCase(),
+    etapas:[ { nombre:'primera moneda', art:'la', pl:false, ops:ops([['cara','#f59e0b'],['sello','#94a3b8']]) },
+             { nombre:'segunda moneda', art:'la', pl:false, ops:ops([['cara','#f59e0b'],['sello','#94a3b8']]) },
+             { nombre:'tercera moneda', art:'la', pl:false, ops:ops([['cara','#f59e0b'],['sello','#94a3b8']]) } ] },
+  { id:'codigo', glifo:'🔐', titulo:'Código secreto', iguales:true, alMenosFmt: n => 'el código tenga al menos un '+n,
+    etapas:[ { nombre:'primer dígito', art:'el', pl:false, ops:ops([['1','#ef4444'],['2','#2563eb'],['3','#16a34a'],['4','#9333ea']]) },
+             { nombre:'segundo dígito', art:'el', pl:false, ops:ops([['1','#ef4444'],['2','#2563eb'],['3','#16a34a'],['4','#9333ea']]) },
+             { nombre:'tercer dígito', art:'el', pl:false, ops:ops([['1','#ef4444'],['2','#2563eb'],['3','#16a34a'],['4','#9333ea']]) } ] }
+];
+
+/* arma k etapas de un contexto con cantidades de opciones tales que el total quede en [minT,maxT] */
+function armarEtapas(ctx, k, minT, maxT){
+  for(let intento=0; intento<400; intento++){
+    const base = ctx.iguales ? ctx.etapas.slice(0,k) : barajar(ctx.etapas).slice(0,k);
+    if(base.length<k) return null;
+    let sub = null;
+    const cant = base.map(s => rnd(2, Math.min(4, s.ops.length)));
+    if(ctx.iguales){ const c = rnd(2, Math.min(4, base[0].ops.length)); for(let i=0;i<k;i++) cant[i]=c; sub = barajar(base[0].ops).slice(0,c); }
+    const tot = cant.reduce((a,b)=>a*b,1);
+    if(tot<minT || tot>maxT) continue;
+    return base.map((s,i) => Object.assign({}, s, { ops: ctx.iguales ? sub.slice() : barajar(s.ops).slice(0,cant[i]) }));
+  }
+  return null;
+}
+/* todas las combinaciones (cada una: arreglo de índices de opción por etapa) */
+function caminos(etapas){ let r=[[]]; etapas.forEach(e => { const n=[]; r.forEach(p => e.ops.forEach((o,i) => n.push(p.concat(i)))); r=n; }); return r; }
+const producto = etapas => etapas.reduce((a,e)=>a*e.ops.length,1);
+
+/* ============ MISIÓN 4: caminos del azar (principio multiplicativo) ============ */
+function genM4(nivel, prev){
+  return antiRepetir(() => {
+    let tipo, k, minT, maxT;
+    if(nivel===1){ tipo = pick(['construir','arbol']); k=2; minT=4; maxT=12; }
+    else if(nivel===2){ tipo = pick(['construir','arbol','producto','arbol']); if(tipo==='construir'){ k=3; minT=8; maxT=12; } else if(tipo==='arbol'){ k=3; minT=8; maxT=18; } else { k=2; minT=9; maxT=16; } }
+    else { tipo = pick(['arbol','producto','producto']); if(tipo==='arbol'){ k=3; minT=16; maxT=24; } else { k=3; minT=18; maxT=64; } }
+    let ctxs = CTX.filter(c => !(prev && prev.ctxId===c.id));
+    if(tipo==='producto' && nivel===3 && Math.random()<0.5) return producto4(nivel, prev);
+    for(let i=0;i<60;i++){
+      const ctx = pick(ctxs), et = armarEtapas(ctx, k, minT, maxT);
+      if(!et) continue;
+      const total = producto(et), cs = caminos(et);
+      if(cs.length !== total) throw new Error('caminos != producto');
+      return { tipo, nivel, ctxId:ctx.id, ctx, etapas:et, total, caminos:cs,
+        pistas: tipo==='construir' ? ['Organízate: elige una opción de la primera etapa y combínala con todas las de la siguiente.','Cada opción de una etapa se combina con todas las de la otra. ¿Las probaste todas?','Mira el árbol: cada rama que sale es un camino distinto.']
+               : tipo==='arbol' ? ['Cuenta las puntas del árbol: cada punta es una combinación distinta.','Cada opción de la primera etapa se divide en tantas ramas como opciones haya en la segunda.','Para el total, multiplica las opciones de cada etapa.']
+               : ['Fíjate cuántas opciones hay en cada etapa.','Cada opción de una etapa se combina con todas las de la siguiente: multiplica.','Multiplica las opciones etapa por etapa.'],
+        sig:'m4|'+tipo+'|'+ctx.id+'|'+et.map(e=>e.nombre+e.ops.map(o=>o.n).join('.')).join('/') };
+    }
+    return genM4(nivel, null);
+  }, prev && prev.sig);
+}
+/* problemas con dados y códigos grandes (sin árbol completo): cada etapa con su número de opciones */
+function producto4(nivel, prev){
+  const lista = [
+    { id:'dados2', glifo:'🎲', titulo:'Dos dados', etapas:[{nombre:'primer dado', art:'el', n:6},{nombre:'segundo dado', art:'el', n:6}] },
+    { id:'dados3', glifo:'🎲', titulo:'Tres dados de 4 caras', etapas:[{nombre:'primer dado', art:'el', n:4},{nombre:'segundo dado', art:'el', n:4},{nombre:'tercer dado', art:'el', n:4}] },
+    { id:'dadomoneda', glifo:'🎲', titulo:'Un dado y una moneda', etapas:[{nombre:'dado', art:'el', n:6},{nombre:'moneda', art:'la', n:2}] },
+    { id:'codigo5', glifo:'🔐', titulo:'Código con dígitos del 1 al 5', etapas:[{nombre:'primer dígito', art:'el', n:5},{nombre:'segundo dígito', art:'el', n:5},{nombre:'tercer dígito', art:'el', n:5}] },
+    { id:'candado', glifo:'🔒', titulo:'Candado de 3 ruedas (dígitos 0–9)', etapas:[{nombre:'primera rueda', art:'la', n:10},{nombre:'segunda rueda', art:'la', n:10},{nombre:'tercera rueda', art:'la', n:10}] },
+    { id:'patente', glifo:'🚗', titulo:'Patente: 2 letras (A–E) y 1 dígito (1–6)', etapas:[{nombre:'primera letra', art:'la', n:5},{nombre:'segunda letra', art:'la', n:5},{nombre:'dígito', art:'el', n:6}] },
+    { id:'menu4', glifo:'🍽️', titulo:'Menú con 4 platos, 3 bebidas y 3 postres', etapas:[{nombre:'plato', art:'el', n:4},{nombre:'bebida', art:'la', n:3},{nombre:'postre', art:'el', n:3}] }
+  ].filter(c => !(prev && prev.ctxId===c.id));
+  const c = pick(lista), total = c.etapas.reduce((a,e)=>a*e.n,1);
+  return { tipo:'producto', nivel, ctxId:c.id, ctx:c, etapas:c.etapas, total, grande:true,
+    pistas:['Fíjate cuántas opciones hay en cada etapa.','Cada opción de una etapa se combina con todas las de la siguiente: multiplica.','Multiplica las opciones etapa por etapa.'], sig:'m4g|'+c.id };
+}
+
+/* ============ MISIÓN 5: probabilidades combinadas ============ */
+const sea = e => e.pl ? 'sean' : 'sea';
+function eventoFn(tipo, a){ // devuelve {texto, fn(camino)}
+  const E = a.etapas;
+  if(tipo==='una'){ const k=a.k, o=a.o; return { texto:'que '+E[k].art+' '+E[k].nombre+' '+sea(E[k])+' '+E[k].ops[o].n, fn:p=>p[k]===o }; }
+  if(tipo==='ambas'){ const [i,j]=a.ks, [o1,o2]=a.os; return { texto:'que '+E[i].art+' '+E[i].nombre+' '+sea(E[i])+' '+E[i].ops[o1].n+' y '+E[j].art+' '+E[j].nombre+' '+sea(E[j])+' '+E[j].ops[o2].n, fn:p=>p[i]===o1 && p[j]===o2 }; }
+  if(tipo==='no'){ const k=a.k, o=a.o; return { texto:'que '+E[k].art+' '+E[k].nombre+' no '+sea(E[k])+' '+E[k].ops[o].n, fn:p=>p[k]!==o }; }
+  if(tipo==='o'){ const [i,j]=a.ks, [o1,o2]=a.os; return { texto:'que '+E[i].art+' '+E[i].nombre+' '+sea(E[i])+' '+E[i].ops[o1].n+' o '+E[j].art+' '+E[j].nombre+' '+sea(E[j])+' '+E[j].ops[o2].n+' (vale cumplir una o las dos)', fn:p=>p[i]===o1 || p[j]===o2 }; }
+  if(tipo==='alMenosColor'){ const ck=a.ck, ctx=a.ctx; return { texto:'que '+ctx.verboAlMenos+' al menos '+ctx.cosa[0]+' '+ctx.cosa[1][ck], fn:p=>p.some((o,i)=>E[i].ops[o].ck===ck) }; }
+  if(tipo==='alMenosIgual'){ const n=a.n, ctx=a.ctx; return { texto:'que '+ctx.alMenosFmt(E[0].ops[n].n), fn:p=>p.some((o,i)=>o===n) }; }
+}
+function genM5(nivel, prev){
+  return antiRepetir(() => {
+    for(let intento=0; intento<200; intento++){
+      const k = nivel===3 ? 3 : 2, ctx = pick(CTX.filter(c => !(prev && prev.ctxId===c.id)));
+      const et = armarEtapas(ctx, k, nivel===3 ? 8 : 4, nivel===3 ? 18 : 12); if(!et) continue;
+      const tipos = nivel===1 ? ['ambas','una','una','ambas'] : nivel===2 ? ['no','o','alMenos','una','alMenos'] : ['una','ambas','no','o','alMenos','una'];
+      let tipo = pick(tipos), ev;
+      const idx = Array.from({length:k},(_,i)=>i);
+      if(tipo==='una' || tipo==='no'){ const kk = pick(idx); ev = eventoFn(tipo, { etapas:et, k:kk, o:rnd(0,et[kk].ops.length-1) }); }
+      else if(tipo==='ambas' || tipo==='o'){ const ks = barajar(idx).slice(0,2).sort(); ev = eventoFn(tipo, { etapas:et, ks, os:[rnd(0,et[ks[0]].ops.length-1), rnd(0,et[ks[1]].ops.length-1)] }); }
+      else { // alMenos
+        if(ctx.iguales){ ev = eventoFn('alMenosIgual', { etapas:et, ctx, n:rnd(0,et[0].ops.length-1) }); }
+        else if(ctx.cosa){ const cnt={}; et.forEach(e => e.ops.forEach(o => { if(o.ck) cnt[o.ck] = (cnt[o.ck]||new Set()).add(e.nombre); }));
+          const cks = Object.keys(cnt).filter(c => cnt[c].size>=2); if(!cks.length) continue; ev = eventoFn('alMenosColor', { etapas:et, ctx, ck:pick(cks) }); }
+        else continue;
+      }
+      const cs = caminos(et), fav = cs.filter(ev.fn), tot = cs.length;
+      if(fav.length<1 || fav.length>=tot) continue;
+      if(nivel===1 && tipo==='una' && fav.length===tot) continue;
+      return { tipo:'combinada', nivel, ctxId:ctx.id, ctx, etapas:et, evento:ev, caminos:cs, favIdx:cs.map((p,i)=>ev.fn(p)?i:-1).filter(i=>i>=0), fav:fav.length, tot, p:fav.length/tot, exacto:exacto(fav.length,tot),
+        pistas:['Recorre el árbol camino por camino: marca solo los que cumplen lo que se pide.','Los casos totales son todos los caminos del árbol. ¿Cómo se calcula con las etapas?','La probabilidad es favorables : totales. Escríbela como decimal entre 0 y 1.'],
+        sig:'m5|'+ctx.id+'|'+ev.texto+'|'+et.map(e=>e.ops.map(o=>o.n).join('.')).join('/') };
+    }
+    throw new Error('no se pudo generar M5');
+  }, prev && prev.sig);
+}
+
+return { rnd, pick, barajar, mcd, r3, exacto, fmt, probTxt, parseNum, evalProb, interp, COL, COLKEYS, FORMAS, FORMAKEYS, ANIMALES, CTX, FEM, MASC,
+  genM1, genM2, genM3, genOrdenar, genM4, genM5, caminos, producto, contar, armarEtapas };
+})();
+
+</script>
+<script>
+/* ================= INTERFAZ DE AZAR ================= */
+window.mvExito = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){} };
+window.mvFallo = function(){ try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} };
+const RECURSO = 'azar';
+let AlumnoActual = null;
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre) AlumnoActual=_g; }catch(e){}
+function reportar(peso){ if(AlumnoActual && typeof window.reportarProgresoPractica==='function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, RECURSO, 1, 0, peso); }catch(e){} } }
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; }, RECURSO);
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+if(AlumnoActual) iniciarHeartbeatTiempo();
+const $ = id => document.getElementById(id);
+const M = AZMotor, rnd = M.rnd, pick = M.pick;
+function pantalla(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active'); document.body.classList.toggle('en-juego', id==='screen-juego'); window.scrollTo(0,0);
+}
+const NOMBRES = {1:'Posibilidades',2:'Casos favorables',3:'La máquina de probabilidad',4:'Caminos del azar',5:'Probabilidades combinadas',6:'Laboratorio libre'};
+const PESO = {1:3,2:4,3:6,4:5,5:7,6:5};
+const S = { mision:0, niv:1, ej:null, prev:{}, pistaN:0, aciertos:0, done:false, sel:new Set(), marks:[], fase:0 };
+const F = {}; let ACT = null;
+
+/* ---------- utilidades visuales ---------- */
+function oscuro(h){ const n=parseInt(h.slice(1),16); const f=.42; const r=Math.round(((n>>16)&255)*f), g=Math.round(((n>>8)&255)*f), b=Math.round((n&255)*f); return 'rgb('+r+','+g+','+b+')'; }
+const cv = h => '--c:'+h+';--cd:'+oscuro(h);
+const hexC = c => M.COL[c] ? M.COL[c].h : '#94a3b8';
+const ICO_OK = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#10b981"/><path d="M6.5 12.5l4 4 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICO_X = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#f43f5e"/><path d="M8 8l8 8M16 8l-8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+function msg(tipo, t){ const m=$('msg'); m.className='msg '+tipo; m.innerHTML = (tipo==='bien'?ICO_OK:tipo==='mal'?ICO_X:'')+'<span>'+t+'</span>'; }
+function limpiarMsg(){ const m=$('msg'); m.className='msg'; m.innerHTML=''; }
+const setEnun = h => { $('enun').innerHTML = h; };
+const setStage = h => { const s=$('stage'); s.className=''; s.innerHTML=h; };
+function formaSVG(f,c){ const h=hexC(c), st='stroke="rgba(10,4,32,.7)" stroke-width="4" stroke-linejoin="round"';
+  const P = { triangulo:'<polygon points="50,10 92,86 8,86" fill="'+h+'" '+st+'/>', cuadrado:'<rect x="14" y="14" width="72" height="72" rx="8" fill="'+h+'" '+st+'/>',
+    circulo:'<circle cx="50" cy="50" r="40" fill="'+h+'" '+st+'/>', rombo:'<polygon points="50,6 94,50 50,94 6,50" fill="'+h+'" '+st+'/>',
+    estrella:'<polygon points="50,6 62,38 95,38 68,58 78,92 50,72 22,92 32,58 5,38 38,38" fill="'+h+'" '+st+'/>' };
+  return '<svg viewBox="0 0 100 100">'+P[f]+'</svg>'; }
+function fichaHTML(it){
+  if(it.forma) return formaSVG(it.forma, it.color);
+  if(it.animal) return '<span class="emo">'+it.animal+'</span>';
+  if(it.letra) return '<span class="tile">'+it.letra+'</span>';
+  const h = hexC(it.color);
+  let txt = ''; if(it.num!=null) txt = it.num; else if(it.estrella) txt = '★';
+  return '<span class="esf" style="'+cv(h)+'">'+txt+'</span>';
+}
+function bolsaHTML(items, opt){ opt=opt||{};
+  return '<div class="bolsa" '+(opt.id?'id="'+opt.id+'"':'')+'>'+items.map(it => '<button type="button" class="it-btn" data-i="'+it.id+'"'+(opt.fijo?' disabled':'')+'>'+fichaHTML(it)+'</button>').join('')+'</div>'; }
+function tamBolsa(el, n, reservaH, maxS){
+  const st = $('stage'); const W = Math.max(120, st.clientWidth-24), H = Math.max(60, st.clientHeight - (reservaH||0) - 24);
+  let s = Math.floor(Math.sqrt(W*H/Math.max(1,n)*0.7)) - 6; s = Math.max(30, Math.min(maxS||124, s));
+  el.style.setProperty('--s', s+'px'); el.style.setProperty('--g', Math.max(4,Math.round(s*.1))+'px');
+}
+function pc(a,b){ return a.map(x=>x) }
+
+/* ---------- ruedas (ruletas) ---------- */
+function arco(cx,cy,r,a0,a1){ const x0=cx+r*Math.cos(a0), y0=cy+r*Math.sin(a0), x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1); const gr = (a1-a0)>Math.PI?1:0;
+  return 'M'+cx+','+cy+' L'+x0.toFixed(2)+','+y0.toFixed(2)+' A'+r+','+r+' 0 '+gr+' 1 '+x1.toFixed(2)+','+y1.toFixed(2)+' Z'; }
+function ruedaSVG(sectores, opt){ opt=opt||{};
+  const tot = sectores.reduce((s,x)=>s+(x.w||1),0); let a=-Math.PI/2, out='';
+  sectores.forEach((sc,i)=>{ const w=(sc.w||1)/tot*2*Math.PI; const a1=a+w;
+    const h = sc.color ? hexC(sc.color) : '#475569';
+    if(sectores.length===1){ out += '<circle cx="50" cy="50" r="46" fill="'+h+'" data-i="'+i+'" style="stroke:rgba(15,5,40,.75);stroke-width:1.2"/>'; }
+    else out += '<path d="'+arco(50,50,46,a,a1)+'" fill="'+h+'" data-i="'+i+'"/>';
+    const m=(a+a1)/2; const mk = opt.marks && opt.marks.indexOf(i)>=0;
+    if(mk) out += '<text x="'+(50+28*Math.cos(m)).toFixed(1)+'" y="'+(50+28*Math.sin(m)+4).toFixed(1)+'" text-anchor="middle">'+(opt.marks.indexOf(i)+1)+'</text>';
+    a=a1; });
+  return '<svg class="rueda" viewBox="0 0 100 100">'+out+'<circle cx="50" cy="50" r="5" fill="#fff" stroke="rgba(15,5,40,.7)"/>'+(opt.puntero?'<g id="pun" style="transform-origin:50px 50px"><path d="M50 50 L46 4 L54 4 Z" fill="#fff" stroke="#1e1147" stroke-width="1.5"/></g>':'')+'</svg>'; }
+function dadoSVG(n, caras){ // n = cara visible (número o texto)
+  if(caras===2){ const c = n==='Cara'; return '<svg class="dado" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="'+(c?'#f59e0b':'#94a3b8')+'" stroke="rgba(10,4,32,.7)" stroke-width="4"/><text x="50" y="62" font-size="30" font-weight="800" text-anchor="middle" fill="#fff" font-family="Baloo 2,sans-serif" stroke="rgba(10,4,32,.5)" stroke-width="1.5">'+(n==='?'?'?':(c?'Cara':'Sello'))+'</text></svg>'; }
+  const pips = { 1:[[50,50]], 2:[[30,30],[70,70]], 3:[[28,28],[50,50],[72,72]], 4:[[30,30],[70,30],[30,70],[70,70]], 5:[[30,30],[70,30],[50,50],[30,70],[70,70]], 6:[[30,28],[70,28],[30,50],[70,50],[30,72],[70,72]] };
+  if(caras===6 && pips[n]) return '<svg class="dado" viewBox="0 0 100 100"><rect x="8" y="8" width="84" height="84" rx="18" fill="#f8fafc" stroke="rgba(10,4,32,.7)" stroke-width="4"/>'+pips[n].map(p=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="8" fill="#1e1147"/>').join('')+'</svg>';
+  return '<svg class="dado" viewBox="0 0 100 100"><polygon points="50,6 92,32 92,68 50,94 8,68 8,32" fill="#8b5cf6" stroke="rgba(10,4,32,.7)" stroke-width="4" stroke-linejoin="round"/><text x="50" y="62" font-size="34" font-weight="800" text-anchor="middle" fill="#fff" font-family="Baloo 2,sans-serif">'+n+'</text></svg>';
+}
+
+/* ---------- campos y teclado ---------- */
+function caja(id, o){ o=o||{}; return '<span class="caja'+(o.fijo?' fijo':'')+'" data-f="'+id+'" data-dec="'+(o.dec?1:0)+'"'+(o.fijo?'':' tabindex="0"')+'>'+(o.fijo!=null && o.fijo!==false && o.fijo!==true ? o.fijo : '')+'</span>'; }
+function iniCampos(preferido){
+  Object.keys(F).forEach(k=>delete F[k]);
+  document.querySelectorAll('#campos .caja[data-f]').forEach(el => { const id=el.dataset.f; if(el.classList.contains('fijo')){ F[id]={el, v:el.textContent, fijo:true}; return; }
+    F[id]={el, v:'', dec:el.dataset.dec==='1'}; el.addEventListener('click', ()=>activar(id)); });
+  const libres = Object.keys(F).filter(k=>!F[k].fijo);
+  const usaT = libres.length>0;
+  construirTeclado(usaT, libres.some(k=>F[k].dec));
+  activar(preferido && F[preferido] ? preferido : libres[0]);
+}
+function activar(id){ ACT = id||null; Object.keys(F).forEach(k => F[k].el.classList.toggle('act', k===id && !F[k].fijo)); }
+function setVal(id,v){ const f=F[id]; if(!f) return; f.v=v; f.el.textContent=v; f.el.classList.remove('bad'); }
+function val(id){ const f=F[id]; return f?f.v:''; }
+function entero(id){ const v=val(id); return /^\d+$/.test(v) ? parseInt(v,10) : NaN; }
+function teclear(k){
+  if(S.done || !ACT || !F[ACT] || F[ACT].fijo) return; const f=F[ACT]; let v=f.v;
+  if(k==='del'){ v=v.slice(0,-1); }
+  else if(k===','){ if(!f.dec || v.indexOf(',')>=0) return; v = (v===''?'0':v)+','; }
+  else { if(v.indexOf(',')>=0){ if(v.split(',')[1].length>=3) return; } else if(v.length>=(f.dec?2:3)) return; if(v==='0' && !f.dec) v=''; v+=k; }
+  setVal(ACT,v);
+}
+function construirTeclado(mostrar, dec){
+  const t=$('teclado'); if(!mostrar){ t.innerHTML=''; t.classList.add('hidden'); return; }
+  t.classList.remove('hidden');
+  let h=''; '1234567890'.split('').forEach(d => h+='<button type="button" class="k" data-k="'+d+'">'+d+'</button>');
+  h += dec ? '<button type="button" class="k coma" data-k=",">,</button>' : '<button type="button" class="k" style="visibility:hidden" tabindex="-1"></button>';
+  h += '<button type="button" class="k del" data-k="del" aria-label="Borrar">⌫</button>';
+  t.innerHTML=h;
+}
+$('teclado').addEventListener('click', e => { const b=e.target.closest('.k'); if(b && b.dataset.k) teclear(b.dataset.k); });
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(e.key==='Enter'){ if(!$('screen-juego').classList.contains('active')) return; if(e.repeat) return;
+    const b = !$('bSig').classList.contains('hidden') ? $('bSig') : $('bOk'); if(b.disabled) return; e.preventDefault(); b.click(); return; }
+  if(!$('screen-juego').classList.contains('active')) return;
+  if(/^\d$/.test(e.key)) { teclear(e.key); }
+  else if(e.key===','||e.key==='.') { teclear(','); e.preventDefault(); }
+  else if(e.key==='Backspace'){ teclear('del'); e.preventDefault(); }
+  else if(e.key==='Tab' && ACT){ const ids=Object.keys(F).filter(k=>!F[k].fijo); const i=ids.indexOf(ACT); if(ids.length>1){ e.preventDefault(); activar(ids[(i+(e.shiftKey?ids.length-1:1))%ids.length]); } }
+});
+function malCampo(id){ if(F[id]){ F[id].el.classList.add('bad'); F[id].el.classList.add('shake'); setTimeout(()=>F[id].el.classList.remove('shake'),400); } }
+function okCampo(id){ if(F[id]) F[id].el.classList.add('lleno'); }
+
+/* ---------- control general ---------- */
+function irMision(m){ S.mision=m; if(m===6){ abrir(1); } else { $('nivTitulo').textContent = NOMBRES[m]; pantalla('screen-niv'); } }
+function abrir(n){ S.niv=n; S.aciertos=0; S.prev={}; pantalla('screen-juego'); nuevo(); }
+const CORTO = {1:'Posibilidades',2:'Favorables',3:'La máquina',4:'Caminos',5:'Combinadas',6:'Laboratorio'};
+function chips(){ $('chips').innerHTML = '<span class="chip">'+CORTO[S.mision]+(S.mision===6?'':' · '+['','Fácil','Medio','Difícil'][S.niv])+'</span><span class="chip">Aciertos: '+S.aciertos+'</span>'; }
+function acierto(){
+  S.done=true; S.aciertos++; chips(); $('stage').className='ok'; $('bOk').disabled=true; $('bSig').classList.remove('hidden'); $('bOk').classList.add('hidden');
+  reportar(PESO[S.mision]); try{ window.mvExito(); }catch(e){}
+}
+function fallo(t, campo){ msg('mal', t); const s=$('stage'); s.classList.remove('ok'); s.classList.add('bad'); setTimeout(()=>s.classList.remove('bad'),700); if(campo) [].concat(campo).forEach(malCampo); try{ window.mvFallo(); }catch(e){} }
+function pista(){ const e=S.ej; if(!e||!e.pistas) { msg('pista','Observa con calma y vuelve a intentarlo.'); return; } msg('pista', e.pistas[Math.min(S.pistaN++, e.pistas.length-1)]); }
+function nuevo(){
+  S.done=false; S.pistaN=0; S.sel=new Set(); S.marks=[]; S.fase=0; limpiarMsg(); $('bOk').disabled=false; $('bOk').classList.remove('hidden'); $('bSig').classList.add('hidden'); $('bPista').classList.remove('hidden'); $('campos').innerHTML=''; iniCampos(); chips();
+  const m=S.mision, nv=S.niv; let e;
+  if(m===1) e=M.genM1(nv,S.prev[1]); else if(m===2) e=M.genM2(nv,S.prev[2]);
+  else if(m===3){ e = Math.random()<(nv===1?0.12:0.22) ? M.genOrdenar(nv,S.prev[3]) : M.genM3(nv,S.prev[3]); }
+  else if(m===4) e=M.genM4(nv,S.prev[4]); else if(m===5) e=M.genM5(nv,S.prev[5]); else e=null;
+  S.ej=e; S.prev[m]=e;
+  if(m===1) r1(e); else if(m===2) r2(e); else if(m===3) (e.tipo==='ordenar'?rOrd(e):r3(e)); else if(m===4) r4(e); else if(m===5) r5(e); else r6();
+  refrescarTam();
+}
+function refrescarTam(){ const b=document.querySelector('#stage .bolsa[data-auto]'); if(b) tamBolsa(b, b.children.length, +(b.dataset.res||0)); }
+window.addEventListener('resize', ()=>{ if($('screen-juego').classList.contains('active')) refrescarTam(); });
+$('bPista').addEventListener('click', pista);
+$('bOk').addEventListener('click', ()=>{ if(!S.done) comprobar(); });
+$('bSig').addEventListener('click', nuevo);
+$('btn-back').addEventListener('click', ()=>{ if(S.mision===6) pantalla('screen-home'); else pantalla('screen-niv'); });
+function marcarToggle(el, id){ // marca numerada
+  const i=S.marks.indexOf(id); if(i>=0) S.marks.splice(i,1); else S.marks.push(id);
+  document.querySelectorAll('#stage .it-btn[data-i]').forEach(b => { const k=S.marks.indexOf(+b.dataset.i); b.classList.toggle('on', k>=0); const nb=b.querySelector('.nb'); if(nb) nb.remove(); if(k>=0) b.insertAdjacentHTML('beforeend','<i class="nb">'+(k+1)+'</i>'); });
+}
+function enlazarMarcas(){ document.querySelectorAll('#stage .it-btn').forEach(b => b.addEventListener('click', ()=>{ if(!S.done) marcarToggle(b, +b.dataset.i); })); }
+function enlazarSel(){ document.querySelectorAll('#stage .it-btn').forEach(b => b.addEventListener('click', ()=>{ if(S.done) return; const i=+b.dataset.i; if(S.sel.has(i)) S.sel.delete(i); else S.sel.add(i); b.classList.toggle('on'); b.classList.remove('bad'); })); }
+function totalCampo(tit){ return '<div class="frase"><span>'+tit+'</span>'+caja('tot')+'</div>'; }
+
+/* ================= MISIÓN 1 ================= */
+function r1(e){
+  setEnun(e.pregunta);
+  if(e.tipo==='contar' || e.tipo==='palabra'){
+    if(e.tipo==='palabra') setEnun('Se elige al azar una letra de la palabra <b>'+e.palabra+'</b>. ¿Cuántos resultados posibles hay?');
+    setStage(bolsaHTML(e.items)); const b=document.querySelector('#stage .bolsa'); b.dataset.auto=1; b.dataset.res=0; enlazarMarcas();
+    $('campos').innerHTML = totalCampo('Total:'); iniCampos();
+  } else if(e.tipo==='grupos'){
+    setStage(bolsaHTML(e.items)); const b=document.querySelector('#stage .bolsa'); b.dataset.auto=1; b.dataset.res=0;
+    $('campos').innerHTML = '<div class="frase">'+e.colores.map(c=>'<span><span class="pto" style="'+cv(hexC(c))+'"></span> '+caja('c_'+c)+'</span>').join('')+'<span class="sep">Total</span>'+caja('tot')+'</div>'; iniCampos();
+  } else if(e.tipo==='sectores'){
+    setStage('<div class="rw">'+ruedaSVG(e.sectores.map(c=>({color:c})),{marks:S.marks})+'</div>');
+    r1sec(e);
+    $('campos').innerHTML = totalCampo('Total de resultados:'); iniCampos();
+  } else if(e.tipo==='lanzador'){
+    S.lan = { vistos:[], ult:'?' };
+    setStage('<div id="dadoBox" style="display:flex;flex-direction:column;align-items:center;gap:8px">'+dadoSVG('?',e.caras.length===2?2:(e.caras.length===6?6:e.caras.length))+'<button type="button" class="lanz" id="bLanz">Lanzar</button><div class="hist" id="hist"><span style="opacity:.6">Aún no has lanzado</span></div></div>');
+    $('bLanz').addEventListener('click', lanzar);
+    $('campos').innerHTML = totalCampo('Resultados diferentes:'); iniCampos();
+  } else if(e.tipo==='justa'){
+    setStage('<div class="ruedas3">'+e.ruletas.map((r,i)=>'<button type="button" class="opc" data-r="'+i+'">'+ruedaSVG(r.sectores)+'</button>').join('')+'</div>');
+    document.querySelectorAll('#stage .opc').forEach(b => b.addEventListener('click', ()=>{ if(S.done) return; const i=+b.dataset.r; if(i===e.correcta){ b.classList.add('buena'); msg('bien','¡Sí! Todos los resultados son igualmente posibles.'); acierto(); } else { b.classList.add('mala'); fallo('En esa ruleta hay sectores de distinto tamaño. Prueba con otra.'); } }));
+    $('bOk').classList.add('hidden'); $('campos').innerHTML=''; iniCampos();
+  }
+}
+function r1sec(e){ document.querySelectorAll('#stage .rueda [data-i]').forEach(p => p.addEventListener('click', ()=>{ if(S.done) return; const i=+p.dataset.i; const k=S.marks.indexOf(i); if(k>=0) S.marks.splice(k,1); else S.marks.push(i); $('stage').firstChild.innerHTML=ruedaSVG(e.sectores.map(c=>({color:c})),{marks:S.marks}); r1sec(e); })); }
+function lanzar(){
+  const e=S.ej, L=S.lan; const cara = pick(e.caras); L.ult=cara; if(L.vistos.indexOf(cara)<0) L.vistos.push(cara);
+  const box=$('dadoBox'); box.querySelector('svg').outerHTML = dadoSVG(cara, e.caras.length===2?2:(e.caras.length===6?6:e.caras.length));
+  $('hist').innerHTML = '<span style="opacity:.8">Han salido:</span>'+L.vistos.slice().sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true})).map(v=>'<span class="h">'+v+'</span>').join('');
+}
+function comprobar1(){
+  const e=S.ej;
+  if(e.tipo==='grupos'){
+    let malos=[]; e.colores.forEach(c => { if(entero('c_'+c)===e.porColor[c]) okCampo('c_'+c); else malos.push('c_'+c); });
+    if(malos.length) return fallo('Revisa el conteo de algún color. Cuenta un color a la vez.', malos);
+    if(entero('tot')!==e.total) return fallo('Cada color está bien. Ahora suma todos para el total.','tot');
+    okCampo('tot'); msg('bien','¡Muy bien! En total hay '+e.total+' resultados posibles.'); return acierto();
+  }
+  const v=entero('tot'); if(isNaN(v)) return fallo('Escribe cuántos hay en total.','tot');
+  if(v===e.total){ okCampo('tot'); msg('bien','¡Correcto! Hay '+e.total+' resultados posibles.'); return acierto(); }
+  if(e.tipo==='lanzador') return fallo(v<e.total?'Todavía pueden salir más resultados. Sigue lanzando y observa las caras.':'Es menos. Cuenta las caras del objeto.','tot');
+  fallo(v<e.total?'Te falta contar alguno. Marca cada uno al contarlo.':'Contaste de más. Revisa que no repitas.','tot');
+}
+
+/* ================= MISIÓN 2 ================= */
+function r2(e){
+  setEnun('Toca <b>todas</b> las fichas que sean <b>'+e.cond.texto+'</b>.');
+  setStage(bolsaHTML(e.items)+'<div class="chips" id="cuentas" style="min-height:30px"></div>'); const b=document.querySelector('#stage .bolsa'); b.dataset.auto=1; b.dataset.res=44; enlazarSel();
+  $('campos').innerHTML=''; iniCampos();
+}
+function comprobar2(){
+  const e=S.ej; const fav=new Set(e.favIds); let extra=0, falta=0;
+  document.querySelectorAll('#stage .it-btn').forEach(b => { const i=+b.dataset.i; const s=S.sel.has(i); if(s && !fav.has(i)){ extra++; b.classList.add('bad'); } if(!s && fav.has(i)) falta++; });
+  if(!extra && !falta){ document.querySelectorAll('#stage .it-btn').forEach(b=>b.disabled=true);
+    $('cuentas').innerHTML='<span class="chip" style="background:rgba(52,211,153,.2)">Casos favorables: '+e.fav+'</span><span class="chip">Casos totales: '+e.tot+'</span>'; msg('bien','¡Perfecto! Elegiste todos los casos favorables.'); return acierto(); }
+  if(!S.sel.size) return fallo('Toca las fichas que cumplen la condición.');
+  if(extra && falta) fallo('Algunas fichas no cumplen, y todavía faltan otras.'); else if(extra) fallo('Hay fichas elegidas que no cumplen la condición.'); else fallo('Todavía faltan casos favorables por elegir.');
+}
+
+/* ================= MISIÓN 3 ================= */
+function r3(e){
+  setEnun('Se saca una ficha al azar. ¿Cuál es la probabilidad de sacar <b>'+e.cond.texto+'</b>?');
+  setStage(bolsaHTML(e.items)+'<div id="viz"></div>'); const b=document.querySelector('#stage .bolsa'); b.dataset.auto=1; b.dataset.res=125;
+  document.querySelectorAll('#stage .it-btn').forEach(x => x.addEventListener('click', ()=>{ if(!S.done) x.classList.toggle('on'); }));
+  S.fase=0; campos3();
+}
+function campos3(){
+  const e=S.ej;
+  if(S.fase===0){ $('campos').innerHTML='<div class="frase"><span>Favorables</span>'+caja('fav')+'<span class="sep">y</span><span>Totales</span>'+caja('tot')+'</div>'; }
+  else { $('campos').innerHTML='<div class="frase"><span class="sep">P =</span>'+caja('f',{fijo:String(e.fav)})+'<span class="sep">:</span>'+caja('t',{fijo:String(e.tot)})+'<span class="sep">=</span>'+caja('res',{dec:true})+'</div><div class="paso">Si el decimal no es exacto, redondea a 3 decimales.</div>'; }
+  iniCampos();
+}
+function vizProb(p){
+  const ip=M.interp(p), x=20+p*260;
+  return '<svg class="viz" viewBox="0 0 300 74"><rect x="20" y="8" width="260" height="14" rx="7" fill="rgba(255,255,255,.14)"/><rect x="20" y="8" width="'+(p*260).toFixed(1)+'" height="14" rx="7" fill="#34d399"/>'
+   +'<line x1="20" y1="34" x2="280" y2="34" stroke="#c4b5fd" stroke-width="3" stroke-linecap="round"/>'
+   +[0,.5,1].map(t=>'<line x1="'+(20+t*260)+'" y1="28" x2="'+(20+t*260)+'" y2="40" stroke="#c4b5fd" stroke-width="3"/><text x="'+(20+t*260)+'" y="56" text-anchor="middle">'+M.fmt(t)+'</text>').join('')
+   +'<polygon points="'+x+',33 '+(x-7)+',22 '+(x+7)+',22" fill="#fbbf24" stroke="#1e1147" stroke-width="1.5"/></svg><div class="interp '+ip.tono+'">'+ip.txt+'</div>';
+}
+function comprobar3(){
+  const e=S.ej;
+  if(S.fase===0){ const f=entero('fav'), t=entero('tot'); const bad=[]; if(f!==e.fav) bad.push('fav'); if(t!==e.tot) bad.push('tot');
+    if(isNaN(f)||isNaN(t)) return fallo('Escribe los dos números.', [isNaN(f)?'fav':null,isNaN(t)?'tot':null].filter(Boolean));
+    if(bad.length) return fallo('Revisa: favorables son las que cumplen la condición; totales son todas las fichas.', bad);
+    okCampo('fav'); okCampo('tot'); S.fase=1; msg('pista','Bien. Ahora divide: favorables : totales.'); campos3(); return; }
+  const r=M.evalProb(val('res'), e.fav, e.tot);
+  if(r.ok){ okCampo('res'); msg('bien','¡Correcto! La probabilidad es '+M.probTxt(e.fav,e.tot).texto+'.'); $('viz').innerHTML=vizProb(e.p); const v=$('viz'); v.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;width:100%'; return acierto(); }
+  const T = { vacio:'Escribe el resultado de la división.', porcentaje:'Aquí no usamos porcentajes: escribe un decimal entre 0 y 1.', mayor1:'Una probabilidad nunca es mayor que 1.', invertido:'Parece que dividiste al revés: es favorables : totales.', redondeo:'Casi. Redondea a 3 decimales.', decimales:'Escribe el resultado con 3 decimales.', otro:'Revisa tu división.' };
+  fallo(T[r.code],'res');
+}
+function rOrd(e){
+  setEnun('Ordena las bolsas de la <b>menos</b> a la <b>más</b> probable de sacar <b>'+e.cond.texto+'</b>. Toca en ese orden.');
+  setStage('<div class="cartas">'+e.bolsas.map((b,i)=>'<div class="carta" data-c="'+i+'"><span class="nbc"></span>'+bolsaHTML(b.items,{fijo:true})+'</div>').join('')+'</div>');
+  document.querySelectorAll('#stage .bolsa').forEach((b,i)=>{ const n=e.bolsas[i].tot; const w=Math.max(60, ($('stage').clientWidth/e.bolsas.length)-30); const s=Math.max(20,Math.min(44,Math.floor(Math.sqrt(w*w*0.5/n))-4)); b.style.setProperty('--s',s+'px'); b.style.setProperty('--g','3px'); });
+  document.querySelectorAll('#stage .carta').forEach(c => c.addEventListener('click', ()=>{ if(S.done) return; const i=+c.dataset.c; const k=S.marks.indexOf(i);
+    if(k>=0) S.marks.splice(k); else S.marks.push(i); document.querySelectorAll('#stage .carta').forEach(x=>{ const j=S.marks.indexOf(+x.dataset.c); x.classList.toggle('on',j>=0); x.querySelector('.nbc').textContent=j>=0?j+1:''; }); }));
+  $('campos').innerHTML=''; iniCampos();
+}
+function comprobarOrd(){
+  const e=S.ej; if(S.marks.length<e.bolsas.length) return fallo('Toca todas las bolsas en orden, de la menos a la más probable.');
+  const a=S.marks.map(i=>e.bolsas[i].p); let ok=true; for(let i=1;i<a.length;i++) if(a[i]<a[i-1]) ok=false;
+  if(ok){ document.querySelectorAll('#stage .carta').forEach((c,i)=>{ const b=e.bolsas[i]; c.insertAdjacentHTML('beforeend','<small>'+b.fav+' de '+b.tot+' = '+M.probTxt(b.fav,b.tot).texto.replace('≈ ','≈ ')+'</small>'); }); msg('bien','¡Orden correcto!'); return acierto(); }
+  fallo('Ese orden no es el correcto. Compara qué parte de cada bolsa es del color pedido.'); S.marks=[]; document.querySelectorAll('#stage .carta').forEach(x=>{ x.classList.remove('on'); x.querySelector('.nbc').textContent=''; });
+}
+
+/* ================= ÁRBOLES (M4 y M5) ================= */
+function arbolSVG(etapas, caminos, opt){ opt=opt||{};
+  const k=etapas.length, L=caminos.length, rh = L>12?16:(L>6?22:30), W=330, H=L*rh+34, x0=24, dx=(W-x0-60)/k;
+  let out='', ys=[];
+  function nodo(nivel, pref){ // devuelve y
+    if(nivel===k){ const idx = caminos.findIndex(c => c.every((v,i)=>v===pref[i])); const y=24+ (ys.length)*rh + rh/2; ys.push(y); return {y, idx}; }
+    const hijos=etapas[nivel].ops.map((o,i)=>({o, i, r:nodo(nivel+1, pref.concat(i))}));
+    const y = (hijos[0].r.y+hijos[hijos.length-1].r.y)/2; const x=x0+nivel*dx;
+    hijos.forEach(h => { out += '<line x1="'+x+'" y1="'+y.toFixed(1)+'" x2="'+(x+dx)+'" y2="'+h.r.y.toFixed(1)+'"/>'; });
+    hijos.forEach(h => { const x2=x+dx; const lb = (nivel+1<k) ? '<text x="'+x2+'" y="'+(h.r.y-9).toFixed(1)+'" text-anchor="middle">'+h.o.n+'</text>' : '';
+      if(nivel+1<k) out += '<circle cx="'+x2+'" cy="'+h.r.y.toFixed(1)+'" r="6.5" fill="'+h.o.h+'" stroke="rgba(10,4,32,.7)" stroke-width="1.5"/>'+lb; });
+    return {y};
+  }
+  // hojas
+  const tmp = nodo(0,[]);
+  // hojas: se dibujan aparte para poder marcarlas
+  let leaves=''; caminos.forEach((c,idx)=>{ const y=24+idx*rh+rh/2, x=x0+k*dx; const o=etapas[k-1].ops[c[k-1]];
+    leaves += '<g class="leaf" data-i="'+idx+'"><circle class="r" cx="'+x+'" cy="'+y.toFixed(1)+'" r="'+(rh>=20?11:8.5)+'"/><circle class="n" cx="'+x+'" cy="'+y.toFixed(1)+'" r="'+(rh>=20?7:5.5)+'" fill="'+o.h+'" stroke="rgba(10,4,32,.7)" stroke-width="1.5"/>'
+      +(rh>=16?'<text x="'+(x+14)+'" y="'+(y+3).toFixed(1)+'">'+o.n+'</text>':'')+'<text class="mn" x="'+x+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle"></text></g>'; });
+  let cab=''; etapas.forEach((e,i)=>{ cab += '<text class="cab" x="'+(x0+(i+1)*dx)+'" y="12" text-anchor="middle">'+e.nombre+'</text>'; });
+  const raiz = '<circle cx="'+x0+'" cy="'+tmp.y.toFixed(1)+'" r="7" fill="#e9ddff" stroke="rgba(10,4,32,.7)" stroke-width="1.5"/>';
+  return '<svg class="arbol" viewBox="0 0 '+W+' '+H+'" style="width:auto;max-width:100%;height:100%;max-height:'+Math.min(620,170+L*30)+'px">'+out+raiz+leaves+cab+'</svg>';
+}
+function enlazarHojas(modo){ // modo: 'cuenta' (numeradas) | 'sel'
+  document.querySelectorAll('#stage .leaf').forEach(g => g.addEventListener('click', ()=>{ if(S.done) return; const i=+g.dataset.i;
+    if(modo==='cuenta'){ const k=S.marks.indexOf(i); if(k>=0) S.marks.splice(k,1); else S.marks.push(i);
+      document.querySelectorAll('#stage .leaf').forEach(h=>{ const j=S.marks.indexOf(+h.dataset.i); h.classList.toggle('on',j>=0); h.querySelector('.mn').textContent=j>=0?(j+1):''; }); }
+    else { if(S.sel.has(i)) S.sel.delete(i); else S.sel.add(i); g.classList.toggle('on'); g.classList.remove('bad'); } }));
+}
+function opcSph(o){ return '<span class="pto" style="'+cv(o.h)+'"></span>'; }
+
+/* ================= MISIÓN 4 ================= */
+function r4(e){
+  const c=e.ctx;
+  if(e.tipo==='construir'){
+    setEnun('<b>'+c.titulo+'</b>: elige una opción de cada etapa y arma <b>todas</b> las combinaciones distintas. Luego di cuántas hay.');
+    S.arma = { sel: e.etapas.map(()=>-1), lista:[] };
+    setStage('<div class="cons">'+e.etapas.map((et,i)=>'<div class="et"><b>'+et.nombre+'</b><div class="ops">'+et.ops.map((o,j)=>'<button type="button" class="op" data-e="'+i+'" data-o="'+j+'">'+opcSph(o)+o.n+'</button>').join('')+'</div></div>').join('')+'<button type="button" class="lanz verde" id="bAdd">+ Agregar combinación</button><div class="combs" id="combs"></div></div>');
+    document.querySelectorAll('#stage .op').forEach(b => b.addEventListener('click', ()=>{ if(S.done) return; const i=+b.dataset.e, j=+b.dataset.o; S.arma.sel[i]=j; document.querySelectorAll('#stage .op[data-e="'+i+'"]').forEach(x=>x.classList.toggle('on', +x.dataset.o===j)); }));
+    $('bAdd').addEventListener('click', ()=>{ if(S.done) return; const a=S.arma; if(a.sel.some(v=>v<0)){ msg('pista','Elige una opción en cada etapa.'); return; }
+      const key=a.sel.join('-'); if(a.lista.indexOf(key)>=0){ msg('mal','Esa combinación ya la tienes.'); return; } a.lista.push(key); limpiarMsg();
+      $('combs').innerHTML = a.lista.map(k=>'<span class="cm">'+k.split('-').map((v,i)=>opcSph(e.etapas[i].ops[+v])+e.etapas[i].ops[+v].n).join(' · ')+'</span>').join('');
+      a.sel = e.etapas.map(()=>-1); document.querySelectorAll('#stage .op').forEach(x=>x.classList.remove('on')); $('combs').scrollTop=1e5; $('chipN') && ($('chipN').textContent=a.lista.length); });
+    $('campos').innerHTML = totalCampo('¿Cuántas combinaciones hay en total?'); iniCampos();
+  } else if(e.tipo==='arbol'){
+    setEnun('<b>'+c.titulo+'</b>: el árbol muestra todas las combinaciones. Toca cada punta al contarla y escribe cuántas hay.');
+    setStage(arbolSVG(e.etapas, e.caminos)); enlazarHojas('cuenta'); $('campos').innerHTML = totalCampo('Combinaciones en total:'); iniCampos();
+  } else {
+    setEnun('<b>'+c.titulo+'</b>: ¿cuántas combinaciones distintas se pueden formar? Completa la multiplicación.');
+    setStage('<div class="cardp">'+e.etapas.map(et=>'<div class="cp">'+et.nombre+(e.grande?'<small>'+et.n+' opciones</small>':'<small>'+et.ops.length+' opciones</small>')+'</div>').join('')+'</div>'
+      +(e.grande?'':'<div class="cardp" style="margin-top:4px">'+e.etapas.map(et=>'<div class="cp">'+et.ops.map(o=>opcSph(o)).join(' ')+'</div>').join('')+'</div>'));
+    $('campos').innerHTML = '<div class="frase">'+e.etapas.map((et,i)=>(i?'<span class="sep">×</span>':'')+caja('n'+i)).join('')+'<span class="sep">=</span>'+caja('tot')+'</div>'; iniCampos();
+  }
+}
+function comprobar4(e){
+  e=S.ej;
+  if(e.tipo==='producto'){
+    const cant = e.etapas.map(et=>et.ops?et.ops.length:et.n); const bad=[];
+    cant.forEach((c,i)=>{ if(entero('n'+i)!==c) bad.push('n'+i); else okCampo('n'+i); });
+    if(bad.length) return fallo('Revisa cuántas opciones tiene cada etapa.', bad);
+    if(entero('tot')!==e.total) return fallo('Multiplica los números de opciones de cada etapa.','tot');
+    okCampo('tot'); msg('bien','¡Sí! '+cant.join(' × ')+' = '+e.total+' combinaciones.'); return acierto();
+  }
+  const v=entero('tot'); if(isNaN(v)) return fallo('Escribe cuántas combinaciones hay.','tot');
+  if(v===e.total){ okCampo('tot'); const cant=e.etapas.map(x=>x.ops.length); msg('bien','¡Correcto! '+cant.join(' × ')+' = '+e.total+' combinaciones.'); return acierto(); }
+  fallo(e.tipo==='construir'?'No coincide. Sigue armando combinaciones sin repetir ninguna.':'No coincide. Toca cada punta del árbol una sola vez al contar.','tot');
+}
+
+/* ================= MISIÓN 5 ================= */
+function r5(e){
+  setEnun('<b>'+e.ctx.titulo+'</b>. Se elige un camino al azar. Marca los caminos donde <b>'+e.evento.texto+'</b>.');
+  setStage(arbolSVG(e.etapas, e.caminos)); enlazarHojas('sel'); S.fase=0; $('campos').innerHTML=''; iniCampos();
+}
+function comprobar5(){
+  const e=S.ej;
+  if(S.fase===0){ const fav=new Set(e.favIdx); let extra=0,falta=0;
+    document.querySelectorAll('#stage .leaf').forEach(g=>{ const i=+g.dataset.i, s=S.sel.has(i); if(s&&!fav.has(i)){extra++; g.classList.add('bad');} if(!s&&fav.has(i)) falta++; });
+    if(!S.sel.size) return fallo('Toca las puntas del árbol que cumplen lo que se pide.');
+    if(extra||falta){ return fallo(extra&&falta?'Hay caminos marcados que no cumplen, y faltan otros.':extra?'Hay caminos marcados que no cumplen lo pedido.':'Todavía faltan caminos favorables por marcar.'); }
+    S.fase=1; msg('pista','Muy bien. Ahora calcula la probabilidad: favorables : totales.');
+    $('campos').innerHTML='<div class="frase"><span>Favorables</span>'+caja('fav')+'<span class="sep">y</span><span>Totales</span>'+caja('tot')+'</div>'; iniCampos(); return; }
+  if(S.fase===1){ const f=entero('fav'), t=entero('tot'); const bad=[]; if(f!==e.fav) bad.push('fav'); if(t!==e.tot) bad.push('tot');
+    if(isNaN(f)||isNaN(t)) return fallo('Escribe los dos números.', [isNaN(f)?'fav':null,isNaN(t)?'tot':null].filter(Boolean));
+    if(bad.length) return fallo('Favorables son los caminos marcados. Los totales se calculan multiplicando las opciones de cada etapa.', bad);
+    S.fase=2; msg('pista','Ahora divide.'); $('campos').innerHTML='<div class="frase"><span class="sep">P =</span>'+caja('f',{fijo:String(e.fav)})+'<span class="sep">:</span>'+caja('t',{fijo:String(e.tot)})+'<span class="sep">=</span>'+caja('res',{dec:true})+'</div><div class="paso">Si el decimal no es exacto, redondea a 3 decimales.</div>'; iniCampos(); return; }
+  const r=M.evalProb(val('res'), e.fav, e.tot);
+  if(r.ok){ okCampo('res'); msg('bien','¡Excelente! La probabilidad es '+M.probTxt(e.fav,e.tot).texto+'.'); return acierto(); }
+  const T = { vacio:'Escribe el resultado de la división.', porcentaje:'Aquí no usamos porcentajes: escribe un decimal entre 0 y 1.', mayor1:'Una probabilidad nunca es mayor que 1.', invertido:'Parece que dividiste al revés: es favorables : totales.', redondeo:'Casi. Redondea a 3 decimales.', decimales:'Escribe el resultado con 3 decimales.', otro:'Revisa tu división.' };
+  fallo(T[r.code],'res');
+}
+
+/* ================= LABORATORIO LIBRE ================= */
+const PAL = ['rojo','azul','verde','amarillo'];
+function r6(){
+  S.lab = { n:6, sec:['rojo','azul','verde','rojo','azul','verde'], pin:'rojo', ev:null, fase:0, cuenta:{}, giros:0 };
+  labConstruir();
+}
+function labConstruir(){
+  const L=S.lab; S.fase=0; S.done=false; L.cuenta={}; L.giros=0; limpiarMsg(); $('bOk').classList.remove('hidden'); $('bOk').disabled=false; $('bSig').classList.add('hidden'); $('bPista').classList.remove('hidden');
+  setEnun('<b>Construye tu ruleta</b>: pinta los sectores con los colores. Luego predice la probabilidad y compruébala girando.');
+  setStage('<div id="rw" class="rw"></div><div class="paleta" id="pal">'+PAL.map(c=>'<button type="button" class="cb'+(c===L.pin?' on':'')+'" data-c="'+c+'" style="'+cv(hexC(c))+'" aria-label="'+c+'"></button>').join('')+'</div><div class="fila"><button type="button" class="lanz" id="lMenos">− sector</button><span class="chip" id="lN"></span><button type="button" class="lanz" id="lMas">+ sector</button></div>');
+  labPintar();
+  document.querySelectorAll('#pal .cb').forEach(b=>b.addEventListener('click',()=>{ L.pin=b.dataset.c; document.querySelectorAll('#pal .cb').forEach(x=>x.classList.toggle('on',x===b)); }));
+  $('lMenos').addEventListener('click',()=>{ if(L.n>3){ L.n--; L.sec.pop(); labPintar(); } });
+  $('lMas').addEventListener('click',()=>{ if(L.n<12){ L.n++; L.sec.push(L.pin); labPintar(); } });
+  $('campos').innerHTML=''; iniCampos(); $('bOk').lastChild.textContent='Listo, a predecir'; 
+}
+function labPintar(){ const L=S.lab; $('rw').innerHTML=ruedaSVG(L.sec.map(c=>({color:c}))); $('lN').textContent=L.n+' sectores';
+  document.querySelectorAll('#rw [data-i]').forEach(p=>p.addEventListener('click',()=>{ if(S.fase!==0) return; L.sec[+p.dataset.i]=L.pin; labPintar(); })); }
+function labPredecir(){
+  const L=S.lab; const usados=Array.from(new Set(L.sec)); if(usados.length<2) return fallo('Usa al menos dos colores distintos en tu ruleta.');
+  S.fase=1; limpiarMsg(); L.ev = L.ev && usados.indexOf(L.ev)>=0 ? L.ev : usados[0];
+  setEnun('Tu ruleta gira al azar. ¿Cuál es la probabilidad de que salga <b id="evN">'+M.COL[L.ev].m+'</b>?');
+  setStage('<div class="rw" style="max-height:30vh">'+ruedaSVG(L.sec.map(c=>({color:c})),{puntero:true})+'</div><div class="paso">Elige el color que buscas:</div><div class="paleta" id="pal2">'+usados.map(c=>'<button type="button" class="cb'+(c===L.ev?' on':'')+'" data-c="'+c+'" style="'+cv(hexC(c))+'"></button>').join('')+'</div>');
+  document.querySelectorAll('#pal2 .cb').forEach(b=>b.addEventListener('click',()=>{ L.ev=b.dataset.c; document.querySelectorAll('#pal2 .cb').forEach(x=>x.classList.toggle('on',x===b)); $('evN').textContent=M.COL[L.ev].m; }));
+  $('campos').innerHTML='<div class="frase"><span>Favorables</span>'+caja('fav')+'<span class="sep">Totales</span>'+caja('tot')+'<span class="sep">P =</span>'+caja('res',{dec:true})+'</div>'; iniCampos(); $('bOk').lastChild.textContent='Comprobar';
+}
+function labPrediccionOk(){
+  const L=S.lab, fav=L.sec.filter(c=>c===L.ev).length, tot=L.n;
+  if(fav<1||fav>=tot) return fallo('Elige un color que ocupe algunos sectores, pero no todos.');
+  const f=entero('fav'), t=entero('tot'), bad=[]; if(f!==fav) bad.push('fav'); if(t!==tot) bad.push('tot');
+  if(isNaN(f)||isNaN(t)) return fallo('Escribe cuántos sectores favorables y cuántos totales hay.');
+  if(bad.length) return fallo('Cuenta los sectores del color elegido (favorables) y todos los sectores (totales).', bad);
+  const r=M.evalProb(val('res'),fav,tot);
+  if(!r.ok){ const T={ vacio:'Escribe la probabilidad.', porcentaje:'Escribe un decimal entre 0 y 1, sin porcentajes.', mayor1:'Una probabilidad nunca es mayor que 1.', invertido:'Parece al revés: favorables : totales.', redondeo:'Casi. Redondea a 3 decimales.', decimales:'Escribe 3 decimales.', otro:'Revisa tu división.' }; return fallo(T[r.code],'res'); }
+  L.fav=fav; L.tot=tot; L.p=fav/tot; S.fase=2; okCampo('fav'); okCampo('tot'); okCampo('res'); reportar(PESO[6]); S.aciertos++; chips(); try{ window.mvExito(); }catch(e){}
+  msg('bien','¡Predicción correcta! Ahora gira la ruleta y compara con la realidad.'); labGirar();
+}
+function labGirar(){
+  setEnun('Gira tu ruleta muchas veces y compara lo que <b>esperabas</b> con lo que <b>sale</b>.'); const L=S.lab; $('bOk').classList.add('hidden'); $('bPista').classList.add('hidden'); $('campos').innerHTML=''; iniCampos();
+  const cols=Array.from(new Set(L.sec));
+  setStage('<div class="rw" style="max-height:30vh" id="gw">'+ruedaSVG(L.sec.map(c=>({color:c})),{puntero:true})+'</div>'
+    +'<div class="fila"><button class="lanz" data-n="1">Girar 1</button><button class="lanz" data-n="10">Girar 10</button><button class="lanz" data-n="50">Girar 50</button><button class="lanz" data-n="100">Girar 100</button></div>'
+    +'<div class="barras" id="barras"></div><div class="paso" id="comp"></div><div class="fila"><button class="lanz verde" id="lNueva">Nueva ruleta</button></div>');
+  document.querySelectorAll('#stage .fila .lanz[data-n]').forEach(b=>b.addEventListener('click',()=>girar(+b.dataset.n)));
+  $('lNueva').addEventListener('click',()=>{ labConstruir(); });
+  labBarras();
+}
+function girar(n){
+  const L=S.lab; const pun=document.getElementById('pun'); let ang=Math.random()*360;
+  for(let i=0;i<n;i++){ const s=rnd(0,L.n-1); const c=L.sec[s]; L.cuenta[c]=(L.cuenta[c]||0)+1; L.giros++; if(i===n-1) ang = (s+0.5)/L.n*360; }
+  if(pun){ pun.style.transition='transform .7s cubic-bezier(.2,.8,.2,1)'; pun.style.transform='rotate('+(720+ang)+'deg)'; setTimeout(()=>{ pun.style.transition='none'; pun.style.transform='rotate('+ang+'deg)'; },750); }
+  labBarras();
+}
+function labBarras(){
+  const L=S.lab; const cols=Array.from(new Set(L.sec)); const tot=L.sec.length;
+  $('barras').innerHTML = cols.map(c=>{ const teo=L.sec.filter(x=>x===c).length/tot, exp=L.giros?(L.cuenta[c]||0)/L.giros:0;
+    return '<div class="bc" style="--c:'+hexC(c)+'"><div class="pair"><div class="b1" style="height:'+Math.round(teo*86)+'px" title="teórico"></div><div class="b2" style="height:'+Math.max(2,Math.round(exp*86))+'px"></div></div><span>'+M.fmt(teo)+'</span><span style="color:#fde68a">'+(L.giros?M.fmt(exp):'—')+'</span></div>'; }).join('');
+  $('comp').innerHTML = L.giros ? 'Giros: <b>'+L.giros+'</b> · Borde punteado = lo que esperabas (teórico) · Barra llena = lo que salió (experimental)' : 'Gira para comparar lo teórico (punteado) con lo experimental (barra llena).';
+}
+
+/* ---------- despacho ---------- */
+function comprobar(){
+  const m=S.mision;
+  if(m===1) comprobar1(); else if(m===2) comprobar2(); else if(m===3) (S.ej.tipo==='ordenar'?comprobarOrd():comprobar3()); else if(m===4) comprobar4(); else if(m===5) comprobar5();
+  else { if(S.fase===0) labPredecir(); else if(S.fase===1) labPrediccionOk(); }
+}
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipHeader',{grande:false}]].forEach(function(p){ var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+})();
+/* ---------- ganchos de prueba ---------- */
+window.AZ_TEST = { S, F, irMision, abrir, nuevo, comprobar, teclear, setVal, activar, lanzar, M,
+  resolver:function(){ const e=S.ej, m=S.mision;
+    function esc(id,v){ setVal(id,String(v).replace('.',',')); }
+    if(m===1){ if(e.tipo==='grupos'){ e.colores.forEach(c=>esc('c_'+c,e.porColor[c])); esc('tot',e.total); } else if(e.tipo==='justa'){ document.querySelectorAll('#stage .opc')[e.correcta].click(); return; } else esc('tot',e.total); }
+    else if(m===2){ e.favIds.forEach(i=>document.querySelector('#stage .it-btn[data-i="'+i+'"]').click()); }
+    else if(m===3){ if(e.tipo==='ordenar'){ e.orden.forEach(i=>document.querySelector('#stage .carta[data-c="'+i+'"]').click()); } else { esc('fav',e.fav); esc('tot',e.tot); comprobar(); esc('res',M.fmt(e.p)); } }
+    else if(m===4){ if(e.tipo==='producto'){ e.etapas.forEach((x,i)=>esc('n'+i,x.ops?x.ops.length:x.n)); } esc('tot',e.total); }
+    else if(m===5){ e.favIdx.forEach(i=>document.querySelector('#stage .leaf[data-i="'+i+'"]').dispatchEvent(new MouseEvent('click',{bubbles:true}))); comprobar(); esc('fav',e.fav); esc('tot',e.tot); comprobar(); esc('res',M.fmt(e.p)); }
+    comprobar(); } };
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+</body></html>
