@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Perímetro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark; --bg-1:#1e1147; --bg-2:#3b1785; --bg-3:#5b21b6; --text:#f6f3ff; --text-dim:#c9bdf0; --accent:#fbbf24; --primary:#34d399; --error:#fb7185;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;color:var(--text);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 15% 0%,var(--bg-3),transparent 55%),radial-gradient(circle at 85% 100%,#2a0f66,transparent 55%),linear-gradient(160deg,var(--bg-1),var(--bg-2));background-attachment:fixed}
+button{font-family:inherit}
+.hidden{display:none !important}
+.screen{display:none;flex-direction:column;align-items:center;position:relative;z-index:1}
+.screen.active{display:flex}
+#app{width:100%;max-width:900px;margin:0 auto;padding:clamp(10px,2.5vw,24px);display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}
+.card{width:100%;position:relative;max-width:980px;margin:0 auto;padding:6px 10px}
+.home-title{text-align:center;font-family:var(--font-display);font-weight:800;margin:0 0 6px;line-height:1.1}
+.items-sub{text-align:center;color:#c9bdf0;font-size:.92rem;margin:2px 0 6px;text-wrap:balance}
+.mv-pregunta{text-align:center;text-wrap:balance;font-family:var(--font-display);font-size:1.25rem;margin:6px 0 2px}
+.icon-btn{display:inline-flex;align-items:center;cursor:pointer}
+.mv-fila-chip{margin-top:30px}
+.mv-atras-home{position:absolute;left:6px;top:6px;z-index:5}
+.mv-casa-home{position:absolute;right:6px;top:6px;z-index:5}
+.mv-nivel .ico{width:46%;height:auto;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mv-universo .mv-home .home-title{padding:0 48px}
+@media (min-width:900px) and (orientation:landscape){.mv-universo .mv-home .home-title{padding:0}}
+/* menú de 4 planetas */
+.mv-niveles.mv-p4{aspect-ratio:100/88}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:7;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:53;--y:2;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:7;--y:48;--w:40}
+.mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:53;--y:48;--w:40}
+.mv-niveles .level-btn.mv-nivel.n4{--i:3;--a:#451a03;--b:#f59e0b;--c:#fef3c7;--glow:251,191,36;--ang-b:158deg;--fl:6.1s}
+.mv-niveles .level-btn.mv-nivel.n4::after{animation-delay:-3.2s}
+@media (min-width:700px){
+  .mv-niveles.mv-p4{width:min(100%,900px);aspect-ratio:100/30}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n1{--x:2;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n2{--x:27;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n3{--x:51;--y:4;--w:22}
+  .mv-niveles.mv-p4 .level-btn.mv-nivel.n4{--x:76;--y:4;--w:22}}
+/* niveles: las esferas crecen (fácil < medio < difícil) */
+#nivs.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/90}
+#nivs .level-btn.mv-nivel.n1{--x:7;--y:53;--w:34}
+#nivs .level-btn.mv-nivel.n2{--x:50;--y:48;--w:41}
+#nivs .level-btn.mv-nivel.n3{--x:27;--y:1;--w:47}
+@media (min-width:700px){#nivs.mv-niveles.mv-p3.mv-lv{aspect-ratio:100/40}
+#nivs .level-btn.mv-nivel.n1{--x:10;--y:13;--w:22}
+#nivs .level-btn.mv-nivel.n2{--x:37;--y:8;--w:26}
+#nivs .level-btn.mv-nivel.n3{--x:66;--y:2;--w:31}}
+/* ---- pantalla de juego ---- */
+#screen-juego{align-items:stretch;width:100%}
+body.en-juego{overflow:hidden;height:100dvh;min-height:0}
+body.en-juego #screen-juego{height:100dvh}
+.app-header.app-topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;width:100%;max-width:900px;margin:0 auto;padding:2px 10px 0;flex-wrap:nowrap}
+.app-topbar .side{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-topbar .icon-btn.btn-orbita{font-size:.92rem}
+.mv-universo .app-header.app-topbar .mv-av{width:clamp(56px,14vw,84px);height:clamp(56px,14vw,84px)}
+.cuerpo{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:760px;margin:0 auto;padding:2px 12px 12px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.chip{padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4);font-family:var(--font-display);font-weight:800;font-size:1rem}
+.enun{flex:none;margin:0;text-align:center;font-weight:800;text-wrap:balance;max-width:640px;font-size:clamp(.9rem,.82rem + .45vw,1.1rem);line-height:1.25}
+#stage{flex:1;min-height:0;position:relative;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:6px;overflow-y:auto;border-radius:18px;touch-action:manipulation}
+#stage>svg{width:100%;max-width:520px;max-height:44vh;height:auto;display:block;flex:0 1 auto}
+#stage svg text{font-family:'Baloo 2',sans-serif;font-weight:800;paint-order:stroke;stroke:rgba(20,5,50,.65);stroke-width:3px;stroke-linejoin:round}
+.msg{flex:none;min-height:2.7em;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:clamp(1rem,.85rem + .7vw,1.3rem);line-height:1.25;text-wrap:balance;max-width:640px}
+.msg.mal{color:#fda4af}.msg.bien{color:#6ee7b7}.msg.pista{color:#fde68a}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex:none}
+.btn-orbita.ancho{font-size:1.15rem;padding-right:2em}
+.btn-orbita[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+.ctrl{flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.preg{font-weight:800;text-align:center;font-size:clamp(.95rem,.88rem + .45vw,1.15rem);text-wrap:balance}
+.entrada{display:flex;align-items:center;justify-content:center;gap:8px}
+.eti{font-weight:800;color:#e9ddff;font-size:1.05rem}
+.caja{width:clamp(88px,26vw,128px);height:48px;border-radius:14px;border:2.5px solid rgba(196,181,253,.85);background:rgba(255,255,255,.07);color:#fff;text-align:center;font-family:var(--font-display);font-weight:800;font-size:1.5rem;outline:none;padding:0}
+.caja:focus{border-color:#6ee7b7;box-shadow:0 0 0 3px rgba(110,231,183,.28)}
+.caja.ok{border-color:#6ee7b7;color:#6ee7b7;background:rgba(110,231,183,.14)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .32s}
+/* aviso visual de acierto / error sobre el área de trabajo */
+#stage.f-ok{box-shadow:0 0 0 3px rgba(110,231,183,.95),0 0 28px rgba(110,231,183,.55);animation:fOk .9s ease-out}
+#stage.f-mal{box-shadow:0 0 0 3px rgba(251,113,133,.95),0 0 28px rgba(251,113,133,.5);animation:fMal .5s ease-out}
+#stage.f-ok::after,#stage.f-mal::after{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:1.5rem;color:#fff;pointer-events:none;z-index:3}
+#stage.f-ok::after{content:"✔";background:#10b981;box-shadow:0 0 14px rgba(16,185,129,.8)}
+#stage.f-mal::after{content:"✖";background:#e11d48;box-shadow:0 0 14px rgba(225,29,72,.8)}
+@keyframes fOk{0%{transform:scale(1)}30%{transform:scale(1.015)}100%{transform:scale(1)}}
+@keyframes fMal{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* tablas */
+.tab{border-collapse:separate;border-spacing:0 8px;font-family:var(--font-display);font-weight:800;font-size:1.2rem;margin:0 auto}
+.tab th{font-size:.95rem;color:#c4b5fd;padding:0 12px 2px;text-align:center}
+.tab td{text-align:center;padding:0 10px}
+.tab .caja{width:clamp(78px,24vw,110px);height:44px;font-size:1.3rem}
+/* figuras en opciones */
+.tri3{display:flex;gap:10px;justify-content:center;width:100%}
+.opc{position:relative;flex:1;max-width:190px;border-radius:20px;border:2.5px solid rgba(196,181,253,.6);background:rgba(255,255,255,.06);padding:6px 4px 4px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center}
+.opc svg{width:100%;height:auto;max-height:26vh}.opc .letra{position:absolute;left:8px;top:4px;font-family:var(--font-display);font-weight:800}
+.opc.buena{border-color:#6ee7b7;box-shadow:0 0 14px rgba(110,231,183,.6)}.opc.mala{border-color:#fb7185;opacity:.55;pointer-events:none}
+/* dibuja */
+#dg{touch-action:none;cursor:pointer}
+.chipN{font-family:var(--font-display);font-weight:800;font-size:1.05rem;padding:2px 14px;border-radius:999px;background:rgba(251,191,36,.14);box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.6)}
+.chipN.lleno{background:rgba(110,231,183,.16);box-shadow:inset 0 0 0 1.5px rgba(110,231,183,.7);color:#6ee7b7}
+@media (max-width:600px){#acc{gap:6px;flex-wrap:wrap}#acc .btn-orbita,#acc .btn-orbita.ancho{font-size:.88rem;padding-right:.9em}}
+.fila{margin-top:4px}
+/* PC grande */
+@media (min-width:900px) and (min-height:640px){
+ .cuerpo{max-width:min(1100px,98vw)}
+ .msg{font-size:clamp(1.15rem,2.1vh,1.7rem);max-width:min(900px,90vw)}
+ .chip{font-size:clamp(1rem,1.9vh,1.35rem);padding:6px 18px}
+ .fila .btn-orbita{font-size:clamp(.95rem,1.9vh,1.3rem)}
+ .enun{font-size:clamp(1.05rem,2vh,1.5rem);max-width:min(900px,90vw)}
+ #stage>svg{max-width:min(900px,92vw);max-height:calc(100dvh - 400px)}
+ .tab{font-size:1.5rem}.tab .caja{height:54px;font-size:1.6rem}
+}
+</style>
+<link rel="stylesheet" href="../mathverse-ui.css">
+</head>
+<body class="mv-universo">
+<div id="monedasPill" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:99998"></div>
+
+<!-- ============ MENÚ: qué quieres practicar ============ -->
+<div class="screen active" id="screen-home"><div id="app"><main id="main"><div class="card mv-items-card">
+<a class="icon-btn btn-orbita v-azul mv-atras-home" href="../index.html#recursos" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></a>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" style="font-size:clamp(1.3rem,5.2vw,2.8rem)">Perímetro</h1>
+<div class="mv-fila-chip" id="mvChipHome"></div>
+<h2 class="mv-pregunta">¿Qué quieres practicar?</h2>
+<p class="items-sub">Mide el contorno de las figuras</p>
+<div class="mv-niveles mv-p4"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="elegirModo('contorno')" aria-label="Contorno en la cuadrícula"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M20 22h30v22h30v34H20z" fill="#a7f3d0" stroke="#fbbf24" stroke-width="6" stroke-linejoin="round"/><path d="M35 22v56M20 44h60M50 44v34M65 44v34M20 61h60" stroke="rgba(15,5,40,.4)" stroke-width="1.8"/></svg><span class="t">Contorno</span></button>
+<button type="button" class="level-btn mv-nivel n2" onclick="elegirModo('rect')" aria-label="Rectángulos y cuadrados"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="26" width="52" height="32" rx="3" fill="#f9a8d4" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/><rect x="56" y="50" width="32" height="32" rx="3" fill="#fde68a" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/></svg><span class="t">Rectángulos</span></button>
+<button type="button" class="level-btn mv-nivel n3" onclick="elegirModo('cercos')" aria-label="Cercos y recorridos"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M20 74L12 38L52 20L88 40L80 78Z" fill="#bbf7d0" stroke="#fb923c" stroke-width="7" stroke-dasharray="0.1 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 74L12 38L52 20L88 40L80 78Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><span class="t">Cercos</span></button>
+<button type="button" class="level-btn mv-nivel n4" onclick="elegirModo('dibuja')" aria-label="Dibuja con perímetro"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="52" width="22" height="22" fill="#bae6fd" stroke="#fff" stroke-width="2.5"/><rect x="36" y="52" width="22" height="22" fill="#bae6fd" stroke="#fff" stroke-width="2.5"/><rect x="36" y="30" width="22" height="22" fill="#bae6fd" stroke="#fff" stroke-width="2.5"/><path d="M62 70l4-14 22-22 10 10-22 22z" fill="#f472b6" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M62 70l4-14 10 10z" fill="#fde68a" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg><span class="t">Dibuja</span></button>
+</div></div></main></div></div>
+
+<!-- ============ NIVELES ============ -->
+<div class="screen" id="screen-niv"><div id="app"><main id="main"><div class="card mv-items-card">
+<button type="button" class="icon-btn btn-orbita v-azul mv-atras-home" onclick="pantalla('screen-home')" title="Volver" aria-label="Volver"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button>
+<a class="icon-btn btn-orbita v-violeta mv-casa-home" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a>
+<h1 class="home-title" id="nivTitulo" style="font-size:clamp(1.3rem,5.2vw,2.8rem)">Perímetro</h1>
+<h2 class="mv-pregunta">Elige tu nivel</h2>
+<div class="mv-niveles mv-p3 mv-lv" id="nivs"><div class="mv-cielo" aria-hidden="true"><div class="neb"></div><div class="orb o1"></div></div>
+<button type="button" class="level-btn mv-nivel n1" onclick="abrir('facil')" aria-label="Nivel fácil"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="30" width="56" height="40" rx="2" fill="#fff" fill-opacity=".85" stroke="#fbbf24" stroke-width="6" stroke-linejoin="round"/></svg><span class="t">Fácil</span></button>
+<button type="button" class="level-btn mv-nivel n2" onclick="abrir('medio')" aria-label="Nivel medio"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M20 20h30v30h30v32H20z" fill="#fff" fill-opacity=".85" stroke="#fbbf24" stroke-width="6" stroke-linejoin="round"/></svg><span class="t">Medio</span></button>
+<button type="button" class="level-btn mv-nivel n3" onclick="abrir('dificil')" aria-label="Nivel difícil"><span class="fondo"></span><svg class="ico" viewBox="0 0 100 100" aria-hidden="true"><path d="M14 18h26v20h22v20h24v26H14z" fill="#fff" fill-opacity=".85" stroke="#fbbf24" stroke-width="6" stroke-linejoin="round"/></svg><span class="t">Difícil</span></button>
+</div></div></main></div></div>
+
+<!-- ============ JUEGO ============ -->
+<div class="screen" id="screen-juego">
+<header class="app-header app-topbar"><div class="side left"><button class="icon-btn btn-orbita v-azul" id="btn-back" type="button" title="Niveles" aria-label="Niveles"><span class="bola"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></span></button></div><div class="mv-centro" id="mvChipHeader"></div><div class="side right"><a class="icon-btn btn-orbita v-violeta" id="btn-casa" href="../index.html" title="Ir al inicio" aria-label="Ir al inicio"><span class="bola"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9h12v-9M10 19v-5h4v5"/></svg></span></a></div></header>
+<div class="cuerpo" id="mod"></div>
+</div>
+
+<script>
+const RECURSO = 'perimetro';
+let AlumnoActual = null;
+try{ var _g=JSON.parse(sessionStorage.getItem('profehoracio_alumno_actual')||'null'); if(_g && _g.id && _g.nombre) AlumnoActual=_g; }catch(e){}
+const PESO = {facil:1, medio:3, dificil:5};
+function reportar(){ if(AlumnoActual && typeof window.reportarProgresoPractica==='function'){ try{ window.reportarProgresoPractica(AlumnoActual.id, RECURSO, 1, 0, PESO[NIV]||3); }catch(e){} } }
+function iniciarHeartbeatTiempo(){
+  if(typeof window.iniciarHeartbeatMathverse==='function') window.iniciarHeartbeatMathverse(function(){ return AlumnoActual && AlumnoActual.id; }, RECURSO);
+  else setTimeout(iniciarHeartbeatTiempo,100);
+}
+if(AlumnoActual) iniciarHeartbeatTiempo();
+
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function barajar(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function pantalla(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active'); document.body.classList.toggle('en-juego', id==='screen-juego'); window.scrollTo(0,0);
+}
+const NOM = {contorno:'Contorno', rect:'Rectángulos y cuadrados', cercos:'Cercos y recorridos', dibuja:'Dibuja con perímetro'};
+const NIVNOM = {facil:'Fácil', medio:'Medio', dificil:'Difícil'};
+let MODO=null, NIV='facil', Q=null;
+function elegirModo(m){ MODO=m; $('nivTitulo').textContent=NOM[m]; pantalla('screen-niv'); }
+function abrir(niv){ NIV=niv; pantalla('screen-juego'); esqueleto(); $('chInfo').textContent=NOM[MODO]+' · '+NIVNOM[NIV]; nuevo(); }
+window.elegirModo=elegirModo; window.abrir=abrir; window.pantalla=pantalla;
+$('btn-back').addEventListener('click',()=>{ pantalla('screen-niv'); });
+function nuevo(){ ({contorno:genContorno, rect:genRect, cercos:genCercos, dibuja:genDibuja})[MODO](); }
+
+/* ---------- interfaz común ---------- */
+function esqueleto(){
+  $('mod').innerHTML='<div class="chips"><span class="chip" id="chInfo"></span></div><p class="enun" id="enun"></p><div id="stage"></div><div class="ctrl" id="ctrl"></div><div class="msg" id="msg"></div><div class="fila" id="acc"></div>';
+}
+function msg(t,tipo){ const m=$('msg'); if(!m) return; m.textContent=t; m.className='msg'+(tipo?' '+tipo:''); }
+function shake(el){ if(!el) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+function aviso(ok){ const st=$('stage'); if(!st) return; st.classList.remove('f-ok','f-mal'); void st.offsetWidth; st.classList.add(ok?'f-ok':'f-mal'); clearTimeout(st._t); st._t=setTimeout(()=>st.classList.remove('f-ok','f-mal'),950); }
+function btn(id,cls,ico,txt,enter){ return `<button class="btn-orbita ${cls}" id="${id}" type="button"${enter?' data-enter="1"':''}><span class="bola">${ico}</span>${txt}</button>`; }
+const I_OK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const I_SIG='<svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+const I_BORRAR='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+function bSiguiente(){ $('acc').innerHTML=btn('bNext','v-verde ancho',I_SIG,'Siguiente',true); $('bNext').addEventListener('click',nuevo); }
+function exito(txt){ msg(txt,'bien'); try{ if(window.reaccionCompanero) window.reaccionCompanero('bien'); }catch(e){} aviso(true); reportar(); }
+function fallo(txt,el){ msg(txt,'mal'); try{ if(window.reaccionCompanero) window.reaccionCompanero('mal'); }catch(e){} shake(el); aviso(false); }
+function soloDig(root){ (root||document).querySelectorAll('input.caja').forEach(i=>i.addEventListener('input',()=>{ i.value=i.value.replace(/[^0-9]/g,''); })); }
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing||e.repeat) return;
+  const b=[...document.querySelectorAll('#screen-juego [data-enter]')].find(x=>x.offsetParent!==null&&!x.disabled);
+  if(b){ e.preventDefault(); b.click(); }
+});
+
+/* Pista progresiva: cada error da una pista más útil; desde el 2.º error se dice si falta o sobra */
+function pistaNum(q,v){
+  q.fails++;
+  let t=q.pistas[Math.min(q.fails-1,q.pistas.length-1)];
+  if(q.fails>=2) t+= ' Tu respuesta es '+(v<q.resp?'menor':'mayor')+' que '+(q.que||'el perímetro')+'.';
+  if(q.fails===2 && q.alPista) q.alPista();
+  return t;
+}
+/* Respuesta numérica con cuadro redondeado + unidad */
+function ponerNum(q){
+  $('ctrl').innerHTML=`<div class="preg">${q.pregunta||''}</div><div class="entrada"><span class="eti">${q.eti||'Perímetro ='}</span><input id="resp" class="caja" type="text" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="Respuesta"><span class="eti">${q.unit}</span></div>`;
+  $('acc').innerHTML=btn('bOk','v-verde ancho',I_OK,'Comprobar',true); soloDig($('ctrl')); $('resp').focus();
+  $('bOk').addEventListener('click',()=>{
+    const v=$('resp').value.trim(); if(v===''){ msg('Escribe un número.','mal'); return; }
+    if(Number(v)===q.resp){ $('resp').disabled=true; $('resp').classList.add('ok'); exito(q.ok||`🎉 ¡Correcto! Son ${q.resp} ${q.unit}.`); bSiguiente(); }
+    else{ fallo(pistaNum(q,Number(v)),$('resp')); $('resp').value=''; $('resp').focus(); }
+  });
+}
+
+/* =====================================================================
+   FIGURAS EN CUADRÍCULA (cada cuadradito mide 1 cm)
+   ===================================================================== */
+const kk=(r,c)=>r+','+c;
+const rc=k=>k.split(',').map(Number);
+function setDe(c){ return new Set(c.map(([r,cc])=>kk(r,cc))); }
+function rectCells(h,w){ const a=[]; for(let r=0;r<h;r++) for(let c=0;c<w;c++) a.push([r,c]); return a; }
+function perimetroSet(S){ let p=0; for(const k of S){ const [r,c]=rc(k); if(!S.has(kk(r-1,c)))p++; if(!S.has(kk(r+1,c)))p++; if(!S.has(kk(r,c-1)))p++; if(!S.has(kk(r,c+1)))p++; } return p; }
+function bbox(S){ let r0=1e9,r1=-1e9,c0=1e9,c1=-1e9; for(const k of S){ const [r,c]=rc(k); r0=Math.min(r0,r); r1=Math.max(r1,r); c0=Math.min(c0,c); c1=Math.max(c1,c); } return {r0,r1,c0,c1}; }
+function conectada(S){ if(!S.size) return false; const it=S.values().next().value, vis=new Set([it]), pila=[it];
+  while(pila.length){ const [r,c]=rc(pila.pop()); for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){ const n=kk(r+dr,c+dc); if(S.has(n)&&!vis.has(n)){ vis.add(n); pila.push(n); } } }
+  return vis.size===S.size; }
+function tieneHueco(S){ const b=bbox(S), vis=new Set(), pila=[kk(b.r0-1,b.c0-1)]; vis.add(pila[0]);
+  while(pila.length){ const [r,c]=rc(pila.pop()); for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){ const rr=r+dr,cc=c+dc; if(rr<b.r0-1||rr>b.r1+1||cc<b.c0-1||cc>b.c1+1) continue; const n=kk(rr,cc); if(!S.has(n)&&!vis.has(n)){ vis.add(n); pila.push(n); } } }
+  for(let r=b.r0;r<=b.r1;r++) for(let c=b.c0;c<=b.c1;c++){ const n=kk(r,c); if(!S.has(n)&&!vis.has(n)) return true; }
+  return false; }
+function pellizco(S){ const b=bbox(S); for(let r=b.r0-1;r<=b.r1;r++) for(let c=b.c0-1;c<=b.c1;c++){ const a=S.has(kk(r,c)),bb=S.has(kk(r,c+1)),d=S.has(kk(r+1,c)),e=S.has(kk(r+1,c+1)); if((a&&e&&!bb&&!d)||(bb&&d&&!a&&!e)) return true; } return false; }
+function poliAleatorio(n,R,C){
+  for(let t=0;t<400;t++){
+    const S=new Set([kk(Math.floor(R/2),Math.floor(C/2))]); let g=0;
+    while(S.size<n&&g++<400){ const [r,c]=rc(pick([...S])), [dr,dc]=pick([[1,0],[-1,0],[0,1],[0,-1]]), rr=r+dr, cc=c+dc; if(rr<0||rr>=R||cc<0||cc>=C) continue; S.add(kk(rr,cc)); }
+    if(S.size===n && !tieneHueco(S) && !pellizco(S)){ const b=bbox(S); if(b.c1-b.c0>=1&&b.r1-b.r0>=1) return S; }
+  }
+  return setDe(rectCells(2,Math.ceil(n/2)));
+}
+function normaliza(S){ const b=bbox(S); return new Set([...S].map(k=>{ const [r,c]=rc(k); return kk(r-b.r0,c-b.c0); })); }
+/* tramos rectos del contorno, con su largo */
+function tramos(S){
+  const H={},V={};
+  for(const k of S){ const [r,c]=rc(k);
+    if(!S.has(kk(r-1,c))) (H['t'+r]=H['t'+r]||[]).push(c);
+    if(!S.has(kk(r+1,c))) (H['b'+(r+1)]=H['b'+(r+1)]||[]).push(c);
+    if(!S.has(kk(r,c-1))) (V['l'+c]=V['l'+c]||[]).push(r);
+    if(!S.has(kk(r,c+1))) (V['r'+(c+1)]=V['r'+(c+1)]||[]).push(r); }
+  const out=[];
+  function juntar(obj,horiz){ for(const key in obj){ const v=obj[key].sort((a,b)=>a-b), lado=key[0], pos=+key.slice(1); let ini=v[0],prev=v[0];
+      const fin=(a,b)=>out.push({h:horiz,lado,pos,a,b:b+1,len:b+1-a});
+      for(let i=1;i<v.length;i++){ if(v[i]===prev+1){ prev=v[i]; } else { fin(ini,prev); ini=prev=v[i]; } } fin(ini,prev); } }
+  juntar(H,true); juntar(V,false); return out;
+}
+function svgGrid(S,o){ o=o||{};
+  const b=bbox(S), R=b.r1-b.r0+1, C=b.c1-b.c0+1, SZ=30, M=o.etiquetas?30:14, W=C*SZ+2*M, Hh=R*SZ+2*M;
+  let g='';
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const f=S.has(kk(r+b.r0,c+b.c0)); g+=`<rect x="${M+c*SZ}" y="${M+r*SZ}" width="${SZ}" height="${SZ}" fill="${f?'rgba(110,231,183,.34)':'rgba(255,255,255,.03)'}" stroke="rgba(196,181,253,${f?.55:.22})" stroke-width="1.4"/>`; }
+  let ed='',lb='';
+  const T=tramos(S);
+  for(const t of T){ let X1,Y1,x2,y2;
+    if(t.h){ X1=M+(t.a-b.c0)*SZ; x2=M+(t.b-b.c0)*SZ; Y1=y2=M+(t.pos-b.r0)*SZ; } else { Y1=M+(t.a-b.r0)*SZ; y2=M+(t.b-b.r0)*SZ; X1=x2=M+(t.pos-b.c0)*SZ; }
+    if(o.contorno!==false) ed+=`<line x1="${X1}" y1="${Y1}" x2="${x2}" y2="${y2}" stroke="#fbbf24" stroke-width="4.5" stroke-linecap="round"/>`;
+    if(o.etiquetas){ const mx=(X1+x2)/2, my=(Y1+y2)/2; const dx=t.h?0:(t.lado==='l'?-15:15), dy=t.h?(t.lado==='t'?-14:14):0; lb+=`<text x="${mx+dx}" y="${my+dy}" font-size="15" text-anchor="middle" dominant-baseline="central" fill="#fde68a">${t.len}</text>`; } }
+  return `<svg viewBox="0 0 ${W} ${Hh}" style="max-width:${Math.round(W*3)}px" role="img" aria-label="Figura en cuadrícula">${g}${ed}${lb}</svg>`;
+}
+function svgMini(S){ const b=bbox(S), R=b.r1-b.r0+1, C=b.c1-b.c0+1, SZ=24, M=8; let g='';
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const f=S.has(kk(r+b.r0,c+b.c0)); g+=`<rect x="${M+c*SZ}" y="${M+r*SZ}" width="${SZ}" height="${SZ}" fill="${f?'rgba(110,231,183,.4)':'transparent'}" stroke="rgba(196,181,253,${f?.6:.15})" stroke-width="1.2"/>`; }
+  return `<svg viewBox="0 0 ${C*SZ+2*M} ${R*SZ+2*M}">${g}</svg>`; }
+
+/* =====================================================================
+   POLÍGONOS CON LADOS ROTULADOS
+   ===================================================================== */
+function svgPoli(pts,labs,o){ o=o||{};
+  const W=o.W||460,H=o.H||250,Mx=56,My=36;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys);
+  const k=Math.min((W-2*Mx)/((mxx-mnx)||1),(H-2*My)/((mxy-mny)||1));
+  const ox=(W-(mxx-mnx)*k)/2-mnx*k, oy=(H-(mxy-mny)*k)/2-mny*k;
+  const P=pts.map(p=>[p[0]*k+ox,p[1]*k+oy]);
+  let a2=0; for(let i=0;i<P.length;i++){ const j=(i+1)%P.length; a2+=P[i][0]*P[j][1]-P[j][0]*P[i][1]; }
+  let lb='';
+  for(let i=0;i<P.length;i++){ if(labs[i]==null) continue; const j=(i+1)%P.length, dx=P[j][0]-P[i][0], dy=P[j][1]-P[i][1], L=Math.hypot(dx,dy)||1;
+    let nx=dy/L, ny=-dx/L; if(a2<0){ nx=-nx; ny=-ny; }
+    const t=String(labs[i]), q=t.startsWith('?');
+    const off=Math.abs(nx)>.5? 16+t.length*4.2 : 17;
+    lb+=`<text x="${(P[i][0]+P[j][0])/2+nx*off}" y="${(P[i][1]+P[j][1])/2+ny*off}" font-size="19" text-anchor="middle" dominant-baseline="central" fill="${q?'#fbbf24':'#fff'}">${t}</text>`; }
+  const path='M'+P.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+'Z';
+  const cen=o.centro?`<text x="${W/2}" y="${H/2}" font-size="21" text-anchor="middle" dominant-baseline="central" fill="#6ee7b7">${o.centro}</text>`:'';
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Figura con sus medidas"><path d="${path}" fill="${o.fill||'rgba(110,231,183,.2)'}" stroke="#fbbf24" stroke-width="4.5" stroke-linejoin="round"/>${cen}${lb}</svg>`;
+}
+function irregular(n){
+  for(let t=0;t<100;t++){ const pts=[]; const base=-Math.PI/2+Math.random()*.6;
+    for(let i=0;i<n;i++){ const a=base+i*2*Math.PI/n+(Math.random()-.5)*(2*Math.PI/n)*.45, r=.72+Math.random()*.28; pts.push([Math.cos(a)*r*1.5,Math.sin(a)*r]); }
+    let ok=true; const L=pts.map((p,i)=>{ const q=pts[(i+1)%n]; return Math.hypot(p[0]-q[0],p[1]-q[1]); }); const m=L.reduce((a,b)=>a+b)/n; if(L.some(x=>x<.55*m)) ok=false;
+    if(ok) return pts; }
+  return Array.from({length:n},(_,i)=>[Math.cos(-Math.PI/2+i*2*Math.PI/n)*1.5,Math.sin(-Math.PI/2+i*2*Math.PI/n)]);
+}
+function regular(n){ const off=n===4?Math.PI/4:0; return Array.from({length:n},(_,i)=>[Math.cos(-Math.PI/2+off+i*2*Math.PI/n),Math.sin(-Math.PI/2+off+i*2*Math.PI/n)]); }
+const rectPts=(w,h)=>[[0,0],[w,0],[w,h],[0,h]];
+function formaL(){ const a=rnd(7,12), c=rnd(2,a-3), b=rnd(2,5), d=b+rnd(3,6); return {pts:[[0,0],[a,0],[a,b],[c,b],[c,d],[0,d]], lados:[a,b,a-c,d-b,c,d], P:2*(a+d)}; }
+function formaEscalera(){ const a=rnd(15,19), b=rnd(2,3), s1=rnd(4,5), t1=rnd(4,5), s2=rnd(4,5), t2=rnd(4,5), H=b+t1+t2;
+  return {pts:[[0,0],[a,0],[a,b],[a-s1,b],[a-s1,b+t1],[a-s1-s2,b+t1],[a-s1-s2,H],[0,H]], lados:[a,b,s1,t1,s2,t2,a-s1-s2,H], P:2*(a+H)}; }
+
+/* =====================================================================
+   MODO 1 · CONTORNO EN LA CUADRÍCULA
+   ===================================================================== */
+function genContorno(){
+  if(NIV==='dificil') return contornoEscoger();
+  let S;
+  if(NIV==='facil'){ const w=rnd(2,6); let h=rnd(1,4); if(h===w && Math.random()<.6) h=Math.max(1,h-1); S=setDe(rectCells(h,w)); }
+  else{ do{ S=normaliza(poliAleatorio(rnd(5,9),5,6)); } while(perimetroSet(S)>24); }
+  const P=perimetroSet(S);
+  Q={k:'num',resp:P,unit:'cm',fails:0,
+    pistas:['El perímetro es lo que mide todo el contorno de la figura.',
+            'Recorre el borde sin saltarte ningún tramo. Mira cuánto mide cada uno.',
+            'Suma todos los tramos del contorno.'],
+    alPista:()=>{ $('stage').innerHTML=svgGrid(S,{etiquetas:true}); }};
+  $('enun').textContent='Cada cuadradito mide 1 cm de lado. ¿Cuánto mide el perímetro de la figura?';
+  $('stage').innerHTML=svgGrid(S,{contorno:false});
+  Q.pregunta='';
+  ponerNum(Q);
+}
+function contornoEscoger(){
+  let figs=null, P=null;
+  for(let t=0;t<300&&!figs;t++){ const n=rnd(5,8), arr=[], per=new Set();
+    for(let i=0;i<12&&arr.length<3;i++){ const S=normaliza(poliAleatorio(n,5,6)), p=perimetroSet(S); if(per.has(p)) continue; per.add(p); arr.push({S,p}); }
+    if(arr.length===3){ figs=arr; } }
+  if(!figs){ const n=6; figs=[{S:setDe(rectCells(2,3)),p:10},{S:setDe(rectCells(1,6)),p:14},{S:normaliza(setDe([[0,0],[0,1],[0,2],[1,0],[2,0],[2,1]])),p:0}]; figs[2].p=perimetroSet(figs[2].S); }
+  barajar(figs); const ok=pick(figs); P=ok.p;
+  Q={k:'opc',resp:P,fails:0};
+  $('enun').textContent=`Cada cuadradito mide 1 cm de lado. ¿Cuál de las figuras tiene perímetro ${P} cm?`;
+  $('stage').innerHTML='<div class="tri3">'+figs.map((f,i)=>`<button type="button" class="opc" data-i="${i}" aria-label="Figura ${'ABC'[i]}"><span class="letra">${'ABC'[i]}</span>${svgMini(f.S)}</button>`).join('')+'</div>';
+  $('ctrl').innerHTML=''; $('acc').innerHTML=''; msg('Cuenta el contorno de cada figura.','pista');
+  document.querySelectorAll('#stage .opc').forEach(b=>b.addEventListener('click',()=>{
+    const f=figs[+b.dataset.i];
+    if(f.p===P){ document.querySelectorAll('#stage .opc').forEach(x=>x.style.pointerEvents='none'); b.classList.add('buena'); exito(`🎉 ¡Sí! La figura ${'ABC'[+b.dataset.i]} mide ${P} cm de perímetro.`); bSiguiente(); }
+    else{ Q.fails++; b.classList.add('mala'); fallo(`Esa figura mide ${f.p} cm de perímetro, no ${P}. Cuenta el borde de otra.`,b); }
+  }));
+}
+
+/* =====================================================================
+   MODO 2 · RECTÁNGULOS Y CUADRADOS
+   ===================================================================== */
+function genRect(){
+  if(NIV==='facil') return rectFacil();
+  if(NIV==='medio') return rectTabla();
+  return rectDificil();
+}
+function rectFacil(){
+  const u=pick(['cm','m']);
+  if(Math.random()<.5){
+    const L=rnd(4,15), A=rnd(2,Math.min(9,L-1)), P=2*(L+A);
+    $('enun').textContent='Calcula el perímetro de este rectángulo.';
+    $('stage').innerHTML=svgPoli(rectPts(L,A),[L+' '+u,A+' '+u,L+' '+u,A+' '+u]);
+    Q={k:'num',resp:P,unit:u,fails:0,pregunta:'',
+      pistas:['El perímetro es la suma de todos sus lados.','Un rectángulo tiene 4 lados: 2 largos y 2 anchos.','Suma los cuatro lados, uno por uno.']};
+  } else {
+    const l=rnd(3,15), P=4*l;
+    $('enun').textContent='Calcula el perímetro de este cuadrado.';
+    $('stage').innerHTML=svgPoli(rectPts(1,1),[l+' '+u,null,null,null],{H:230});
+    Q={k:'num',resp:P,unit:u,fails:0,pregunta:'',
+      pistas:['El perímetro es la suma de todos sus lados.','Un cuadrado tiene 4 lados y todos miden lo mismo.','Suma ese lado 4 veces: '+l+' + '+l+' + '+l+' + '+l+' o multiplica 4 × '+l+'.']};
+  }
+  ponerNum(Q);
+}
+function rectTabla(){
+  const cuad=Math.random()<.5, n=cuad?4:3;
+  let filas=[];
+  if(cuad){ const ls=barajar([2,3,4,5,6,7,8,9,10,12,15]).slice(0,n).sort((a,b)=>a-b); filas=ls.map(l=>({d:[l],resp:4*l})); }
+  else{ const ps=new Set(); while(filas.length<n){ const L=rnd(4,16), A=rnd(2,Math.min(10,L-1)); if(ps.has(L+','+A)) continue; ps.add(L+','+A); filas.push({d:[L,A],resp:2*(L+A)}); } }
+  Q={k:'tab',filas,cuad,fails:0};
+  $('enun').textContent=cuad?'Completa la tabla con el perímetro de cada cuadrado.':'Completa la tabla con el perímetro de cada rectángulo.';
+  const cab=cuad?'<th>Lado (cm)</th>':'<th>Largo (cm)</th><th>Ancho (cm)</th>';
+  $('stage').innerHTML=`<table class="tab"><thead><tr>${cab}<th>Perímetro (cm)</th></tr></thead><tbody>`+filas.map((f,i)=>'<tr>'+f.d.map(x=>`<td>${x}</td>`).join('')+`<td><input class="caja tc" data-i="${i}" type="text" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="Perímetro de la fila ${i+1}"></td></tr>`).join('')+'</tbody></table>';
+  $('ctrl').innerHTML=''; $('acc').innerHTML=btn('bOk','v-verde ancho',I_OK,'Comprobar',true);
+  soloDig($('stage')); const ins=[...document.querySelectorAll('#stage .tc')]; ins[0].focus();
+  ins.forEach((inp,i)=>inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const sig=ins.slice(i+1).find(x=>!x.disabled); if(sig){ e.preventDefault(); e.stopPropagation(); sig.focus(); } } }));
+  $('bOk').addEventListener('click',()=>{
+    const libres=ins.filter(x=>!x.disabled);
+    if(libres.some(x=>x.value.trim()==='')){ msg('Completa todos los espacios.','mal'); libres.find(x=>x.value.trim()==='').focus(); return; }
+    let malos=[];
+    libres.forEach(x=>{ if(Number(x.value)===filas[+x.dataset.i].resp){ x.disabled=true; x.classList.add('ok'); } else malos.push(x); });
+    if(!malos.length){ exito('🎉 ¡Toda la tabla está correcta!'); bSiguiente(); return; }
+    Q.fails++;
+    const h=cuad?['Un cuadrado tiene 4 lados iguales.','Perímetro del cuadrado = 4 × lado.']:['Un rectángulo tiene 2 lados largos y 2 lados anchos.','Perímetro del rectángulo = (largo + ancho) × 2.'];
+    fallo((malos.length===1?'Hay 1 casilla para revisar. ':`Hay ${malos.length} casillas para revisar. `)+h[Math.min(Q.fails-1,1)],malos[0]);
+    malos.forEach(x=>{ x.value=''; }); malos[0].focus();
+  });
+}
+const REG={3:'triángulo equilátero',4:'cuadrado',5:'pentágono regular',6:'hexágono regular'};
+function rectDificil(){
+  const t=pick(['cuadLado','rectAncho','regP','regLado']);
+  if(t==='cuadLado'){
+    const l=rnd(3,16), P=4*l;
+    $('enun').textContent='Un cuadrado tiene el perímetro que se indica. ¿Cuánto mide cada lado?';
+    $('stage').innerHTML=svgPoli(rectPts(1,1),['?',null,null,null],{H:230,centro:`Perímetro = ${P} cm`});
+    Q={k:'num',resp:l,unit:'cm',eti:'Lado =',que:'el lado',fails:0,pregunta:'',pistas:['Un cuadrado tiene 4 lados que miden lo mismo.','Piensa: ¿qué número sumado 4 veces da '+P+'?','Reparte el perímetro en 4 partes iguales: '+P+' : 4.']};
+  } else if(t==='rectAncho'){
+    const L=rnd(6,16), A=rnd(2,L-2), P=2*(L+A);
+    $('enun').textContent='Un rectángulo tiene el perímetro que se indica. ¿Cuánto mide su ancho?';
+    $('stage').innerHTML=svgPoli(rectPts(L,A),[L+' cm','?',null,null],{centro:`Perímetro = ${P} cm`});
+    Q={k:'num',resp:A,unit:'cm',eti:'Ancho =',que:'el ancho',fails:0,pregunta:'',pistas:['El perímetro suma 2 largos y 2 anchos.','Los 2 largos juntos miden '+(2*L)+' cm. ¿Cuánto queda para los 2 anchos?','Lo que queda, repártelo entre los 2 anchos.']};
+  } else if(t==='regP'){
+    const n=pick([3,5,6]), x=rnd(2,12), P=n*x;
+    $('enun').textContent=`Este ${REG[n]} tiene todos sus lados iguales. ¿Cuánto mide su perímetro?`;
+    $('stage').innerHTML=svgPoli(regular(n),[x+' cm',...Array(n-1).fill(null)],{H:270});
+    Q={k:'num',resp:P,unit:'cm',fails:0,pregunta:'',pistas:['Todos los lados miden lo mismo.','Cuenta cuántos lados tiene la figura.','Suma el lado tantas veces como lados tiene, o multiplica.']};
+  } else {
+    const n=pick([3,5,6]), x=rnd(2,12), P=n*x;
+    $('enun').textContent=`Este ${REG[n]} tiene todos sus lados iguales y su perímetro es ${P} cm. ¿Cuánto mide cada lado?`;
+    $('stage').innerHTML=svgPoli(regular(n),['?',...Array(n-1).fill(null)],{H:270});
+    Q={k:'num',resp:x,unit:'cm',eti:'Lado =',que:'el lado',fails:0,pregunta:'',pistas:['Todos los lados miden lo mismo.','Cuenta cuántos lados tiene la figura.',`Reparte el perímetro en ${n} partes iguales: ${P} : ${n}.`]};
+  }
+  ponerNum(Q);
+}
+/* =====================================================================
+   MODO 3 · CERCOS Y RECORRIDOS
+   ===================================================================== */
+function genCercos(){
+  if(NIV==='facil') return cercoFacil();
+  if(NIV==='medio') return cercoMedio();
+  return cercoDificil();
+}
+const CTX_F=[
+  {n:3,u:'cm',txt:'Un banderín triangular se bordeará con cinta. ¿Cuántos centímetros de cinta se necesitan para rodearlo completo?',lo:4,hi:15},
+  {n:4,u:'m',txt:'Esta plaza se cercará con reja por todo su contorno. ¿Cuántos metros de reja se necesitan?',lo:10,hi:60},
+  {n:5,u:'m',txt:'Este terreno se rodeará con un cerco. ¿Cuántos metros de cerco se necesitan?',lo:8,hi:40},
+  {n:4,u:'cm',txt:'Se pegará una guirnalda de papel en el borde de este cartel. ¿Cuántos centímetros de guirnalda se necesitan?',lo:12,hi:45},
+  {n:5,u:'m',txt:'Este huerto se protegerá con malla en todo su borde. ¿Cuántos metros de malla se necesitan?',lo:6,hi:30},
+  {n:3,u:'m',txt:'Una plazoleta triangular tendrá un camino de piedras alrededor. ¿Cuántos metros mide el camino?',lo:8,hi:40},
+];
+function cercoFacil(){
+  const c=pick(CTX_F), lados=Array.from({length:c.n},()=>rnd(c.lo,c.hi)), P=lados.reduce((a,b)=>a+b);
+  $('enun').textContent=c.txt;
+  $('stage').innerHTML=svgPoli(irregular(c.n),lados.map(x=>x+' '+c.u));
+  Q={k:'num',resp:P,unit:c.u,fails:0,pregunta:'',eti:'Total =',
+     pistas:['El perímetro es la suma de todos los lados.','Recorre el borde y suma cada lado, sin dejar ninguno afuera.','Suma de a dos lados y luego junta los resultados.']};
+  ponerNum(Q);
+}
+const PLANTAS=[['terraza','baranda'],['piscina','cuerda con boyas'],['sala de juegos','guirnalda'],['jardín','cerco']];
+const RECT_CTX=[
+  {t:'Una cancha mide {A} m de largo y {B} m de ancho. Un niño trota una vuelta por el borde. ¿Cuántos metros recorre?',u:'m',lo:[40,120],an:[25,70],tab:true,pregunta:'Recorre'},
+  {t:'Se pondrá cinta en todo el borde de este marco. ¿Cuántos centímetros de cinta se necesitan?',u:'cm',lo:[9,30],an:[6,20]},
+  {t:'Este patio rectangular se rodeará con una reja. ¿Cuántos metros de reja se necesitan?',u:'m',lo:[10,40],an:[6,25]},
+  {t:'Se decorará el borde de este mantel con encaje. ¿Cuántos centímetros de encaje se necesitan?',u:'cm',lo:[60,150],an:[40,90]},
+];
+function cercoMedio(){
+  if(Math.random()<.5){
+    const f=Math.random()<.55?formaL():formaEscalera(), pl=pick(PLANTAS);
+    $('enun').textContent=`Esta es la planta de una ${pl[0]}. ¿Cuántos metros de ${pl[1]} se necesitan para rodear todo su borde?`;
+    $('stage').innerHTML=svgPoli(f.pts,f.lados.map(x=>x+' m'));
+    Q={k:'num',resp:f.P,unit:'m',fails:0,pregunta:'',eti:'Total =',
+       pistas:['Recorre el borde completo y suma todos los lados.','Ve marcando cada lado que sumas para no saltarte ninguno.','Suma de a poco: lado por lado, siguiendo el contorno.']};
+  } else if(Math.random()<.35){
+    const l=pick([5,6,8,10,12,15,20]), u=pick(['m','cm']);
+    $('enun').textContent=u==='m'?'Una muralla cuadrada rodea un castillo. ¿Cuántos metros mide todo su contorno?':'Este reloj cuadrado tendrá una cinta decorativa en todo su borde. ¿Cuántos centímetros de cinta se necesitan?';
+    $('stage').innerHTML=svgPoli(rectPts(1,1),[l+' '+u,null,null,null],{H:230});
+    Q={k:'num',resp:4*l,unit:u,fails:0,pregunta:'',eti:'Total =',pistas:['Un cuadrado tiene 4 lados y todos miden lo mismo.','Suma ese lado 4 veces o multiplica 4 × '+l+'.','4 × '+l+' = ?']};
+  } else {
+    const c=pick(RECT_CTX), B=rnd(c.lo[0],c.lo[1]), A=rnd(c.an[0],Math.min(c.an[1],B-1)), P=2*(A+B);
+    $('enun').textContent=c.t.replace('{A}',B).replace('{B}',A);
+    $('stage').innerHTML=svgPoli(rectPts(B,A),[B+' '+c.u,A+' '+c.u,null,null]);
+    Q={k:'num',resp:P,unit:c.u,fails:0,pregunta:'',eti:c.pregunta?'Recorre =':'Total =',
+       pistas:['Un rectángulo tiene 4 lados: 2 largos y 2 anchos.','Aunque solo veas 2 medidas, los lados de enfrente miden lo mismo.','Suma: largo + ancho + largo + ancho, o (largo + ancho) × 2.']};
+  }
+  ponerNum(Q);
+}
+function cercoDificil(){
+  const t=pick(['vueltas','faltan','ele','escalera']);
+  if(t==='vueltas'){
+    const B=rnd(40,100), A=rnd(25,Math.min(70,B-5)), v=pick([2,3,4]), P=2*(A+B)*v;
+    $('enun').textContent=`Para entrenar, Camila da ${v} vueltas completas al borde de esta cancha. ¿Cuántos metros recorre en total?`;
+    $('stage').innerHTML=svgPoli(rectPts(B,A),[B+' m',A+' m',null,null]);
+    Q={k:'num',resp:P,unit:'m',fails:0,pregunta:'',eti:'Recorre =',que:'el total que recorre',
+       pistas:['Primero calcula cuánto mide 1 vuelta (el perímetro).','Una vuelta mide '+(2*(A+B))+' m. Ahora piensa en las '+v+' vueltas.','Multiplica lo que mide una vuelta por '+v+'.']};
+  } else if(t==='faltan'){
+    const f=Math.random()<.5?formaL():{pts:rectPts(1,1),lados:null,P:0};
+    let pts,lab,P,u='m';
+    if(f.lados){ pts=f.pts; lab=f.lados.map(x=>x+' m'); P=f.P; } else { const B=rnd(12,40), A=rnd(8,Math.min(25,B-2)); pts=rectPts(B,A); lab=[B+' m',A+' m',null,null]; P=2*(A+B); }
+    const ya=rnd(Math.max(4,Math.floor(P*.2)),Math.floor(P*.6)), faltan=P-ya;
+    $('enun').textContent=`Se quiere cercar este terreno con reja. Ya hay ${ya} m de reja instalados. ¿Cuántos metros de reja faltan?`;
+    $('stage').innerHTML=svgPoli(pts,lab);
+    Q={k:'num',resp:faltan,unit:'m',fails:0,pregunta:'',eti:'Faltan =',que:'la cantidad que falta',
+       pistas:['Primero calcula cuánta reja se necesita en total (el perímetro).','El total es '+P+' m. Ya hay '+ya+' m puestos.','Resta lo que ya hay al total que se necesita.']};
+  } else if(t==='ele'){
+    const W=rnd(9,16), H=rnd(8,14), a=rnd(3,W-4), b=rnd(3,H-4), P=2*(W+H);
+    const pts=[[0,0],[W,0],[W,H-b],[W-a,H-b],[W-a,H],[0,H]];
+    $('enun').textContent='Esta plaza en forma de L tendrá una reja en todo su borde. Algunos lados no tienen medida. ¿Cuántos metros de reja se necesitan?';
+    $('stage').innerHTML=svgPoli(pts,[W+' m','?',a+' m',b+' m','?',H+' m']);
+    Q={k:'num',resp:P,unit:'m',fails:0,pregunta:'',eti:'Total =',
+       pistas:['Los lados con "?" se pueden calcular con las otras medidas.','El lado de la derecha mide lo que falta para completar la altura de '+H+' m.','Los lados de arriba y de abajo juntos miden lo mismo que el ancho total.']};
+  } else {
+    const f=formaEscalera(); const T=f.lados;
+    const pts=f.pts, lab=T.map((x,i)=>(i===6||i===3)?'?':x+' m'), P=f.P;
+    $('enun').textContent='Esta es la planta de unas escaleras de jardín. Dos lados no tienen medida. ¿Cuántos metros de borde tiene la figura?';
+    $('stage').innerHTML=svgPoli(pts,lab);
+    Q={k:'num',resp:P,unit:'m',fails:0,pregunta:'',eti:'Total =',
+       pistas:['Los lados con "?" se pueden calcular con las medidas que sí conoces.','Mira cuánto miden en total los tramos horizontales de arriba y de abajo.','Los lados de abajo suman lo mismo que el de arriba; lo mismo pasa con los verticales.']};
+  }
+  ponerNum(Q);
+}
+
+/* =====================================================================
+   MODO 4 · DIBUJA CON PERÍMETRO
+   ===================================================================== */
+const DESAFIOS_D=[[4,8],[4,10],[5,10],[5,12],[6,10],[6,12],[6,14],[8,12],[8,14],[9,12],[9,16]];
+function genDibuja(){
+  let P,N=null;
+  if(NIV==='facil') P=pick([8,10,12]);
+  else if(NIV==='medio') P=pick([12,14,16,18]);
+  else { [N,P]=pick(DESAFIOS_D); }
+  const C=innerWidth<500?7:8, R=6, SZ=40, M=8;
+  const S=new Set();
+  Q={k:'dib',P,N,fails:0,fin:false,S};
+  $('enun').textContent=N?`Cada cuadradito mide 1 cm de lado. Pinta exactamente ${N} cuadraditos para formar una figura de perímetro ${P} cm.`:`Cada cuadradito mide 1 cm de lado. Pinta cuadraditos para formar una figura de perímetro ${P} cm.`;
+  let cel='';
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) cel+=`<rect class="cel" data-r="${r}" data-c="${c}" x="${M+c*SZ}" y="${M+r*SZ}" width="${SZ}" height="${SZ}" rx="2" fill="rgba(255,255,255,.04)" stroke="rgba(196,181,253,.4)" stroke-width="1.4"/>`;
+  $('stage').innerHTML=`<svg id="dg" viewBox="0 0 ${C*SZ+2*M} ${R*SZ+2*M}" role="img" aria-label="Cuadrícula para dibujar">${cel}<g id="dgc" pointer-events="none"></g></svg>`;
+  $('ctrl').innerHTML=N?`<span class="chipN" id="cN">Llevas 0 de ${N} cuadraditos</span>`:'';
+  $('acc').innerHTML=btn('bOk','v-verde ancho',I_OK,'Comprobar',true)+btn('bBorrar','v-azul sutil',I_BORRAR,'Borrar');
+  msg('Toca o arrastra para pintar. Toca uno pintado para borrarlo.','pista');
+  function pinta(){
+    document.querySelectorAll('#dg .cel').forEach(e=>{ const f=S.has(kk(+e.dataset.r,+e.dataset.c)); e.setAttribute('fill',f?'rgba(110,231,183,.45)':'rgba(255,255,255,.04)'); });
+    let ed=''; const T=tramos(S);
+    for(const t of T){ let x1,y1,x2,y2; if(t.h){ x1=M+t.a*SZ; x2=M+t.b*SZ; y1=y2=M+t.pos*SZ; } else { y1=M+t.a*SZ; y2=M+t.b*SZ; x1=x2=M+t.pos*SZ; } ed+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fbbf24" stroke-width="4.5" stroke-linecap="round"/>`; }
+    $('dgc').innerHTML=ed;
+    const cn=$('cN'); if(cn){ cn.textContent=`Llevas ${S.size} de ${N} cuadraditos`; cn.classList.toggle('lleno',S.size===N); }
+  }
+  let modo=null;
+  function toca(el,forzar){ if(Q.fin||!el||!el.classList||!el.classList.contains('cel')) return; const k=kk(+el.dataset.r,+el.dataset.c);
+    if(forzar==null){ modo=!S.has(k); }
+    const quiere=forzar==null?modo:forzar; if(quiere) S.add(k); else S.delete(k); pinta(); }
+  const dg=$('dg');
+  dg.addEventListener('pointerdown',e=>{ e.preventDefault(); const el=e.target; if(!el.classList||!el.classList.contains('cel')) return; modo=!S.has(kk(+el.dataset.r,+el.dataset.c)); toca(el,modo); dg.setPointerCapture&&dg.setPointerCapture(e.pointerId); dg._down=true; });
+  dg.addEventListener('pointermove',e=>{ if(!dg._down) return; const el=document.elementFromPoint(e.clientX,e.clientY); toca(el,modo); });
+  const fin=()=>{ dg._down=false; }; dg.addEventListener('pointerup',fin); dg.addEventListener('pointercancel',fin);
+  $('bBorrar').addEventListener('click',()=>{ if(Q.fin) return; S.clear(); pinta(); msg('',''); });
+  $('bOk').addEventListener('click',()=>{
+    if(Q.fin) return;
+    if(!S.size){ msg('Pinta al menos un cuadradito.','mal'); return; }
+    if(!conectada(S)){ Q.fails++; fallo('Tu figura está en varios pedazos. Debe ser una sola pieza, con los cuadraditos pegados por sus lados.',$('stage')); return; }
+    if(tieneHueco(S)){ Q.fails++; fallo('Tu figura tiene un hueco por dentro. Intenta una figura sin huecos.',$('stage')); return; }
+    if(N && S.size!==N){ Q.fails++; fallo(`Debes usar exactamente ${N} cuadraditos y llevas ${S.size}.`,$('stage')); return; }
+    const p=perimetroSet(S);
+    if(p===P){ Q.fin=true; $('acc').innerHTML=''; exito(`🎉 ¡Perfecto! Tu figura mide ${P} cm de perímetro.`); bSiguiente(); return; }
+    Q.fails++;
+    const pista=p>P?'Junta más los cuadraditos: así el contorno se acorta.':'Estira o separa un poco la figura: así el contorno crece.';
+    fallo(`Tu figura mide ${p} cm de perímetro y necesitas ${P} cm. ${pista}`,$('stage'));
+  });
+}
+
+/* ---------- compañero (chip) ---------- */
+(function(){
+  function montar(n){ n=n||0;
+    if(typeof window.montarChipCompanero==='function'){
+      [['mvChipHome',{grande:true}],['mvChipHeader',{grande:false}]].forEach(function(p){
+        var e=document.getElementById(p[0]); if(e && !e.dataset.mv){ e.dataset.mv='1'; window.montarChipCompanero(e,p[1]); } });
+    } else if(n<100){ setTimeout(function(){ montar(n+1); },100); } }
+  montar();
+})();
+window.__Q=()=>Q;
+</script>
+<script type="module" src="../mathverse-core.js"></script>
+</body>
+</html>
